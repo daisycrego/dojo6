@@ -1,0 +1,17 @@
+#define(body):
+<section id="listing" class="wrapper">
+    <h2>Listing</h2>
+
+    #for(post in posts):
+    <article>
+        <a href="/#(post.slug)/">
+            <h3>#(post.title)</h3>
+            <p>#(post.excerpt)</p>
+            <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.title ?? "Uncategorized")</p>
+        </a>
+    </article>
+    #endfor
+
+</section>
+#enddefine
+#inline("Frontend/Index")
