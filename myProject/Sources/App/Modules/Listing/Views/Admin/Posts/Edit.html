@@ -27,18 +27,26 @@
     </section>
 
     <section>
-        <label for="excerpt">Excerpt</label>
-        <textarea name="excerpt" class="small">#(edit.excerpt.value)</textarea>
-        #if(edit.excerpt.error != nil):
-        <span class="error">#(edit.excerpt.error)</span>
+        <label for="url_zillow">URL - Zillow</label>
+        <textarea id="url_zillow" name="url_zillow" class="large" >#(edit.url_zillow.value)</textarea>
+        #if(edit.url_zillow.error != nil):
+        <span class="error">#(edit.url_zillow.error)</span>
         #endif
     </section>
 
     <section>
-        <label for="content">Content</label>
-        <textarea id="content" name="content" class="large" >#(edit.content.value)</textarea>
-        #if(edit.content.error != nil):
-        <span class="error">#(edit.content.error)</span>
+        <label for="url_redfin">URL - Redfin</label>
+        <textarea id="url_redfin" name="url_redfin" class="large" >#(edit.url_redfin.value)</textarea>
+        #if(edit.url_redfin.error != nil):
+        <span class="error">#(edit.url_redfin.error)</span>
+        #endif
+    </section>
+
+    <section>
+        <label for="url_cb">URL - Coldwell Banker</label>
+        <textarea id="url_cb" name="url_cb" class="large" >#(edit.url_cb.value)</textarea>
+        #if(edit.url_cb.error != nil):
+        <span class="error">#(edit.url_cb.error)</span>
         #endif
     </section>
 

@@ -8,18 +8,20 @@ final class ListingPostEditForm: Form {
         var id: String
         var address: String
         var slug: String
-        var excerpt: String
+        var url_zillow: String
+        var url_redfin: String
+        var url_cb: String
         var date: String
-        var content: String
         var agentId: String
     }
 
     var id: String? = nil
     var address = StringFormField()
     var slug = StringFormField()
-    var excerpt = StringFormField()
+    var url_zillow = StringFormField()
+    var url_redfin = StringFormField()
+    var url_cb = StringFormField()
     var date = StringFormField()
-    var content = StringFormField()
     var agent = StringSelectionFormField()
     
     var leafData: LeafData {
@@ -27,9 +29,10 @@ final class ListingPostEditForm: Form {
             "id": .string(id),
             "address": address.leafData,
             "slug": slug.leafData,
-            "excerpt": excerpt.leafData,
+            "url_zillow": url_zillow.leafData,
+            "url_redfin": url_redfin.leafData,
+            "url_cb": url_cb.leafData,
             "date": date.leafData,
-            "content": content.leafData,
             "agent": agent.leafData,
         ])
     }
@@ -43,9 +46,10 @@ final class ListingPostEditForm: Form {
         }
         address.value = context.address
         slug.value = context.slug
-        excerpt.value = context.excerpt
         date.value = context.date
-        content.value = context.content
+        url_zillow.value = context.url_zillow
+        url_redfin.value = context.url_redfin
+        url_cb.value = context.url_cb
         agent.value = context.agentId
     }
     
@@ -60,18 +64,24 @@ final class ListingPostEditForm: Form {
             slug.error = "Slug is required"
             valid = false
         }
-        if excerpt.value.isEmpty {
-            excerpt.error = "Excerpt is required"
-            valid = false
-        }
         if DateFormatter.custom.date(from: date.value) == nil {
             date.error = "Invalid date"
             valid = false
         }
-        if content.value.isEmpty {
-            content.error = "Content is required"
+        /*
+        if url_zillow.value.isEmpty {
+            url_zillow.error = "Zillow URL is required"
             valid = false
         }
+        if url_redfin.value.isEmpty {
+            url_redfin.error = "Redfin URL is required"
+            valid = false
+        }
+        if url_cb.value.isEmpty {
+            url_cb.error = "Coldwell Banker URL is required"
+            valid = false
+        }
+        */
         let uuid = UUID(uuidString: self.agent.value)
         return ListingAgentModel.find(uuid, on: req.db).map { [unowned self] model in
             if model == nil {
@@ -86,18 +96,20 @@ final class ListingPostEditForm: Form {
         id = model.id!.uuidString
         address.value = model.address
         slug.value = model.slug
-        excerpt.value = model.excerpt
+        url_zillow.value = model.url_zillow
+        url_redfin.value = model.url_redfin
+        url_cb.value = model.url_cb
         date.value = DateFormatter.custom.string(from: model.date)
-        content.value = model.content
         agent.value = model.$agent.id.uuidString
     }
     
     func write(to model: Model) {
         model.address = address.value
         model.slug = slug.value
-        model.excerpt = excerpt.value
+        model.url_zillow = url_zillow.value
+        model.url_redfin = url_redfin.value
+        model.url_cb = url_cb.value
         model.date = DateFormatter.custom.date(from: date.value)!
-        model.content = content.value
         model.$agent.id = UUID(uuidString: agent.value)!
     }
 }

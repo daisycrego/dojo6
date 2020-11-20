@@ -1,10 +1,13 @@
 #define(body):
 <section id="listing" class="wrapper">
     <h2>#(post.address)</h2>
-    <p>#(post.excerpt)</p>
     <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.title ?? "Uncategorized")</p>
     <hr>
-    <p>#(post.content)</p>
+    <ul>
+        <li>#(post.url_zillow)</li>
+        <li>#(post.url_redfin)</li>
+        <li>#(post.url_cb)</li>
+    </ul>
 </section>
 #enddefine
 #inline("Frontend/Index")

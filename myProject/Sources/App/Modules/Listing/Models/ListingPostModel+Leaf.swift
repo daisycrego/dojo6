@@ -7,9 +7,10 @@ extension ListingPostModel: LeafDataRepresentable {
             "id": .string(id?.uuidString),
             "address": .string(address),
             "slug": .string(slug),
-            "excerpt": .string(excerpt),
+            "url_zillow": .string(url_zillow),
+            "url_redfin": .string(url_redfin),
+            "url_cb": .string(url_cb),
             "date": .double(date.timeIntervalSinceReferenceDate),
-            "content": .string(content),
             "agent": $agent.value != nil ? agent.leafData : .dictionary(nil),
         ])
     }

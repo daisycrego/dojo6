@@ -13,9 +13,10 @@ struct ListingMigration_v1_0_0: Migration {
                 .id()
                 .field(ListingPostModel.FieldKeys.address, .string, .required)
                 .field(ListingPostModel.FieldKeys.slug, .string, .required)
-                .field(ListingPostModel.FieldKeys.excerpt, .data, .required)
+                .field(ListingPostModel.FieldKeys.url_zillow, .data)
+                .field(ListingPostModel.FieldKeys.url_redfin, .data)
+                .field(ListingPostModel.FieldKeys.url_cb, .data)
                 .field(ListingPostModel.FieldKeys.date, .datetime, .required)
-                .field(ListingPostModel.FieldKeys.content, .data, .required)
                 .field(ListingPostModel.FieldKeys.agentId, .uuid)
                 .foreignKey(ListingPostModel.FieldKeys.agentId,
                             references: ListingAgentModel.schema, .id,
