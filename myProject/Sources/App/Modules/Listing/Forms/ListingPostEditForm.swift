@@ -6,7 +6,7 @@ final class ListingPostEditForm: Form {
     
     struct Input: Decodable {
         var id: String
-        var title: String
+        var address: String
         var slug: String
         var excerpt: String
         var date: String
@@ -15,7 +15,7 @@ final class ListingPostEditForm: Form {
     }
 
     var id: String? = nil
-    var title = StringFormField()
+    var address = StringFormField()
     var slug = StringFormField()
     var excerpt = StringFormField()
     var date = StringFormField()
@@ -25,7 +25,7 @@ final class ListingPostEditForm: Form {
     var leafData: LeafData {
         .dictionary([
             "id": .string(id),
-            "title": title.leafData,
+            "address": address.leafData,
             "slug": slug.leafData,
             "excerpt": excerpt.leafData,
             "date": date.leafData,
@@ -41,7 +41,7 @@ final class ListingPostEditForm: Form {
         if !context.id.isEmpty {
             id = context.id
         }
-        title.value = context.title
+        address.value = context.address
         slug.value = context.slug
         excerpt.value = context.excerpt
         date.value = context.date
@@ -52,8 +52,8 @@ final class ListingPostEditForm: Form {
     func validate(req: Request) -> EventLoopFuture<Bool> {
         var valid = true
         
-        if title.value.isEmpty {
-            title.error = "Title is required"
+        if address.value.isEmpty {
+            address.error = "Address is required"
             valid = false
         }
         if slug.value.isEmpty {
@@ -84,7 +84,7 @@ final class ListingPostEditForm: Form {
     
     func read(from model: Model)  {
         id = model.id!.uuidString
-        title.value = model.title
+        address.value = model.address
         slug.value = model.slug
         excerpt.value = model.excerpt
         date.value = DateFormatter.custom.string(from: model.date)
@@ -93,7 +93,7 @@ final class ListingPostEditForm: Form {
     }
     
     func write(to model: Model) {
-        model.title = title.value
+        model.address = address.value
         model.slug = slug.value
         model.excerpt = excerpt.value
         model.date = DateFormatter.custom.date(from: date.value)!

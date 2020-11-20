@@ -5,8 +5,7 @@
     #for(post in posts):
     <article>
         <a href="/#(post.slug)/">
-            <h3>#(post.title)</h3>
-            <p>#(post.excerpt)</p>
+            <h3>#(post.address)</h3>
             <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.title ?? "Uncategorized")</p>
         </a>
     </article>

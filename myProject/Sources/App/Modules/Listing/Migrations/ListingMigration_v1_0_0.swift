@@ -11,13 +11,13 @@ struct ListingMigration_v1_0_0: Migration {
                 .create(),
             db.schema(ListingPostModel.schema)
                 .id()
-                .field(ListingPostModel.FieldKeys.title, .string, .required)
+                .field(ListingPostModel.FieldKeys.address, .string, .required)
                 .field(ListingPostModel.FieldKeys.slug, .string, .required)
                 .field(ListingPostModel.FieldKeys.excerpt, .data, .required)
                 .field(ListingPostModel.FieldKeys.date, .datetime, .required)
                 .field(ListingPostModel.FieldKeys.content, .data, .required)
-                .field(ListingPostModel.FieldKeys.AgentId, .uuid)
-                .foreignKey(ListingPostModel.FieldKeys.AgentId,
+                .field(ListingPostModel.FieldKeys.agentId, .uuid)
+                .foreignKey(ListingPostModel.FieldKeys.agentId,
                             references: ListingAgentModel.schema, .id,
                             onDelete: .cascade,
                             onUpdate: .cascade)

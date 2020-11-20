@@ -5,7 +5,7 @@ extension ListingPostModel: LeafDataRepresentable {
     var leafData: LeafData {
         .dictionary([
             "id": .string(id?.uuidString),
-            "title": .string(title),
+            "address": .string(address),
             "slug": .string(slug),
             "excerpt": .string(excerpt),
             "date": .double(date.timeIntervalSinceReferenceDate),

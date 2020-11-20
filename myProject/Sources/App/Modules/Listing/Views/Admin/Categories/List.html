@@ -15,7 +15,7 @@
     <tbody>
     #for(item in list):
         <tr>
-            <td>#(item.title)</td>
+            <td>#(item.name)</td>
             <td class="actions">
                 <a href="/admin/listing/agents/#(item.id)">Edit</a> &middot;
                 <a id="#(item.id)" href="#" onClick="confirmDelete('/admin/listing/agents/', this.id);">Delete</a>

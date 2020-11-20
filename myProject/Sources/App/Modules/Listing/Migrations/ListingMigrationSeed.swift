@@ -79,10 +79,10 @@ struct ListingMigrationSeed: Migration {
                 
                 let agentId = agent_objs.randomElement()!.id! // @TODO - fix this
                 let address = addresses[index]
-                return ListingPostModel(title: address,
-                                     slug: address.lowercased().replacingOccurrences(of: " ", with: "-"),
+                return ListingPostModel(address: address,
+                                     slug: address.lowercased().replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "#", with: "-"),
                                      excerpt: Lorem.sentence,
-                                     date: Date().addingTimeInterval(-Double.random(in: 0...(86400 * 60))),
+                                     date: Date(),
                                      content: Lorem.paragraph,
                                      agentId: agentId)
             }
