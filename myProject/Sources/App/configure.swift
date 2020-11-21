@@ -21,6 +21,9 @@ public func configure(_ app: Application) throws {
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     app.middleware.use(ExtendPathMiddleware())
 
+    app.http.server.configuration.hostname = "0.0.0.0"
+    app.http.server.configuration.port = 80    
+
     let detected = LeafEngine.rootDirectory ?? app.directory.viewsDirectory
     LeafEngine.rootDirectory = detected
 
