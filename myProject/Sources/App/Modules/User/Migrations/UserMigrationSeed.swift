@@ -5,7 +5,7 @@ struct UserMigrationSeed: Migration {
 
     func prepare(on db: Database) -> EventLoopFuture<Void> {
         [
-            UserModel(email: "root@localhost.com", password: try! Bcrypt.hash("ChangeMe1"))
+            UserModel(email: "root@localhost.com", password: try! Bcrypt.hash("Forever89!"))
         ].create(on: db)
     }
 
