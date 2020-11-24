@@ -21,8 +21,13 @@ public func configure(_ app: Application) throws {
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     app.middleware.use(ExtendPathMiddleware())
 
-    app.http.server.configuration.hostname = "0.0.0.0"
-    app.http.server.configuration.port = 80    
+    if let hostname = Environment.get("VAPOR_HOST"), let port = Int(Environment.get("VAPOR_PORT") ?? "80") {
+        app.http.server.configuration.hostname = hostname
+        app.http.server.configuration.port = port    
+    } else {
+        app.http.server.configuration.hostname = "0.0.0.0"
+        app.http.server.configuration.port = 80   
+    }   
 
     let detected = LeafEngine.rootDirectory ?? app.directory.viewsDirectory
     LeafEngine.rootDirectory = detected

@@ -82,7 +82,7 @@ extension AdminViewController where Model.IDValue == UUID {
                 return self.beforeCreate(req: req, model: model, form: form)
                     .flatMap { model in
                         return model.create(on: req.db)
-                            .map { req.redirect(to: model.id!.uuidString) }
+                            .map { req.redirect(to: req.url.path + "../" + model.id!.uuidString) }
                     }
             }
     }
