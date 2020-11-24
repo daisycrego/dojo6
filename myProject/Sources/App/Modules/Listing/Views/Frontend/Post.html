@@ -1,7 +1,7 @@
 #define(body):
 <section id="listing" class="wrapper">
     <h2>#(post.address)</h2>
-    <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.title ?? "Uncategorized")</p>
+    <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.name ?? "Uncategorized")</p>
     <hr>
     <ul>
         <li>#(post.url_zillow)</li>

@@ -1,3 +1,5 @@
+<!--Sources/App/Modules/Listing/Views/Frontend/Listing.html-->
+
 #define(body):
 <section id="listing" class="wrapper">
     <h2>Listing</h2>
@@ -6,7 +8,7 @@
     <article>
         <a href="/#(post.slug)/">
             <h3>#(post.address)</h3>
-            <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.title ?? "Uncategorized")</p>
+            <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.name ?? "Uncategorized")</p>
         </a>
     </article>
     #endfor
