@@ -18,6 +18,14 @@
         #endif
     </section>
 
+    <section style="display: none;">
+        <label for="slug">Slug <span class="required">(required)</span></label>
+        <input id="slug" type="text" name="slug" value="#(edit.slug.value)" class="field">
+        #if(edit.slug.error != nil):
+        <span class="error">#(edit.slug.error)</span>
+        #endif
+    </section>
+
     <section>
         <label for="url_zillow">URL - Zillow</label>
         <textarea id="url_zillow" name="url_zillow" class="large" >#(edit.url_zillow.value)</textarea>

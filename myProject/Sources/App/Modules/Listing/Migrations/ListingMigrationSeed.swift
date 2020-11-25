@@ -94,7 +94,15 @@ struct ListingMigrationSeed: Migration {
                 let address = addresses[index]
                 let zillow_urls = url_dict["zillow"]
                 print(zillow_urls)
+
+                let slug = address.lowercased().replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "#", with: "-")
+                // Generate random 7-character string to append to slug to avoid db conflicts with identical addresses
+                let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                let random = String((0..<7).map{ _ in letters.randomElement()! })
+                let unique_slug = "\(slug)-\(random)"
+
                 return ListingPostModel(address: address,
+                                     slug: unique_slug,
                                      url_zillow: url_dict["zillow"]![index],
                                      url_redfin: url_dict["redfin"]![index],
                                      url_cb: url_dict["cb"]![index],

@@ -96,6 +96,11 @@ final class ListingPostEditForm: Form {
     
     func write(to model: Model) {
         model.address = address.value
+
+        let slug = address.value.lowercased().replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "#", with: "-")
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let unique_slug = "\(slug)-\(String((0..<7).map{ _ in letters.randomElement()! }))"
+        model.slug = unique_slug
         model.url_zillow = url_zillow.value
         model.url_redfin = url_redfin.value
         model.url_cb = url_cb.value
