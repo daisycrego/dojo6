@@ -3,7 +3,7 @@
 <div class="wrapper">
     <h2><a href="/admin/listing/posts/">Posts</a> / #(edit.id != nil ? "Edit" : "Create")</h2>
     #if(edit.id != nil):
-    <a href="/#(edit.id)" target="_blank">Preview</a>
+    <a href="/#(edit.slug.value)" target="_blank">Preview</a>
     #endif
 </div>
 

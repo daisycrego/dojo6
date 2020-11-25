@@ -6,7 +6,7 @@
 
     #for(post in posts):
     <article>
-        <a href="/#(post.id)/">
+        <a href="/#(post.slug)/">
             <h3>#(post.address)</h3>
             <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.name ?? "Uncategorized")</p>
         </a>

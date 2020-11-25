@@ -12,6 +12,7 @@ struct ListingMigration_v1_0_0: Migration {
             db.schema(ListingPostModel.schema)
                 .id()
                 .field(ListingPostModel.FieldKeys.address, .string, .required)
+                .field(ListingPostModel.FieldKeys.slug, .string, .required)
                 .field(ListingPostModel.FieldKeys.url_zillow, .data)
                 .field(ListingPostModel.FieldKeys.url_redfin, .data)
                 .field(ListingPostModel.FieldKeys.url_cb, .data)
@@ -21,6 +22,7 @@ struct ListingMigration_v1_0_0: Migration {
                             references: ListingAgentModel.schema, .id,
                             onDelete: .cascade,
                             onUpdate: .cascade)
+                .unique(on: ListingPostModel.FieldKeys.slug)
                 .create(),
         ])
     }

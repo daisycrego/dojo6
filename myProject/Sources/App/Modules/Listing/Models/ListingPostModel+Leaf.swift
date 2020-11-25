@@ -6,6 +6,7 @@ extension ListingPostModel: LeafDataRepresentable {
         .dictionary([
             "id": .string(id?.uuidString),
             "address": .string(address),
+            "slug": .string(slug),
             "url_zillow": .string(url_zillow),
             "url_redfin": .string(url_redfin),
             "url_cb": .string(url_cb),
