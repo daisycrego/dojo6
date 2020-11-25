@@ -19,12 +19,10 @@ struct ListingFrontendController {
     }
 
     func postView(req: Request) throws -> EventLoopFuture<Response> {
-        let slug = req.url.path.trimmingCharacters(in: .init(charactersIn: "/"))
-        print(slug)
-        //let id = req.url.path.trimmingCharacters(in: .init(charactersIn: "/"))
+        let id = req.parameters.get("id", as: UUID.self)
+        print(id ?? "nothing there")
         return ListingPostModel.query(on: req.db)
-            .filter(\.$slug == slug)
-            //.filter(\.$id == id)
+            .filter(\.$id == id!)
             .with(\.$agent)
             .first()
             .flatMap { post in

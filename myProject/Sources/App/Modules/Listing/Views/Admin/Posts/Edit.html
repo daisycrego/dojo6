@@ -3,7 +3,7 @@
 <div class="wrapper">
     <h2><a href="/admin/listing/posts/">Posts</a> / #(edit.id != nil ? "Edit" : "Create")</h2>
     #if(edit.id != nil):
-    <a href="/#(edit.slug.value)" target="_blank">Preview</a>
+    <a href="/#(edit.id)" target="_blank">Preview</a>
     #endif
 </div>
 
@@ -15,14 +15,6 @@
         <input id="address" type="text" name="address" value="#(edit.address.value)" class="field">
         #if(edit.address.error != nil):
         <span class="error">#(edit.address.error)</span>
-        #endif
-    </section>
-
-    <section>
-        <label for="slug">Slug <span class="required">(required)</span></label>
-        <input id="slug" type="text" name="slug" value="#(edit.slug.value)" class="field">
-        #if(edit.slug.error != nil):
-        <span class="error">#(edit.slug.error)</span>
         #endif
     </section>
 

@@ -7,7 +7,6 @@ final class ListingPostEditForm: Form {
     struct Input: Decodable {
         var id: String
         var address: String
-        var slug: String
         var url_zillow: String
         var url_redfin: String
         var url_cb: String
@@ -17,7 +16,6 @@ final class ListingPostEditForm: Form {
 
     var id: String? = nil
     var address = StringFormField()
-    var slug = StringFormField()
     var url_zillow = StringFormField()
     var url_redfin = StringFormField()
     var url_cb = StringFormField()
@@ -28,7 +26,6 @@ final class ListingPostEditForm: Form {
         .dictionary([
             "id": .string(id),
             "address": address.leafData,
-            "slug": slug.leafData,
             "url_zillow": url_zillow.leafData,
             "url_redfin": url_redfin.leafData,
             "url_cb": url_cb.leafData,
@@ -45,7 +42,6 @@ final class ListingPostEditForm: Form {
             id = context.id
         }
         address.value = context.address
-        slug.value = context.slug
         date.value = context.date
         url_zillow.value = context.url_zillow
         url_redfin.value = context.url_redfin
@@ -58,10 +54,6 @@ final class ListingPostEditForm: Form {
         
         if address.value.isEmpty {
             address.error = "Address is required"
-            valid = false
-        }
-        if slug.value.isEmpty {
-            slug.error = "Slug is required"
             valid = false
         }
         if DateFormatter.custom.date(from: date.value) == nil {
@@ -95,7 +87,6 @@ final class ListingPostEditForm: Form {
     func read(from model: Model)  {
         id = model.id!.uuidString
         address.value = model.address
-        slug.value = model.slug
         url_zillow.value = model.url_zillow
         url_redfin.value = model.url_redfin
         url_cb.value = model.url_cb
@@ -105,7 +96,6 @@ final class ListingPostEditForm: Form {
     
     func write(to model: Model) {
         model.address = address.value
-        model.slug = slug.value
         model.url_zillow = url_zillow.value
         model.url_redfin = url_redfin.value
         model.url_cb = url_cb.value

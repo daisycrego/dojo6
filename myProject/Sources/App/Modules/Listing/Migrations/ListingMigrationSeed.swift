@@ -95,7 +95,6 @@ struct ListingMigrationSeed: Migration {
                 let zillow_urls = url_dict["zillow"]
                 print(zillow_urls)
                 return ListingPostModel(address: address,
-                                     slug: address.lowercased().replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "#", with: "-"),
                                      url_zillow: url_dict["zillow"]![index],
                                      url_redfin: url_dict["redfin"]![index],
                                      url_cb: url_dict["cb"]![index],
