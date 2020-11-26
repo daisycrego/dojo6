@@ -23,6 +23,7 @@ final class ListingPostModel: Model {
     @Field(key: FieldKeys.url_cb) var url_cb: String
     @Field(key: FieldKeys.date) var date: Date
     @Parent(key: FieldKeys.agentId) var agent: ListingAgentModel
+    @Children(for: \.$listing) var views: [ListingViewsModel]
 
     init() { }
 

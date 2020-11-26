@@ -24,6 +24,19 @@ struct ListingMigration_v1_0_0: Migration {
                             onUpdate: .cascade)
                 .unique(on: ListingPostModel.FieldKeys.slug)
                 .create(),
+            db.schema(ListingViewsModel.schema)
+                .id()
+                .field(ListingViewsModel.FieldKeys.date, .datetime, .required)
+                .field(ListingViewsModel.FieldKeys.views_zillow, .int, .required)
+                .field(ListingViewsModel.FieldKeys.views_redfin, .int, .required)
+                .field(ListingViewsModel.FieldKeys.views_cb, .int, .required)
+                .field(ListingViewsModel.FieldKeys.listingId, .uuid)
+                .foreignKey(ListingViewsModel.FieldKeys.listingId,
+                            references: ListingPostModel.schema, .id,
+                            onDelete: .cascade,
+                            onUpdate: .cascade)
+                .unique(on: ListingViewsModel.FieldKeys.date)
+                .create(),
         ])
     }
     
@@ -31,6 +44,7 @@ struct ListingMigration_v1_0_0: Migration {
         db.eventLoop.flatten([
             db.schema(ListingAgentModel.schema).delete(),
             db.schema(ListingPostModel.schema).delete(),
+            db.schema(ListingViewsModel.schema).delete(),
         ])
     }
 }

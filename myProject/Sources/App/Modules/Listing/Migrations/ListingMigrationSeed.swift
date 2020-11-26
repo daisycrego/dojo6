@@ -101,6 +101,14 @@ struct ListingMigrationSeed: Migration {
                 let random = String((0..<7).map{ _ in letters.randomElement()! })
                 let unique_slug = "\(slug)-\(random)"
 
+
+                /*
+                let views = stride(from: 0, to: addresses.count, by: 1).map { index -> ListingViewsModel in 
+                    let listingId = posts[index]
+                }
+                */
+
+
                 return ListingPostModel(address: address,
                                      slug: unique_slug,
                                      url_zillow: url_dict["zillow"]![index],

@@ -15,3 +15,9 @@ extension ListingPostModel: LeafDataRepresentable {
         ])
     }
 }
+
+extension ListingPostModel: FormFieldStringOptionRepresentable {
+    var formFieldStringOption: FormFieldStringOption {
+        .init(key: id!.uuidString, label: address)
+    }
+}
