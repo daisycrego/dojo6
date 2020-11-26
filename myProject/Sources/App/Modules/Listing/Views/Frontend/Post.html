@@ -4,9 +4,9 @@
     <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.name ?? "Uncategorized")</p>
     <hr>
     <ul>
-        <li>#(post.url_zillow)</li>
-        <li>#(post.url_redfin)</li>
-        <li>#(post.url_cb)</li>
+        <li><a href=#(post.url_zillow) target="_blank">#(post.url_zillow)</a></li>
+        <li><a href=#(post.url_zillow) target="_blank">#(post.url_redfin)</a></li>
+        <li><a href=#(post.url_zillow) target="_blank">#(post.url_cb)</a></li>
     </ul>
 </section>
 #enddefine
