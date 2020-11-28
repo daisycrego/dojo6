@@ -1,7 +1,9 @@
 #let(title = "Listing admin")
 #define(body):
+
 <div class="wrapper">
     <h2><a href="/admin/listing/views/">Views</a> / #(edit.id != nil ? "Edit" : "Create")</h2>
+
 </div>
 
 <form id="views-edit-form" class="wrapper" method="post" action="/admin/listing/views/#(edit.id ?? "new")/">
@@ -55,5 +57,7 @@
         <input type="submit" class="submit" value="Save">
     </section>
 </form>
+
+
 #enddefine
 #inline("Admin/Index")
