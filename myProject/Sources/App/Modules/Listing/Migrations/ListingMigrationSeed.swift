@@ -9,26 +9,8 @@ struct ListingMigrationSeed: Migration {
         let string = try String(contentsOf: url)
         return string
     }
-    
-    func prepare(on db: Database)-> EventLoopFuture<Void> {
 
-        var addresses = [String]()
-        var agents_for_listings = [String]()
-        var all_agents = Set<String>()
-        var url_dict = [
-            "zillow": [],
-            "redfin": [],
-            "cb": []
-        ]
-        let path = "listings.csv"
-        var string : String
-        do { 
-            string = try self.getStringFromFile(path)
-        } catch {
-            string = ""
-            print("getStringFromFile(\(path)) failed...")
-        }
-        
+    func getDataFromCSVString(_ string: String, _ all_agents: inout Set<String>, _ url_dict: inout [String:[Any]], _ addresses: inout [String], _ agents_for_listings: inout [String]) {
         let lines = string.split(separator: "\r\n")
         for (lineNumber, line) in lines.enumerated() {
         
@@ -52,7 +34,6 @@ struct ListingMigrationSeed: Migration {
 
             for (columnNumber, column) in columns.enumerated() {
                 let string_col = String(column)
-                print(string_col)
                 if columnNumber == 0 {
                     // handle addresses
                     addresses.append(string_col)
@@ -75,6 +56,27 @@ struct ListingMigrationSeed: Migration {
                 }
             }
         }
+    }
+    
+    func prepare(on db: Database)-> EventLoopFuture<Void> {
+
+        var addresses = [String]()
+        var agents_for_listings = [String]()
+        var all_agents = Set<String>()
+        var url_dict = [
+            "zillow": [],
+            "redfin": [],
+            "cb": []
+        ]
+        let path = "listings.csv"
+        var string : String
+        do { 
+            string = try self.getStringFromFile(path)
+        } catch {
+            string = ""
+            print("getStringFromFile(\(path)) failed...")
+        }
+        self.getDataFromCSVString(string, &all_agents, &url_dict, &addresses, &agents_for_listings)
 
         var agent_objs = [ListingAgentModel]()
         for agent in all_agents {
