@@ -1,6 +1,4 @@
-// prev version in ApiTools/AdminViewocontroller_old.swift
-
-import Vapor
+/*import Vapor
 import Leaf
 import Fluent
 
@@ -36,7 +34,7 @@ protocol AdminViewController {
 extension AdminViewController where Model.IDValue == UUID {
 
     var idParamKey: String { "id" }
-    var idPathComponent: PathComponent { .init(stringLiteral: ":\(idParamKey)") }
+    var idPathComponent: PathComponent { .init(stringLiteral: ":\(self.idParamKey)") }
     
     func find(_ req: Request) throws -> EventLoopFuture<Model> {
         guard
@@ -60,7 +58,7 @@ extension AdminViewController where Model.IDValue == UUID {
     
     func render(req: Request, form: EditForm) -> EventLoopFuture<View> {
         beforeRender(req: req, form: form).flatMap {
-            req.leaf.render(template: editView, context: ["edit": form.leafData])
+            req.leaf.render(template: self.editView, context: ["edit": form.leafData])
         }
     }
     
@@ -77,23 +75,23 @@ extension AdminViewController where Model.IDValue == UUID {
         return form.validate(req: req)
             .flatMap { isValid -> EventLoopFuture<Response> in
                 guard isValid else {
-                    return render(req: req, form: form).encodeResponse(for: req)
+                    return self.render(req: req, form: form).encodeResponse(for: req)
                 }
                 let model = Model()
                 form.write(to: model as! EditForm.Model)
-                return beforeCreate(req: req, model: model, form: form)
+                return self.beforeCreate(req: req, model: model, form: form)
                     .flatMap { model in
                         return model.create(on: req.db)
-                            .map { req.redirect(to: model.id!.uuidString) }
+                            .map { req.redirect(to: req.url.path + "../" + model.id!.uuidString) }
                     }
             }
     }
     
     func updateView(req: Request) throws -> EventLoopFuture<View>  {
-        try find(req).flatMap { model in
+        try self.find(req).flatMap { model in
             let form = EditForm()
             form.read(from: model as! EditForm.Model)
-            return render(req: req, form: form)
+            return self.render(req: req, form: form)
         }
     }
     
@@ -107,12 +105,12 @@ extension AdminViewController where Model.IDValue == UUID {
         let form = try EditForm(req: req)
         return form.validate(req: req).flatMap { isValid in
             guard isValid else {
-                return render(req: req, form: form)
+                return self.render(req: req, form: form)
             }
             do {
-                return try find(req)
+                return try self.find(req)
                     .flatMap { model in
-                        beforeUpdate(req: req, model: model, form: form)
+                        self.beforeUpdate(req: req, model: model, form: form)
                     }
                     .flatMap { model in
                         form.write(to: model as! EditForm.Model)
@@ -121,7 +119,7 @@ extension AdminViewController where Model.IDValue == UUID {
                         }
                     }
                     .flatMap {
-                        render(req: req, form: form)
+                        self.render(req: req, form: form)
                     }
             }
             catch {
@@ -135,7 +133,7 @@ extension AdminViewController where Model.IDValue == UUID {
     }
     
     func delete(req: Request) throws -> EventLoopFuture<String> {
-        try find(req)
+        try self.find(req)
             .flatMap { beforeDelete(req: req, model: $0) }
             .flatMap { model in model.delete(on: req.db).map { model.id!.uuidString } }
     }
@@ -155,3 +153,4 @@ extension AdminViewController where Model.IDValue == UUID {
         base.post(idPathComponent, deletePathComponent, use: delete)
     }
 }
+*/

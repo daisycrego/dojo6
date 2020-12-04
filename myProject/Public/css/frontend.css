@@ -186,12 +186,12 @@ shape-rendering: crispEdges;
 /* axis text */
 .axis text {
 fill: #2b2929;
-font-family: Georgia;
+font-family: sans-serif;
 font-size: 120%;
 }
 
 body {
-    font: 10px sans-serif;
+    font: 13px sans-serif;
   }
   
 .axis path,
