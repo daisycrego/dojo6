@@ -7,6 +7,19 @@ body {
     font-size: 16px;
     line-height: 1.5em;
 }
+div#chart {
+    display: flex;
+    justify-content: center;
+    background-color: #ffffff;
+}
+
+/*
+text {
+    fill: #fff;
+}
+path {
+    fill:#344c5c;
+}*/
 hr {
     margin: 15px 0px;
     border: none;
@@ -153,4 +166,51 @@ input.submit:hover {
         background: #5B61DE;
         border-color: #5B61DE;
     }
+}
+
+/* AXES */
+/* ticks */
+.axis line{
+stroke: #706f6f;
+stroke-width: 0.5;
+shape-rendering: crispEdges;
+}
+
+/* axis contour */
+.axis path {
+stroke: #706f6f;
+stroke-width: 0.7;
+shape-rendering: crispEdges;
+}
+
+/* axis text */
+.axis text {
+fill: #2b2929;
+font-family: Georgia;
+font-size: 120%;
+}
+
+body {
+    font: 10px sans-serif;
+  }
+  
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis path {
+    display: none;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+svg {
+    background-color: white
 }
