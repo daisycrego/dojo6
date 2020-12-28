@@ -1,8 +1,11 @@
 #let(title = "Listing admin")
 #define(body):
+
 <div class="wrapper">
     <h2>Views</h2>
     <a href="/admin/listing/views/new">Create</a>
+
+    <button onClick="fetchListingViews();" type="button">Collect views</button>
 
     <div id="container"></div>
 </div>
