@@ -23,7 +23,7 @@ struct ListingRouter: RouteCollection {
         postAdminController.setupRoutes(on: listing, as: "posts")
         agentAdminController.setupRoutes(on: listing, as: "agents")
         viewsAdminController.setupRoutes(on: listing, as: "views")
-
+        listing.get("views", "collect", use: viewsAdminController.collectViews)
         let listingApi = routes.grouped("api", "listing")
         
         let views = listingApi.grouped("views")
@@ -34,6 +34,8 @@ struct ListingRouter: RouteCollection {
         viewsApiController.setupUpdateRoute(routes: views)
         viewsApiController.setupPatchRoute(routes: views)
         viewsApiController.setupDeleteRoute(routes: views)
+
+        
 
         let agents = listingApi.grouped("agents")
         let agentApiController = ListingAgentApiController()
