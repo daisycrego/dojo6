@@ -2,6 +2,7 @@ import Vapor
 import Fluent
 import Leaf
 import Foundation
+import FoundationNetworking
 
 struct ListingViewsAdminController: AdminViewController {
     typealias EditForm = ListingViewsEditForm
