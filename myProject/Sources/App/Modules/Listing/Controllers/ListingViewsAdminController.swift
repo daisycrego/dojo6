@@ -137,7 +137,7 @@ struct ListingViewsAdminController: AdminViewController {
         let urls = [("https://www.coldwellbankerhomes.com/nj/weehawken/369-park-ave/pid_37447822/", "abc")]
         let url = URL(string: "https://www.coldwellbankerhomes.com/nj/weehawken/369-park-ave/pid_37447822/")
 
-        fetchAllListings(scrapeAllListings)
+        fetchAllListings(completion: scrapeAllListings)
         
         // use the API to get the ListingViews, that way you can get the ListingViewsModel's in Content format, which the API already implements. 
         return req.client.get("http://localhost:8080/api/listing/views/")
