@@ -99,7 +99,7 @@ struct ListingViewsAdminController: AdminViewController {
 
     // will be passed as completion to fetchAllListings 
     func scrapeAllListings(urls: [String: String]) {
-        var results = [(String, Int)]()
+        var results = [(String, String)]()
         let serialQueue = DispatchQueue(label: "serialQueue")
         let group = DispatchGroup()
 
