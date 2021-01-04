@@ -1,16 +1,17 @@
 #!/bin/bash
 echo "Installing Swift 5.3.1..."
-apt-get update
-apt-get upgrade
 
+sudo apt-get update
+sudo apt-get upgrade
 
 wget https://swift.org/builds/swift-5.3.1-release/ubuntu1804/swift-5.3.1-RELEASE/swift-5.3.1-RELEASE-ubuntu18.04.tar.gz
 tar xzf swift-5.3.1-RELEASE-ubuntu18.04.tar.gz
-rm -r swift-5.3.1-RELEASE-ubuntu18.04.tar.gz
-mv swift-5.3.1-RELEASE-ubuntu18.04/ /usr/share/swift
-echo "export PATH=/usr/share/swift/usr/bin:$PATH" >> ~/.bashrc
-source  ~/.bashrc
-apt-get install libpython2.7 # dependency for swift
+
+sudo rm -rf swift-5.3.1-RELEASE-ubuntu18.04.tar.gz
+sudo mv swift-5.3.1-RELEASE-ubuntu18.04/ /usr/share/swift
+sudo echo "export PATH=/usr/share/swift/usr/bin:$PATH" >> ~/.bashrc
+sudo source  ~/.bashrc
+sudo apt-get install libpython2.7 # dependency for swift
 swift --version
 echo "Swift 5.3.1 installed."
 echo "Installing vapor via vapor toolbox"
