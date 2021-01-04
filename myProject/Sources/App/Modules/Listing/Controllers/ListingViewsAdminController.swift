@@ -99,7 +99,7 @@ struct ListingViewsAdminController: AdminViewController {
 
     // will be passed as completion to fetchAllListings 
     func scrapeAllListings(urls: [String: String]) {
-        var results = [(String, String, Int)]()
+        var results = [(String, Int)]()
         let serialQueue = DispatchQueue(label: "serialQueue")
         let group = DispatchGroup()
 
@@ -107,8 +107,8 @@ struct ListingViewsAdminController: AdminViewController {
 
             group.enter()
             serialQueue.async {
-                let views = scrapeListing(targetUrl: url)
-                let tuple = (url, id, views)
+                scrapeListing(targetUrl: url)
+                let tuple = (url, id)
                 results.append(tuple)
                 group.leave()
             }
@@ -119,9 +119,9 @@ struct ListingViewsAdminController: AdminViewController {
         }
 
         group.notify(queue: serialQueue) {
+            print("passed all of the following listings to the web scraper.")
             print(results)
-            // post all the results to the API for ListingViews
-
+            print("the scraper will send an API to the backend with the views directly")
         }
     }
 
