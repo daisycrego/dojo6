@@ -16,8 +16,6 @@ let package = Package(
         .package(url: "https://github.com/binarybirds/liquid", from: "1.1.0"),
         .package(url: "https://github.com/binarybirds/liquid-local-driver", from: "1.1.0"),
         .package(url: "https://github.com/lukaskubanek/LoremSwiftum", from: "2.2.1"),
-        //.package(url: "https://github.com/scinfu/SwiftSoup.git", from: "1.7.4"),
-        .package(url: "https://github.com/tid-kijyun/Kanna.git", from: "4.0.0"),
     ],
     targets: [
         .target(name: "App", dependencies: [
@@ -28,8 +26,6 @@ let package = Package(
             .product(name: "LiquidLocalDriver", package: "liquid-local-driver"),
             .product(name: "LoremSwiftum", package: "LoremSwiftum"),
             .product(name: "Vapor", package: "vapor"),
-            .product(name: "Kanna", package: "Kanna"),
-            //.product(name: "SwiftSoup", package: "SwiftSoup")
         ],
         exclude: [
             "Modules/Listing/Views",
