@@ -11,7 +11,7 @@ struct ListingViewsAdminController: AdminViewController {
     var listView: String = "Listing/Admin/ListingViews/List"
     var editView: String = "Listing/Admin/ListingViews/Edit"
 
-    func fetchAllListings(completion: ([String: String]) -> ()) -> Void {
+    func fetchAllListings(completion: @escaping ([String: String]) -> ()) -> Void {
         // Endpoint for retrieving all of the current Listing objects in the database
         let url = URL(string: "http://localhost:8080/api/listing/posts/")
         guard let requestUrl = url else { fatalError() }
@@ -68,7 +68,7 @@ struct ListingViewsAdminController: AdminViewController {
 
     func scrapeListing(targetUrl: String) {
         let url = URL(string: "/api/endpoint/tbd") // @TODO: Create flask endpoint and supply its URL
-        guard let requestUrl = url else { print("Found nil while unwrapping url...") }
+        guard let requestUrl = url else { print("Found nil while unwrapping url..."); return; }
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
 
