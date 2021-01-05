@@ -67,10 +67,11 @@ struct ListingViewsAdminController: AdminViewController {
     }
 
     func scrapeListing(targetUrl: String) {
-        let url = URL(string: "/api/endpoint/tbd") // @TODO: Create flask endpoint and supply its URL
+        let url = URL(string: "0.0.0.0:5000/") // @TODO: Create flask endpoint and supply its URL
         guard let requestUrl = url else { print("Found nil while unwrapping url..."); return; }
         var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
+        request.httpMethod = "GET"
+        //request.httpMethod = "POST"
 
         // prepare json data
         let json: [String: Any] = ["url": targetUrl]
