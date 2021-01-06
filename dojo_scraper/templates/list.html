@@ -18,7 +18,7 @@
 
             {% for listing in listings %} 
             <TR>
-                <TD class="c3"><a target="_blank" href="/listing/{{listing.id}}">{{listing.address}}</a></TD>
+                <TD class="c3"><a href="/listing/{{listing.id}}">{{listing.address}}</a></TD>
                 <TD class="c4"><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></TD>
                 <TD class="c5"><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></TD>
                 <TD class="c5"><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></TD>

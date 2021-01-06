@@ -1,4 +1,4 @@
-{% set active_page = "detail" %}
+{% set active_page = "listings" %}
 {% extends 'base.html' %}
 
 {% block content %}
@@ -16,6 +16,13 @@
 <p><strong>Coldwell Banker URL:</strong> <a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a>  </p>
 {% else %}
 <p>Listing not found...</p>
+{% endif %}
+
+{% if plot %}
+    <img src="/matplot-as-image-{{id}}.png"
+        alt="random points as png"
+        height="700"
+    >
 {% endif %}
 
 <a href="/">Back</a>

@@ -1,8 +1,17 @@
-from flask import Flask
-from flask import render_template
+from flask import Flask, render_template, Response, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 import os
+from base64 import b64encode
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.backends.backend_svg import FigureCanvasSVG
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from datetime import date
+from sqlalchemy import asc
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
@@ -55,12 +64,61 @@ def index():
 def help():
     return render_template('help.html')
 
+@application.route("/matplot-as-image-<int:id>.png")
+def plot_png(id=None):
+    """ renders the plot on the fly.
+    """
+    print(f"plotting listing views on the fly for `${id}`")
+    views = ListingViews.query.filter_by(listing_id=id).order_by(asc(ListingViews.date)).all()
+    print("VIEWS")
+    print(views)
+    x = []
+    y_zillow = []
+    y_redfin = []
+    y_cb = []
+    for view in views: 
+        x.append(view.date.strftime("%m/%d/%Y"))
+        print(view.date.isoformat())
+        print(type(view.date))
+        y_zillow.append(view.views_zillow)
+        y_redfin.append(view.views_redfin)
+        y_cb.append(view.views_cb)
+    #print(zillow)
+    #print(redfin)
+    #print(cb)
+    dataObject = {
+        "x": x,
+        "y_z": y_zillow, 
+        "y_r": y_redfin,
+        "y_c": y_cb
+    }
+    print(dataObject)
+    df=pd.DataFrame(dataObject)
+
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    #axis.plot(x_points, [random.randint(1, 30) for x in x_points])
+    axis.plot( 'x', 'y_z', data=df, marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4, label="zillow")
+    axis.plot( 'x', 'y_r', data=df, marker='o', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
+    axis.plot( 'x', 'y_c', data=df, marker='o', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, linestyle='dashed', label="cb")
+    axis.legend()
+
+
+    output = io.BytesIO()
+    FigureCanvasAgg(fig).print_png(output)
+    return Response(output.getvalue(), mimetype="image/png")
 
 @application.route('/listing/')
 @application.route('/listing/<id>')
 def detail(id=None):
-    listing = Listing.query.filter_by(id=id).first()
-    return render_template('detail.html', id=id, listing=listing)
+    listing = getListing(id)
+    return render_template('detail.html', id=id, listing=listing, plot=True)
+
+def getListing(id=None):
+    if not id: 
+        print("Listing ID missing")
+        return None
+    return Listing.query.filter_by(id=id).first()
 
 # run the app.
 if __name__ == "__main__":
