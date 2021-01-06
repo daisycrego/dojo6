@@ -59,7 +59,8 @@ def help():
 @application.route('/listing/')
 @application.route('/listing/<id>')
 def detail(id=None):
-    return render_template('detail.html', id=id)
+    listing = Listing.query.filter_by(id=id).first()
+    return render_template('detail.html', id=id, listing=listing)
 
 # run the app.
 if __name__ == "__main__":

@@ -3,10 +3,17 @@
 
 {% block content %}
 
-<p> This page will have the detail view for a given listing, if that listing exists. Otherwise it will display "Listing not found".</p>
+<p> This page has the details for a given listing, if that listing exists. 
+    It will allow you to edit the details for a Listing. 
+    It will also display a graph of all the ListingViews. 
+    Otherwise it will display "Listing not found".</p>
 
 {% if id %}
 <h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+<p><strong>Address:</strong> {{listing.address}}</p>
+<p><strong>Zillow URL:</strong> <a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a>  </p>
+<p><strong>Redfin URL:</strong> <a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a>  </p>
+<p><strong>Coldwell Banker URL:</strong> <a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a>  </p>
 {% else %}
 <p>Listing not found...</p>
 {% endif %}
