@@ -20,10 +20,17 @@
 
 {% if plot %}
     <img src="/matplot-as-image-{{id}}.png"
-        alt="random points as png"
-        height="700"
+        alt="Property views"
+        height="500"
     >
 {% endif %}
+
+<br>
+
+<form method="get" action="/scrape/{{ id }}/">
+    <button type="submit" value="Collect Listing Views"> Collect Listing Views </button>
+</form>
+
 
 <a href="/">Back</a>
 
