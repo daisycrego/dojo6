@@ -68,41 +68,31 @@ def help():
 def plot_png(id=None):
     """ renders the plot on the fly.
     """
-    print(f"plotting listing views on the fly for `${id}`")
     views = ListingViews.query.filter_by(listing_id=id).order_by(asc(ListingViews.date)).all()
-    print("VIEWS")
-    print(views)
     x = []
     y_zillow = []
     y_redfin = []
     y_cb = []
     for view in views: 
         x.append(view.date.strftime("%m/%d/%Y"))
-        print(view.date.isoformat())
-        print(type(view.date))
         y_zillow.append(view.views_zillow)
         y_redfin.append(view.views_redfin)
         y_cb.append(view.views_cb)
-    #print(zillow)
-    #print(redfin)
-    #print(cb)
+
     dataObject = {
         "x": x,
         "y_z": y_zillow, 
         "y_r": y_redfin,
         "y_c": y_cb
     }
-    print(dataObject)
     df=pd.DataFrame(dataObject)
 
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    #axis.plot(x_points, [random.randint(1, 30) for x in x_points])
     axis.plot( 'x', 'y_z', data=df, marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4, label="zillow")
     axis.plot( 'x', 'y_r', data=df, marker='o', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
     axis.plot( 'x', 'y_c', data=df, marker='o', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, label="cb")
     axis.legend()
-
 
     output = io.BytesIO()
     FigureCanvasAgg(fig).print_png(output)
