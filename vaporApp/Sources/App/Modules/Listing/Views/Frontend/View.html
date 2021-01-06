@@ -1,0 +1,12 @@
+#define(body):
+<section id="view" class="wrapper">
+    <p class="view">#Date(timeStamp: view.date, localizedFormat: "MM.dd.yyyy") &middot; #(view.listing.address ?? "Uncategorized")</p>
+    <hr>
+    <ul>
+        <li>#(view.views_zillow)</li>
+        <li>#(view.views_redfin)</li>
+        <li>#(view.views_cb)</li>
+    </ul>
+</section>
+#enddefine
+#inline("Frontend/Index")

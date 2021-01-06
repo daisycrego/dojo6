@@ -1,0 +1,16 @@
+#let(title = "Admin home")
+#define(body):
+<section class="wrapper">
+    <h2>#(header)</h2>
+</section>
+<section class="wrapper">
+    <p>#(message)</p>
+    <hr>
+    <a href="/admin/listing/posts/">Listing posts</a>
+    <br>
+    <a href="/admin/listing/agents/">Listing agents</a>
+    <br>
+    <a href="/admin/listing/views/">Listing views</a>
+</section>
+#enddefine
+#inline("Admin/Index")

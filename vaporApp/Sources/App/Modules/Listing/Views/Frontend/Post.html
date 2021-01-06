@@ -1,0 +1,13 @@
+#define(body):
+<section id="listing" class="wrapper">
+    <h2>#(post.address)</h2>
+    <p class="agent">#Date(timeStamp: post.date, localizedFormat: "MM.dd.yyyy") &middot; #(post.agent.name ?? "Uncategorized")</p>
+    <hr>
+    <ul>
+        <li><a href=#(post.url_zillow) target="_blank">#(post.url_zillow)</a></li>
+        <li><a href=#(post.url_redfin) target="_blank">#(post.url_redfin)</a></li>
+        <li><a href=#(post.url_cb) target="_blank">#(post.url_cb)</a></li>
+    </ul>
+</section>
+#enddefine
+#inline("Frontend/Index")

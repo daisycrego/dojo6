@@ -1,0 +1,30 @@
+
+{% set navigation_bar = [
+    ('/', 'listings', 'Listings'),
+    ('/help/', 'help', 'Help'),
+    ('/login/', 'login', 'Log In'),
+    ('/logout/', 'logout', 'Log Out')
+] -%}
+{% set active_page = active_page|default('listings') -%}
+
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>{% block title %} JBG Listings {% endblock %}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='frontend.css') }}">
+    </head>
+    <body>
+        <ul id="navigation">
+            {% for href, id, caption in navigation_bar %}
+              <li{% if id == active_page %} class="active"{% endif
+              %}{% if id=="login" or id=="logout" %}
+              style="float:right"
+              {% endif %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+              
+            {% endfor %}
+            </ul>
+        {% block content %}{% endblock %}
+    </body>
+</html>

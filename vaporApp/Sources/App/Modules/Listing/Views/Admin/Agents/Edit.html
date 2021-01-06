@@ -1,0 +1,23 @@
+#let(title = "Listing admin")
+#define(body):
+<div class="wrapper">
+    <h2><a href="/admin/listing/agents/">Agents</a> / #(edit.id != nil ? "Edit" : "Create")</h2>
+</div>
+
+<form id="agent-edit-form" class="wrapper" method="post" action="/admin/listing/agents/#(edit.id ?? "new")/">
+    <input type="hidden" name="id" value="#(edit.id)">
+
+    <section>
+        <label for="name">Name <span class="required">(required)</span></label>
+        <input id="name" type="text" name="name" value="#(edit.name.value)" class="field">
+        #if(edit.name.error != nil):
+        <span class="error">#(edit.name.error)</span>
+        #endif
+    </section>
+    
+    <section>
+        <input type="submit" class="submit" value="Save">
+    </section>
+</form>
+#enddefine
+#inline("Admin/Index")

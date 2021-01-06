@@ -1,0 +1,37 @@
+
+{% set active_page = "listings" %}
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>{% block title %} Listings {% endblock %}</h3>
+<p> This page will have all of the Listings listed here, and for each listing it will link to the detail page for that listing </p>
+
+
+        {% if listings %}
+        <table>
+            <TR>
+                <TH class="c3">Listing Address</TH>
+                <TH class="c4">Zillow Listing</TH>
+                <TH class="c5">Redfin Listing</TH>
+                <TH class="c5">Coldwell Banker Listing</TH>
+            </TR>
+
+            {% for listing in listings %} 
+            <TR>
+                <TD class="c3"><a target="_blank" href="/listing/{{listing.id}}">{{listing.address}}</a></TD>
+                <TD class="c4"><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></TD>
+                <TD class="c5"><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></TD>
+                <TD class="c5"><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></TD>
+            </TR>
+            {% endfor %}
+        <table>
+        {% else %}
+            <H2>No listings yet.</H2>
+
+        {% endif %}
+        
+
+
+
+
+{% endblock %}

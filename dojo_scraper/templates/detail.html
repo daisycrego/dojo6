@@ -1,0 +1,16 @@
+{% set active_page = "detail" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<p> This page will have the detail view for a given listing, if that listing exists. Otherwise it will display "Listing not found".</p>
+
+{% if id %}
+<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+{% else %}
+<p>Listing not found...</p>
+{% endif %}
+
+<a href="/">Back</a>
+
+{% endblock %}

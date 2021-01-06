@@ -45,9 +45,22 @@ swift package update
 sudo ufw allow http
 
 # note, the vapor project must already be built for the supervisor to work. it doesn't handle the build currently
-cd myProject
-sudo rm -rf .build
-sudo vapor build 
+git clone _____________
+cd dojo6/myProject
+rm Package.resolved
+#sudo rm -rf .build
+vapor clean --update --swiftpm
+
+#??
+echo "5.1.3" > .swift-version
+
+#swift build --configuration release
+#swift build -c release --disable-sandbox --enable-test-discovery
+#vapor run
+swift package update
+vapor build
+# or swift build -c release --disable-sandbox --enable-test-discovery
+sudo /home/ubuntu/dojo6/myProject/.build/x86_64-unknown-linux-gnu/debug/Run serve
 
 # set up flask, enable virtual environment, and install flask in the venv
 cd dojo_scraper
@@ -62,14 +75,12 @@ sudo apt-get install supervisor
 # sudo nano /etc/supervisor/conf.d/dojo-ubuntu.conf
 echo "" > /etc/supervisor/conf.d/dojo-ubuntu.conf # clear any existing services
 echo "[program:dojo-vapor]\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
-echo "command=sudo ./deploy.sh \n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
-#echo "command=sudo /home/ubuntu/dojo/myProject/.build/release/Run serve\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
+#echo "command=sudo ./deploy.sh \n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
+echo "command=sudo /home/ubuntu/dojo/myProject/.build/release/Run serve\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
 echo "directory=/home/ubuntu/dojo/myProject\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
 echo "user=ubuntu\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
 echo "stdout_logfile=/var/log/supervisor/%(program_name)-stdout.log\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
 echo "stderr_logfile=/var/log/supervisor/%(program_name)-stderr.log\n" >> /etc/supervisor/conf.d/dojo-ubuntu.conf
-
-
 
 sudo supervisorctl reread
 sudo supervisorctl add dojo-vapor
