@@ -294,9 +294,13 @@ def plot_png(id=None):
         # add labels to the points
         if isinstance(x, str) and isinstance(y, int):
             try:
-                axis.annotate(y, (x,y),textcoords="offset points", # how to position the text
+                axis.annotate(
+                        y, 
+                        (x,y),
+                        textcoords="offset points", # how to position the text
+                        bbox=dict(boxstyle="round", fc="white", ec="black"),
                         xytext=(0,10), # distance from text to points (x,y)
-                        ha='center') # horizontal alignment can be left, right or center.
+                        ha='center') # horizontal alignment can be left, right or center.          
             except TypeError:
                 continue
 
