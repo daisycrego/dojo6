@@ -4,8 +4,10 @@ from sqlalchemy.sql import func
 import os
 from base64 import b64encode
 import io
+import matplotlib 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.backends.backend_svg import FigureCanvasSVG
+import multiprocessing
+import time
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,6 +21,9 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
+from csv import reader
+from csv import DictReader
+from datetime import date
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
@@ -30,10 +35,10 @@ db = SQLAlchemy(application)
 
 class Listing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(80), unique=True, nullable=False)
-    url_zillow=db.Column(db.String(120), unique=True, nullable=True)
-    url_redfin=db.Column(db.String(120), unique=True, nullable=True)
-    url_cb=db.Column(db.String(120), unique=True, nullable=True)
+    address = db.Column(db.String(500), unique=True, nullable=False)
+    url_zillow=db.Column(db.String(500), unique=False, nullable=True)
+    url_redfin=db.Column(db.String(500), unique=False, nullable=True)
+    url_cb=db.Column(db.String(500), unique=False, nullable=True)
     agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'), nullable=True)
     agent = db.relationship('Agent', backref=db.backref('listings', lazy=True))
 
@@ -60,6 +65,56 @@ class ListingViews(db.Model):
 
     def __repr__(self):
         return '<ListingViews for %r>' % self.listing_id
+
+
+class CSVLoader:
+    def readListingCSV(filename=None):
+        if not filename:
+            print("readListingCSV(): filename required")
+            return 
+        
+        """
+        # open file in read mode
+        with open(filename, 'r') as reader_object:
+            # pass the file object to DictReader() to get the DictReader object
+            csv_dict_reader = DictReader(reader_object)
+            # get column names from a csv file
+            column_names = csv_dict_reader.fieldnames
+            
+            # Iterate over each row in the csv using reader object
+            col_addr = -1
+            col_zillow = -1
+            col_redfin = -1
+            col_cb = -1 
+            for i, item in enumerate(column_names):
+                    if "Address" in item:
+                        col_addr = i
+                    elif "Zillow URL" in item:
+                        col_zillow = i
+                    elif "Redfin URL" in item:
+                        col_redfin = i
+                    elif "Coldwell Banker URL" in item:
+                        col_cb = i
+        
+        if col_addr < 0 or col_zillow < 0 or col_redfin < 0 or col_cb < 0:
+                print("Unable to read this CSV. Expected 4 columns with the following headers: Address, Zillow URL, Redfin URL, Coldwell Banker URL ")
+                return
+        """
+
+        # open file in read mode
+        with open(filename, 'r') as reader_object2:
+            # pass the file object to reader() to get the reader object
+            csv_reader = DictReader(reader_object2)
+            
+            for row in csv_reader:
+                # row variable is a list that represents a row in csv
+                print(row)
+                if row["Address"] == "Address":
+                    print("Skipping the header...")
+                    continue
+                new_listing = Listing(address=row["Address"], url_zillow=row["Zillow URL"], url_redfin=row["Redfin URL"], url_cb=row["Coldwell Banker URL"])
+                db.session.add(new_listing)
+                db.session.commit()
 
 
 class WebScraper:
@@ -121,44 +176,49 @@ class WebScraper:
         }
 
         # zillow
+        url_zillow = listing.url_zillow
+        url_redfin = listing.url_redfin
+        url_cb = listing.url_cb
         if listing.url_zillow and "zillow.com" in listing.url_zillow:
-            url = listing.url_zillow
-            r = requests.get(url=url, headers=zillow_headers)
+            url_zillow = listing.url_zillow
+            r = requests.get(url=url_zillow, headers=self.zillow_headers)
             root = lxml.html.fromstring(r.content)
             results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
             try: 
                 zillow_views = int(results[1].text.replace(',',''))
-            except IndexError:
+            except (IndexError,ValueError) as e:
                 zillow_views = None
             final_results["zillow"] = zillow_views
         
         # redfin 
         if listing.url_redfin and "redfin.com" in listing.url_redfin:
-            url = listing.url_redfin
-            r = requests.get(url=url, headers=redfin_headers)
+            url_redfin = listing.url_redfin
+            r = requests.get(url=url_redfin, headers=self.redfin_headers)
             root = lxml.html.fromstring(r.content)
             try:
                 redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-            except IndexError:
+            except (IndexError,ValueError) as e:
                 redfin_views = None
             final_results["redfin"] = redfin_views
 
         # cb 
         if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-            url = listing.url_cb
-            cb_request = requests.get(url=url, headers=cb_headers)
+            url_cb = listing.url_cb
+            cb_request = requests.get(url=url_cb, headers=self.cb_headers)
             root = lxml.html.fromstring(cb_request.content)
             options = Options()
             options.headless = True
             driver = webdriver.Firefox(options=options)
-            driver.get(url) 
+            driver.set_page_load_timeout(30)
+            #driver.implicitly_wait(30)
+            driver.get(url_cb) 
 
             attempts = 0
             while attempts < 100: 
                 try: 
                     #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                     elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                    print(url)
+                    print(url_cb)
                     print(elem_parent.get_attribute('innerText'))
                     views = elem_parent.get_attribute('innerText').split(" ")[1]
                     cb_views = int(views.replace(',',''))
@@ -175,11 +235,19 @@ class WebScraper:
                     
             driver.quit()
 
-        views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
+        existing_views = ListingViews.query.filter_by(listing_id=id, date=date.today()).first()
+        if not existing_views:
+            views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
+            db.session.add(views)
+            db.session.commit()
+        else:
+            existing_views.views_zillow = final_results["zillow"]
+            existing_views.views_redfin = final_results["redfin"]
+            existing_views.views_cb = final_results["cb"]
+            db.session.add(existing_views)
+            db.session.commit()
 
-        db.session.add(views)
-        db.session.commit()
-        print("Done scraping from all 3 urls, results committed to the db.")
+        print(f"Listing {id}, {listing.address}: Done scraping from all 3 urls ({url_zillow}, {url_redfin}, {url_cb}) results committed to the db.")
 
 @application.route('/')
 def index():
@@ -195,6 +263,7 @@ def plot_png(id=None):
     """ renders the plot on the fly.
     """
     views = ListingViews.query.filter_by(listing_id=id).order_by(asc(ListingViews.date)).all()
+    # @ TODO - Limit to 1 ListingViews object per day, choose the largest value. This will allow for cases where a second run was done on top of the first. 
     x = []
     y_zillow = []
     y_redfin = []
@@ -211,6 +280,7 @@ def plot_png(id=None):
         "y_r": y_redfin,
         "y_c": y_cb
     }
+
     df=pd.DataFrame(dataObject)
 
     fig = Figure()
@@ -219,9 +289,20 @@ def plot_png(id=None):
     axis.plot( 'x', 'y_r', data=df, marker='o', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
     axis.plot( 'x', 'y_c', data=df, marker='o', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, label="cb")
     axis.legend()
+    
+    for x,y in zip([] + x + x + x, [] + y_zillow + y_redfin + y_cb):
+        # add labels to the points
+        if isinstance(x, str) and isinstance(y, int):
+            try:
+                axis.annotate(y, (x,y),textcoords="offset points", # how to position the text
+                        xytext=(0,10), # distance from text to points (x,y)
+                        ha='center') # horizontal alignment can be left, right or center.
+            except TypeError:
+                continue
 
     output = io.BytesIO()
     FigureCanvasAgg(fig).print_png(output)
+    
     return Response(output.getvalue(), mimetype="image/png")
 
 @application.route('/scrape/<id>/')
@@ -231,6 +312,14 @@ def scraper(id=None):
     listing = getListing(id)
     return redirect(url_for('detail', id=id))
     #return redirect(f`/listing/${id}`, code=302)
+
+@application.route('/scrape/all/')
+def scrapeAll(id=None):
+    scraper = WebScraper()
+    listings = Listing.query.all()
+    for listing in listings: 
+        scraper.scrape_listing(listing.id)
+    return redirect(url_for('index', id=id))
 
 @application.route('/listing/')
 @application.route('/listing/<id>')

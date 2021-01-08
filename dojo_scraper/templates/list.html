@@ -25,13 +25,17 @@
             </TR>
             {% endfor %}
         <table>
-        {% else %}
+        
+        <form method="get" action="/scrape/all/">
+            <button type="submit" value="Collect ALL Listing Views"> Collect Listing Views </button>
+        </form>
+            {% else %}
             <H2>No listings yet.</H2>
 
         {% endif %}
         
 
-
+        
 
 
 {% endblock %}
