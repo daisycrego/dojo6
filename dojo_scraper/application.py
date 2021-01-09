@@ -205,6 +205,11 @@ def index():
     listings = Listing.query.all()
     return render_template('list.html', listings=listings)
 
+@application.route('/agents/')
+def agents():
+    agents = Agent.query.all()
+    return render_template('list_agents.html', agents=agents)
+
 @application.route('/help/')
 def help():
     return render_template('help.html')
@@ -265,7 +270,7 @@ def scraper(id=None):
     scraper = WebScraper()
     scraper.scrape_listing(id)
     listing = getListing(id)
-    return redirect(url_for('detail', id=id))
+    return redirect(url_for('detail_listing', id=id))
     #return redirect(f`/listing/${id}`, code=302)
 
 @application.route('/scrape/all/')
@@ -276,12 +281,54 @@ def scrapeAll(id=None):
         scraper.scrape_listing(listing.id)
     return redirect(url_for('index', id=id))
 
+@application.route('/agent/')
+@application.route('/agent/<id>')
+def detail_agent(id=None):
+    agent = Agent.query.filter_by(id=id).first()
+    return render_template('detail_agent.html', id=id, agent=agent)
+
+@application.route('/agent/create/', methods=["GET", "POST"])
+def create_agent(errors=None, prev_data=None):
+    errors = request.args.getlist("errors")
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/')) 
+    valid = True
+    if request.method == "POST":
+        errors = []
+        name = request.form["name"]
+        
+        if not name:
+            valid = False
+            errors.append("Name is required")
+        
+        agent_exists = len(Agent.query.filter_by(name=name).all()) > 0
+        if agent_exists:
+            valid = False
+            errors.append(f"Agent already exists with this name.")
+
+        if valid:
+            agent = Agent(name=name)
+            db.session.add(agent)
+            db.session.commit()
+            return redirect(url_for('detail_agent', id=agent.id))
+        else:
+            agents = Agent.query.all()
+            default_agent = Agent.query.filter_by(name="Jill Biggs").first()
+            return redirect(url_for("create_agent", errors=errors, prev_data=dict(request.form)))
+    # GET 
+    else:
+        # if there are errors, reload the page content, 
+        # otherwise create a new empty form   
+        if errors:
+            return render_template('create_agent.html', errors=errors, data=prev_data)
+        return render_template('create_agent.html')
+
 @application.route('/listing/')
 @application.route('/listing/<id>')
-def detail(id=None):
+def detail_listing(id=None):
     listing = getListing(id)
     price = "${:,.2f}".format(listing.price)
-    return render_template('detail.html', id=id, listing=listing, price=price, plot=True)
+    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True)
 
 @application.route('/listing/create/', methods=["GET", "POST"])
 def create(errors=None, prev_data=None):
@@ -326,18 +373,17 @@ def create(errors=None, prev_data=None):
             errors.append(f"Redfin URL should contain 'redfin.com'")
         if url_cb and "coldwellbankerhomes.com" not in url_cb:
             valid = False
-            errors.append(f"Coldwell Banker URL should contain 'redfin.com'")
+            errors.append(f"Coldwell Banker URL should contain 'coldwellbankerhomes.com'")
 
         if valid:
             listing = Listing(address=address, price=price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
             db.session.add(listing)
             db.session.commit()
-            return redirect(url_for('detail', id=listing.id))
+            return redirect(url_for('detail_listing', id=listing.id))
         else:
             agents = Agent.query.all()
             default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-            return redirect(url_for("create", errors=errors, prev_data=dict(request.form)) + "/")
-            #return render_template('create.html', errors=errors, agents=agents, default_agent=default_agent, data=request.form)
+            return redirect(url_for("create", errors=errors, prev_data=dict(request.form)))
     # GET 
     else:
         # if there are errors, reload the page content, 
@@ -345,14 +391,17 @@ def create(errors=None, prev_data=None):
         agents = Agent.query.all()
         default_agent = Agent.query.filter_by(name="Jill Biggs").first()
         if errors:
-            return render_template('create.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
-        return render_template('create.html', agents=agents, default_agent = default_agent)
+            return render_template('create_listing.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
+        return render_template('create_listing.html', agents=agents, default_agent = default_agent)
 
 @application.route('/listing/<id>/edit', methods=["GET", "POST"])
-def detail_edit(id=None):
+def edit_listing(id=None, errors=None, prev_data=None):
+    errors = request.args.getlist("errors")
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
     if request.method == "POST":
-        listing_id = request.form["id"]
+        errors = []
         address = request.form["address"]
         price = request.form["price"]
         mls = request.form["mls"]
@@ -365,38 +414,106 @@ def detail_edit(id=None):
         if not address:
             valid = False
             errors.append("Address is required")
+        
+        try:
+            if price:
+                parsed_price = int(price.replace("$","").replace(",",""))
+                if parsed_price < 0:
+                    valid = False
+                    errors.append("Listing price cannot be negative")
+        except ValueError: 
+            valid = False
+            errors.append(f"Price of {price} is invalid.")
+        
+        listing = getListing(id)
+        prev_address = listing.address
+
+        address_exists = len(Listing.query.filter_by(address=address).filter(address!=prev_address).all()) > 0
+        if address_exists:
+            valid = False
+            errors.append(f"Listing already exists with this address.")
+
+        if url_zillow and "zillow.com" not in url_zillow:
+            valid = False
+            errors.append(f"Zillow URL should contain 'zillow.com'")
+        if url_redfin and "redfin.com" not in url_redfin:
+            valid = False
+            errors.append(f"Redfin URL should contain 'redfin.com'")
+        if url_cb and "coldwellbankerhomes.com" not in url_cb:
+            valid = False
+            errors.append(f"Coldwell Banker URL should contain 'redfin.com'")
+
+        listing = getListing(id)
+        agents = Agent.query.all()
 
         if valid:
-            # If the listing already exists, update
-            if listing_id:
-                listing = getListing(id)
-                listing.address = address
-                listing.price = price
-                listing.mls = mls
-                listing.url_zillow = url_zillow
-                listing.url_redfin = url_redfin
-                listing.url_cb = url_cb
-                listing.agent = agent
-                listing.agent_id = agent_id
-                db.session.add(listing)
-                db.session.commit()
-            # Otherwise, create a new listing
-            else:
-                listing = Listing(address=address, price=price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
-                db.session.add(listing)
-                db.commit()
-        # not valid
+            listing = getListing(id)
+            listing.address = address
+            listing.price = price
+            listing.mls = mls
+            listing.url_zillow = url_zillow
+            listing.url_redfin = url_redfin
+            listing.url_cb = url_cb
+            listing.agent = agent
+            listing.agent_id = agent_id
+            db.session.add(listing)
+            db.session.commit()
         else:
-            return render_template("detail.html", id=id, errors=errors, listing=listing, agents=agents, editing=True)
-
-        return redirect(url_for('detail', id=id))
+            agents = Agent.query.all()
+            default_agent = Agent.query.filter_by(name="Jill Biggs").first()
+            if errors:
+                return render_template('create_listing.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
+            return redirect(url_for("edit_listing", id=id, errors=errors, prev_data=dict(request.form)))
+        return redirect(url_for('detail_listing', id=id))
     else: 
         if not id:
             print("Missing ID")
             return
         agents = Agent.query.all()
         listing = getListing(id)
-        return render_template('detail.html', id=id, listing=listing, agents=agents, editing=True)
+        if errors:
+            return render_template('detail_listing.html', id=id, listing=listing, agents=agents, errors=errors, data=prev_data)
+        return render_template('detail_listing.html', id=id, listing=listing, agents=agents, editing=True)
+
+@application.route('/agent/<id>/edit', methods=["GET", "POST"])
+def agent_edit(id=None, errors=None, prev_data=None):
+    errors = request.args.getlist("errors")
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
+    valid = True
+    if request.method == "POST":
+        errors = []
+        name = request.form["name"]
+
+        if not name:
+            valid = False
+            errors.append("Name is required")
+        
+        agent = Agent.query.filter_by(id=id).first()
+        prev_name = agent.name
+
+        name_exists = len(Agent.query.filter_by(name=name).filter(name!=prev_name).all()) > 0
+        if name_exists:
+            valid = False
+            errors.append(f"Agent already exists with this name.")
+
+        if valid:
+            agent.name = name
+            db.session.add(agent)
+            db.session.commit()
+        else:
+            if errors:
+                return render_template('detail_agent.html', id=id, agent=agent, errors=errors, data=prev_data)
+            return redirect(url_for("agent_edit", id=id, agent=agent, errors=errors, prev_data=dict(request.form)))
+        return redirect(url_for("detail_agent", id=id))
+    else: 
+        if not id:
+            print("Missing ID")
+            return
+        agent = Agent.query.filter_by(id=id).first()
+        if errors:
+            return render_template('detail_agent.html', id=id, agent=agent, errors=errors, data=prev_data, editing=True)
+        return render_template('detail_agent.html', id=id, agent=agent, editing=True)
 
 def getListing(id=None):
     if not id: 

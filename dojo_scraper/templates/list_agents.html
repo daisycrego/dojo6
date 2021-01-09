@@ -1,0 +1,29 @@
+
+{% set active_page = "agents" %}
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>{% block title %} Agents {% endblock %}</h3>
+<p> This page will have all of the Agents listed here, and for each agent it will link to the detail page for that agent </p>
+
+        <a href="../agent/create">Add an Agent</a>
+
+        {% if agents %}
+        <table>
+            <TR>
+                <TH class="c3">Name</TH>
+            </TR>
+
+            {% for agent in agents %} 
+            <TR>
+                <TD class="c3"><a href="/agent/{{agent.id}}">{{agent.name}}</a></TD>
+            </TR>
+            {% endfor %}
+        <table>
+        
+        {% else %}
+        <h2>No agents yet.</h2>
+
+        {% endif %}
+
+{% endblock %}

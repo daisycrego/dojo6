@@ -1,0 +1,87 @@
+{% set active_page = "listings" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<p> This page has the details for a given listing, if that listing exists. 
+    It will allow you to edit the details for a Listing. 
+    It will also display a graph of all the ListingViews. 
+    Otherwise it will display "Listing not found".</p>
+
+
+<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+
+
+
+
+{% if editing %}
+<div class="">
+    <a href="/listing/{{ id }}">Cancel Edit</a>
+</div>
+<form class="listing-form detail-items" method="post" action="/listing/{{ id }}/edit">
+    <input type="hidden" name="id" value="{{ id }}"/>
+   <span><label for="address">Address:</label>&nbsp<input name="address" type="text" {% if errors %} value={{ data.address }} {% else %} value="{{ listing.address }}" {% endif %}/> </span>
+   <span><label for="mls">MLS ID:</label>&nbsp<input name="mls" type="text" {% if errors %} value={{ data.address }} {% else %} value="{{ listing.mls }}"{% endif %}/></span> 
+   <span><label for="price">Listing Price:</label>&nbsp<span class="alongside">$<input name="price" type="number" min="0" {% if errors %} value={{ data.address }} {% else %} value="{{ listing.price }}"{% endif %}/></span></span>
+   <span>
+    <label for="agent">Agent:</label>
+        <select name="agent">
+            {% for agent in agents %}
+                {% if errors and data is defined %}
+                <option value={{agent.id}} {% if (agent.id|string == data.agent|string) %}selected="selected"{% endif %}>{{agent.name}}</option>
+                {% else %}
+                <option value={{agent.id}} {% if agent.id == listing.agent_id %} selected="selected" {% endif %}>{{agent.name}}</option>
+                {% endif %}
+            <option value="{{agent.id}}">{{ agent.name }}</option>
+            {% endfor %}
+        </select> 
+   </span>     
+
+   <span><label for="url_zillow">Zillow URL:</label>&nbsp<input name="url_zillow" type="text" {% if errors %} value="{{ data.address }}" {% else %}value="{{ listing.url_zillow }}"{% endif %}/></span>
+   <span><label for="url_redfin">Redfin URL:</label>&nbsp<input name="url_redfin" type="text" {% if errors %} value="{{ data.address }}" {% else %}value="{{ listing.url_redfin }}"{% endif %}/></span>
+   <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<input name="url_cb" type="text" {% if errors %} value="{{ data.address }}" {% else %}value="{{ listing.url_cb }}"{% endif %}/></span>
+   <button type="submit">Submit</button>
+</form>
+
+
+
+{% else %}
+<div class="">
+    <a href="{{ id }}/edit">Edit Listing</a>
+</div>
+<form class="right-justify" method="get" action="/scrape/{{ id }}/">
+    <button type="submit" value="Collect Listing Views"> Collect Listing Views </button>
+</form>
+<span class="detail-items">
+    <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>
+    <span><label for="mls">MLS ID:</label>&nbsp<p name="mls">{{ listing.mls }}</p></span>
+    <span><label for="price">Listing Price:</label>&nbsp<p>{{ price }}</p></span>
+    <span><label for="agent">Agent:</label>&nbsp<p>{{ listing.agent.name }}</p></span>
+    <span><label for="url_zillow">Zillow URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_zillow}}">{{listing.url_zillow}}</a></p></span>
+    <span><label for="url_redfin">Redfin URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_redfin}}">{{listing.url_redfin}}</a></p></span>
+    <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_cb}}">{{listing.url_cb}}</a></p></span>
+</span>
+
+
+{% endif %}
+{% if not id %}
+<p>Listing not found...</p>
+{% endif %}
+
+{% if plot %}
+    <img src="/matplot-as-image-{{id}}.png"
+        alt="Property views"
+        height="500"
+    >
+{% endif %}
+
+<br>
+
+
+
+
+
+
+<a href="/">Back to All Listings</a>
+
+{% endblock %}

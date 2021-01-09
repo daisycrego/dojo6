@@ -1,0 +1,46 @@
+{% set active_page = "agents" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<p> This page has the details for a given agent, if that agent exists. 
+    It will allow you to edit the details for a Agent. 
+    It will also display a list of all the agent's listings.
+    Otherwise it will display "This agent has no listings.".</p>
+<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+
+{% if editing %}
+<div>
+    <a href="/agent/{{ id }}">Cancel Edit</a>
+</div>
+<form class="listing-form detail-items" method="post" action="/agent/{{ id }}/edit">
+    <input type="hidden" name="id" value="{{ id }}"/>
+   <span><label for="name">Name:</label>&nbsp<input name="name" type="text" {% if errors %} value="{{ data.name }}" {% else %} value="{{ agent.name }}" {% endif %}/> </span>
+   <button type="submit">Submit</button>
+</form>
+
+
+
+{% else %}
+<div class="">
+    <a href="{{ id }}/edit">Edit Agent</a>
+</div>
+<span class="detail-items">
+    <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
+</span>
+
+{% endif %}
+{% if not id %}
+<p>Agent not found...</p>
+{% endif %}
+
+<br>
+
+
+
+
+
+
+<a href="/agents/">Back to All Agents</a>
+
+{% endblock %}
