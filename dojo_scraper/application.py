@@ -21,12 +21,12 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
-from csv import reader
-from csv import DictReader
 from datetime import date
+import ast
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
+application.url_map.strict_slashes = False
 
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # export DATABASE_URL="postgresql:///dojo_listings"
@@ -41,6 +41,8 @@ class Listing(db.Model):
     url_cb=db.Column(db.String(500), unique=False, nullable=True)
     agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'), nullable=True)
     agent = db.relationship('Agent', backref=db.backref('listings', lazy=True))
+    price = db.Column(db.Integer, nullable=True)
+    mls = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
         return '<Listing %r>' % self.address
@@ -65,57 +67,6 @@ class ListingViews(db.Model):
 
     def __repr__(self):
         return '<ListingViews for %r>' % self.listing_id
-
-
-class CSVLoader:
-    def readListingCSV(filename=None):
-        if not filename:
-            print("readListingCSV(): filename required")
-            return 
-        
-        """
-        # open file in read mode
-        with open(filename, 'r') as reader_object:
-            # pass the file object to DictReader() to get the DictReader object
-            csv_dict_reader = DictReader(reader_object)
-            # get column names from a csv file
-            column_names = csv_dict_reader.fieldnames
-            
-            # Iterate over each row in the csv using reader object
-            col_addr = -1
-            col_zillow = -1
-            col_redfin = -1
-            col_cb = -1 
-            for i, item in enumerate(column_names):
-                    if "Address" in item:
-                        col_addr = i
-                    elif "Zillow URL" in item:
-                        col_zillow = i
-                    elif "Redfin URL" in item:
-                        col_redfin = i
-                    elif "Coldwell Banker URL" in item:
-                        col_cb = i
-        
-        if col_addr < 0 or col_zillow < 0 or col_redfin < 0 or col_cb < 0:
-                print("Unable to read this CSV. Expected 4 columns with the following headers: Address, Zillow URL, Redfin URL, Coldwell Banker URL ")
-                return
-        """
-
-        # open file in read mode
-        with open(filename, 'r') as reader_object2:
-            # pass the file object to reader() to get the reader object
-            csv_reader = DictReader(reader_object2)
-            
-            for row in csv_reader:
-                # row variable is a list that represents a row in csv
-                print(row)
-                if row["Address"] == "Address":
-                    print("Skipping the header...")
-                    continue
-                new_listing = Listing(address=row["Address"], url_zillow=row["Zillow URL"], url_redfin=row["Redfin URL"], url_cb=row["Coldwell Banker URL"])
-                db.session.add(new_listing)
-                db.session.commit()
-
 
 class WebScraper:
     zillow_headers = {
@@ -329,8 +280,123 @@ def scrapeAll(id=None):
 @application.route('/listing/<id>')
 def detail(id=None):
     listing = getListing(id)
-    return render_template('detail.html', id=id, listing=listing, plot=True)
+    price = "${:,.2f}".format(listing.price)
+    return render_template('detail.html', id=id, listing=listing, price=price, plot=True)
 
+@application.route('/listing/create/', methods=["GET", "POST"])
+def create(errors=None, prev_data=None):
+    errors = request.args.getlist("errors")
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
+    valid = True
+    if request.method == "POST":
+        errors = []
+        address = request.form["address"]
+        price = request.form["price"]
+        mls = request.form["mls"]
+        url_zillow = request.form["url_zillow"]
+        url_redfin = request.form["url_redfin"]
+        url_cb = request.form["url_cb"]
+        agent_id = request.form["agent"]
+        agent = Agent.query.filter_by(id=agent_id).first()
+        
+        if not address:
+            valid = False
+            errors.append("Address is required")
+        try:
+            if price:
+                parsed_price = int(price.replace("$","").replace(",",""))
+                if parsed_price < 0:
+                    valid = False
+                    errors.append("Listing price cannot be negative")
+        except ValueError: 
+            valid = False
+            errors.append(f"Price of {price} is invalid.")
+        
+        address_exists = len(Listing.query.filter_by(address=address).all()) > 0
+        if address_exists:
+            valid = False
+            errors.append(f"Listing already exists with this address.")
+
+        if url_zillow and "zillow.com" not in url_zillow:
+            valid = False
+            errors.append(f"Zillow URL should contain 'zillow.com'")
+        if url_redfin and "redfin.com" not in url_redfin:
+            valid = False
+            errors.append(f"Redfin URL should contain 'redfin.com'")
+        if url_cb and "coldwellbankerhomes.com" not in url_cb:
+            valid = False
+            errors.append(f"Coldwell Banker URL should contain 'redfin.com'")
+
+        if valid:
+            listing = Listing(address=address, price=price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
+            db.session.add(listing)
+            db.session.commit()
+            return redirect(url_for('detail', id=listing.id))
+        else:
+            agents = Agent.query.all()
+            default_agent = Agent.query.filter_by(name="Jill Biggs").first()
+            return redirect(url_for("create", errors=errors, prev_data=dict(request.form)) + "/")
+            #return render_template('create.html', errors=errors, agents=agents, default_agent=default_agent, data=request.form)
+    # GET 
+    else:
+        # if there are errors, reload the page content, 
+        # otherwise create a new empty form     
+        agents = Agent.query.all()
+        default_agent = Agent.query.filter_by(name="Jill Biggs").first()
+        if errors:
+            return render_template('create.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
+        return render_template('create.html', agents=agents, default_agent = default_agent)
+
+@application.route('/listing/<id>/edit', methods=["GET", "POST"])
+def detail_edit(id=None):
+    valid = True
+    if request.method == "POST":
+        listing_id = request.form["id"]
+        address = request.form["address"]
+        price = request.form["price"]
+        mls = request.form["mls"]
+        url_zillow = request.form["url_zillow"]
+        url_redfin = request.form["url_redfin"]
+        url_cb = request.form["url_cb"]
+        agent_id = request.form["agent"]
+        agent = Agent.query.filter_by(id=agent_id).first()
+
+        if not address:
+            valid = False
+            errors.append("Address is required")
+
+        if valid:
+            # If the listing already exists, update
+            if listing_id:
+                listing = getListing(id)
+                listing.address = address
+                listing.price = price
+                listing.mls = mls
+                listing.url_zillow = url_zillow
+                listing.url_redfin = url_redfin
+                listing.url_cb = url_cb
+                listing.agent = agent
+                listing.agent_id = agent_id
+                db.session.add(listing)
+                db.session.commit()
+            # Otherwise, create a new listing
+            else:
+                listing = Listing(address=address, price=price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
+                db.session.add(listing)
+                db.commit()
+        # not valid
+        else:
+            return render_template("detail.html", id=id, errors=errors, listing=listing, agents=agents, editing=True)
+
+        return redirect(url_for('detail', id=id))
+    else: 
+        if not id:
+            print("Missing ID")
+            return
+        agents = Agent.query.all()
+        listing = getListing(id)
+        return render_template('detail.html', id=id, listing=listing, agents=agents, editing=True)
 
 def getListing(id=None):
     if not id: 

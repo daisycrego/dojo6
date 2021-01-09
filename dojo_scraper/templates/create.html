@@ -1,0 +1,80 @@
+{% set active_page = "create" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<a href="/">Back to All Listings</a>
+
+<p> This page is used to add a new Listing manually.</p>
+
+<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+
+<form class="listing-form detail-items" method="post" action="/listing/create">
+    
+   <span>
+       <label for="address">Address:</label>
+       &nbsp
+       <input name="address" type="text" {% if data is defined %} value="{{ data.address }}" {% else %} value="" {% endif %}/>        
+    </span>
+    
+        
+   <span>
+       <label for="mls">MLS ID:</label>
+       &nbsp
+       <input name="mls" type="text" {% if data is defined %} value="{{ data.mls }}" {% else %} value="" {% endif %}/>       
+    </span> 
+
+   <span>
+       <label for="price">Listing Price:</label>
+       &nbsp
+       
+       <span class="alongside">
+           $
+           <input name="price" type="number"  {% if data is defined %} value="{{ data.price }}" {% else %} value="" {% endif %}/>        
+        </span>
+    </span>
+
+    <span>
+        <label for="agent">Agent:</label>
+        &nbsp
+        <select name="agent">
+        {% for agent in agents %}
+       
+            {% if errors and data is defined %}
+                <option value={{agent.id}} {% if (agent.id|string == data.agent|string) or (not data.agent and agent.id == default_agent.id) %}selected="selected"{% endif %}>{{agent.name}}</option>
+            {% else %}
+                <option value={{agent.id}} {% if agent.id == default_agent.id %} selected="selected" {% endif %}>{{agent.name}}</option>
+            {% endif %}
+        {% endfor %}
+        </select>        
+    </span>
+   <span>
+       <label for="url_zillow">Zillow URL:</label>
+       &nbsp
+       <input name="url_zillow" type="text" {% if data is defined %} value ="{{ data.url_zillow}}" {% else %} value="" {% endif %}/>
+    </span>
+   <span>
+       <label for="url_redfin">Redfin URL:</label>
+       &nbsp
+       <input name="url_redfin" type="text" {% if data is defined %} value ="{{ data.url_redfin}}" {% else %} value="" {% endif %}/>
+    </span>
+   <span>
+       <label for="url_cb">Coldwell Banker URL:</label>
+       &nbsp
+       <input name="url_cb" type="text" {% if data is defined %} value ="{{ data.url_cb}}" {% else %} value="" {% endif %}/>
+    </span>
+   <button type="submit">Submit</button>
+</form>
+
+{% if errors is defined %}
+    {% for error in errors %}
+        <span class="error">{{ error }}</span>
+        <br>
+    {% endfor %}    
+{% endif %}
+
+<br>
+
+
+
+{% endblock %}

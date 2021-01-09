@@ -40,3 +40,63 @@ li a:hover {
 .active {
     background-color: #4CAF50;
 }
+
+.listing-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Display a label next to the value for each item in the Listing Detail View */
+.detail-items > span {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Set all the form/display element widths */
+.detail-items > span > label {
+    width: 15%;
+}
+
+.detail-items > span > input {
+    width: 85%;
+}
+
+.detail-items > span > select {
+    width: 86%;
+}
+
+.detail-items > button {
+    width: 15%;
+    align-self: flex-end;
+    padding: 10px;
+}
+
+/* Place any items under an element with class alongside one another (left to right)*/
+.alongside {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Place any items under an element with class going from top to bottom*/
+.flex-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Make the external container a flexbox and right justify (flex-end)*/
+.right-justify {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.right-justify > button {
+    width: 15%;
+    padding: 10px;
+}
+
+.error {
+    color: red;
+}
