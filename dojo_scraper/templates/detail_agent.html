@@ -29,6 +29,9 @@
     <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
 </span>
 
+<form class="right-justify" method="get" action="/agent/{{ id }}/delete">
+    <button type="submit" value="Delete Agent" onclick="return confirm('Are you sure you want to do that?');"> Delete Agent </button>
+</form>
 {% endif %}
 {% if not id %}
 <p>Agent not found...</p>

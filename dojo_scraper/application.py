@@ -201,14 +201,16 @@ class WebScraper:
         print(f"Listing {id}, {listing.address}: Done scraping from all 3 urls ({url_zillow}, {url_redfin}, {url_cb}) results committed to the db.")
 
 @application.route('/')
-def index():
+@application.route('/<message>')
+def index(message=None):
     listings = Listing.query.all()
-    return render_template('list.html', listings=listings)
+    return render_template('list.html', listings=listings, message=message)
 
 @application.route('/agents/')
-def agents():
+@application.route('/agents/<message>')
+def agents(message=None):
     agents = Agent.query.all()
-    return render_template('list_agents.html', agents=agents)
+    return render_template('list_agents.html', agents=agents, message=message)
 
 @application.route('/help/')
 def help():
@@ -271,7 +273,6 @@ def scraper(id=None):
     scraper.scrape_listing(id)
     listing = getListing(id)
     return redirect(url_for('detail_listing', id=id))
-    #return redirect(f`/listing/${id}`, code=302)
 
 @application.route('/scrape/all/')
 def scrapeAll(id=None):
@@ -393,6 +394,24 @@ def create(errors=None, prev_data=None):
         if errors:
             return render_template('create_listing.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
         return render_template('create_listing.html', agents=agents, default_agent = default_agent)
+
+@application.route('/listing/<id>/delete')
+def delete_listing(id=None):
+    listing = getListing(id)
+    address = listing.address
+    db.session.delete(listing)
+    db.session.commit()
+    message = f"Listing ({address}) deleted successfully."
+    return redirect(url_for("index", message=message))
+
+@application.route('/agent/<id>/delete')
+def delete_agent(id=None):
+    agent = Agent.query.filter_by(id=id).first()
+    name = agent.name
+    db.session.delete(agent)
+    db.session.commit()
+    message = f"Agent ({name}) deleted successfully."
+    return redirect(url_for("agents", message=message))
 
 @application.route('/listing/<id>/edit', methods=["GET", "POST"])
 def edit_listing(id=None, errors=None, prev_data=None):

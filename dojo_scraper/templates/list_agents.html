@@ -3,6 +3,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% if message is defined and message %}
+    
+    <span class="success">{{ message }}</span>
+
+{% endif %}
+
 <h3>{% block title %} Agents {% endblock %}</h3>
 <p> This page will have all of the Agents listed here, and for each agent it will link to the detail page for that agent </p>
 

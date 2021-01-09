@@ -100,3 +100,7 @@ li a:hover {
 .error {
     color: red;
 }
+
+.success {
+    color: green;
+}
