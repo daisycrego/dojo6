@@ -14,7 +14,7 @@
    <span>
        <label for="address">Address:</label>
        &nbsp
-       <input name="address" type="text" {% if data is defined %} value="{{ data.address }}" {% else %} value="" {% endif %}/>        
+       <input required name="address" type="text" {% if data is defined %} value="{{ data.address }}" {% else %} value="" {% endif %}/>        
     </span>
     
         
@@ -30,7 +30,7 @@
        
        <span class="alongside">
            $
-           <input name="price" type="number"  {% if data is defined %} value="{{ data.price }}" {% else %} value="" {% endif %}/>        
+           <input name="price" type="number" min="0" {% if data is defined %} value="{{ data.price }}" {% else %} value="" {% endif %}/>        
         </span>
     </span>
 
