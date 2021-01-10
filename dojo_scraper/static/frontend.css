@@ -1,18 +1,11 @@
-td {
-    text-align: left;
-}
-th {
-    text-align: left;
-}
-
-
 body {
     font-family: Helvetica;
     font-size: 16px;
     line-height: 1.5em;
 }
 
-ul {
+/* Navbar styling */
+ul.nav {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -20,11 +13,11 @@ ul {
     background-color: #333;
 }
 
-li {
+li.nav {
     float: left;
 }
 
-li a {
+li.nav a.nav {
     display: block;
     color: white;
     text-align: center;
@@ -32,14 +25,16 @@ li a {
     text-decoration: none;
 }
 
-/* Change the link color to #111 (black) on hover */
-li a:hover {
-    background-color: #111;
+.active {
+    background-color: #038001;
 }
 
-.active {
-    background-color: #4CAF50;
+/* Navbar - Change the link color to #111 (black) on hover */
+li.nav a.nav:hover {
+    background-color: #4caf50;
+    
 }
+
 
 .listing-form {
     display: flex;
@@ -77,13 +72,19 @@ li a:hover {
     display: flex;
     flex-direction: row;
     align-items: center;
+    padding: 5px;
+}
+
+.alongside > a,button,table
+.alongside > form > button {
+    margin: 5px;
 }
 
 /* Place any items under an element with class going from top to bottom*/
 .flex-row {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center;   
 }
 
 /* Make the external container a flexbox and right justify (flex-end)*/
@@ -97,10 +98,41 @@ li a:hover {
     padding: 10px;
 }
 
+button {
+    background-color: #038001;
+    color: white;
+    padding: 1em 1.5em;
+    text-decoration: none;
+    border: 2px solid #038001;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+/* Style a link as a button */
+a.button {
+    background-color: #038001;
+    color: white;
+    padding: 1em 1.5em;
+    text-decoration: none;
+    border: 2px solid #038001;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
 .error {
     color: red;
 }
 
 .success {
     color: green;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
 }

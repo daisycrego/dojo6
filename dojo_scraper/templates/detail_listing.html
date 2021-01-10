@@ -2,6 +2,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% if messages is defined and messages %}
+{% for message in messages %}    
+    <span class="success">{{ message }}</span>
+        <br>
+{% endfor %}
+{% endif %}
 
 <p> This page has the details for a given listing, if that listing exists. 
     It will allow you to edit the details for a Listing. 
@@ -50,7 +56,7 @@
     <a href="{{ id }}/edit">Edit Listing</a>
 </div>
 <form class="right-justify" method="get" action="/scrape/{{ id }}/">
-    <button type="submit" value="Collect Listing Views"> Collect Listing Views </button>
+    <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
 </form>
 <span class="detail-items">
     <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>

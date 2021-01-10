@@ -1,0 +1,54 @@
+
+{% set active_page = "logs" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if message is defined and message %}
+    
+    <span class="success">{{ message }}</span>
+
+{% endif %}
+
+<h3>{% block title %} Property View Web Scraper Logs  {% endblock %}</h3>
+<p> This page will have all of the logs for the data collection, whether it's triggered manually or weekly. The log will 
+    describe what kind of data collection was performed (scheduled weekly run or one-time run) and what listings were parsed.
+</p>
+    <form method="get" action="/scrape/all/">
+        <button type="submit" onclick="return confirm('Are you sure you want to do that?');"> Collect All Listing Views </button>
+    </form>
+
+    <br>
+
+        {% if logs %}
+        <div class="table-container">
+
+            <table>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Collection Type (Weekly vs. One-time)</th>
+                    <th>Date</th>
+                    <th>Listings Collected (IDs)</th>
+                </tr>
+    
+                {% for log in logs %} 
+                <tr>
+                    <td><a href="/log/{{log.id}}">{{log.id}}</a></td>
+                    <td>{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%} </td>
+                    <td>{{ log.date }}</a></td>
+                    <td><a href="/log/{{log.id}}">{{ log.listing_ids }}</a></td>
+                </tr>
+                {% endfor %}
+            <table>
+
+        </div>
+            {% else %}
+            <H2>No logs found.</H2>
+
+        {% endif %}
+        
+
+        
+
+
+{% endblock %}

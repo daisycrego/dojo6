@@ -2,6 +2,7 @@
 {% set navigation_bar = [
     ('/', 'listings', 'Listings'),
     ('/agents/', 'agents', 'Agents'),
+    ('/logs/', 'logs', 'Logs'),
     ('/help/', 'help', 'Help'),
     ('/login/', 'login', 'Log In'),
     ('/logout/', 'logout', 'Log Out')
@@ -17,12 +18,12 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='frontend.css') }}">
     </head>
     <body>
-        <ul id="navigation">
+        <ul class="nav" id="navigation">
             {% for href, id, caption in navigation_bar %}
-              <li{% if id == active_page %} class="active"{% endif
+              <li class="nav" {% if id == active_page %} class="active"{% endif
               %}{% if id=="login" or id=="logout" %}
               style="float:right"
-              {% endif %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+              {% endif %}><a class="nav" href="{{ href|e }}">{{ caption|e }}</a></li>
               
             {% endfor %}
             </ul>

@@ -20,7 +20,7 @@
    <button type="submit">Submit</button>
 </form>
 
-{% if errors is defined %}
+{% if errors is defined and errors %}
     {% for error in errors %}
         <span class="error">{{ error }}</span>
         <br>

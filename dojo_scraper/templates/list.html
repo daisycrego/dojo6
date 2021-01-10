@@ -13,31 +13,47 @@
 <h3>{% block title %} Listings {% endblock %}</h3>
 <p> This page will have all of the Listings listed here, and for each listing it will link to the detail page for that listing </p>
 
-        <a href="listing/create">Add a Listing</a>
+        <span class="alongside">
+            <a class="button" href="listing/create">Add a Listing</a>
+
+            <form method="get" action="/scrape/all/">
+                <button type="submit" onclick="return confirm('Are you sure you want to do that?');"> Collect All Listing Views </button>
+            </form>
+        </span>
+        
 
 
         {% if listings %}
-        <table>
-            <TR>
-                <TH class="c3">Listing Address</TH>
-                <TH class="c4">Zillow Listing</TH>
-                <TH class="c5">Redfin Listing</TH>
-                <TH class="c5">Coldwell Banker Listing</TH>
-            </TR>
+        <div class="table-container">
 
-            {% for listing in listings %} 
-            <TR>
-                <TD class="c3"><a href="/listing/{{listing.id}}">{{listing.address}}</a></TD>
-                <TD class="c4"><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></TD>
-                <TD class="c5"><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></TD>
-                <TD class="c5"><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></TD>
-            </TR>
-            {% endfor %}
-        <table>
+            <table>
+                <tr>
+                    <th>Listing Address</th>
+                    <th>MLS</th>
+                    <th>Agent</th>
+                    <th>Listing Price</th>
+                    <th >Zillow Listing</th>
+                    <th >Redfin Listing</th>
+                    <th >Coldwell Banker Listing</th>
+                </tr>
+    
+                {% for listing in listings %} 
+                <tr>
+                    <td><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
+                    <td>{{listing.mls}}</td>
+                    <td><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
+                    <td>{{ "${:,}".format(listing.price) }}</td>
+                    <td><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></td>
+                    <td><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></td>
+                    <td><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></td>
+                </tr>
+                {% endfor %}
+            <table>
+
+        </div>
         
-        <form method="get" action="/scrape/all/">
-            <button type="submit" value="Collect ALL Listing Views"> Collect Listing Views </button>
-        </form>
+        
+        
             {% else %}
             <H2>No listings yet.</H2>
 
