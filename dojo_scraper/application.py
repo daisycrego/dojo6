@@ -36,7 +36,7 @@ application.url_map.strict_slashes = False
 # Keep the code in TESTING mode to avoid running the web scraper excessively
 TESTING = True
 # Use the test db by default, avoid corrupting the actual db
-application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
+#application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
@@ -44,11 +44,9 @@ application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 application.secret_key = os.environ.get("SECRET_KEY")
 
-admin_email = "daisycrego@gmail.com"
 admin_email = os.environ.get("ADMIN_EMAIL")
 
-TOKEN = "JRA456"
-access_token = os.environ.get("ACCESS_TOKEN")
+TOKEN = os.environ.get("ACCESS_TOKEN")
 
 db = SQLAlchemy(application)
 
