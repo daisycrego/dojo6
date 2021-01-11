@@ -332,7 +332,7 @@ def register(data=None):
     else:
         if request.args.get("data"):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
-        return render_template('register.html', admin_email=admin_email, data=data)@application.route("/register/")
+        return render_template('register.html', admin_email=admin_email, data=data)
 
 ## LISTINGS ROUTES 
 ## Listings - List View
