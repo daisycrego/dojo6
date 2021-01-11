@@ -4,6 +4,7 @@
     ('/agents/', 'agents', 'Agents'),
     ('/logs/', 'logs', 'Logs'),
     ('/help/', 'help', 'Help'),
+    ('/register/', 'register', 'Create Account'),
     ('/login/', 'login', 'Log In'),
     ('/logout/', 'logout', 'Log Out')
 ] -%}
@@ -21,9 +22,20 @@
         <ul class="nav" id="navigation">
             {% for href, id, caption in navigation_bar %}
               <li class="nav" {% if id == active_page %} class="active"{% endif
-              %}{% if id=="login" or id=="logout" %}
+              %}{% if id=="login" or id=="logout" or id=="register" %}
               style="float:right"
-              {% endif %}><a class="nav" href="{{ href|e }}">{{ caption|e }}</a></li>
+              {% endif %}><a 
+               {% if id == "register" or id == "login" %} 
+                {% if current_user.is_authenticated %}
+                    style="display:none;"
+                {% endif %}
+               {% endif %}
+               {% if id=="logout" %}
+                {% if not current_user.is_authenticated %}
+                    class="hidden"
+                {% endif %}
+                {% endif %}
+               class="nav" href="{{ href|e }}">{{ caption|e }}</a></li>
               
             {% endfor %}
             </ul>

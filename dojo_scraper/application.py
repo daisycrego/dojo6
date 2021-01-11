@@ -1,4 +1,5 @@
-from flask import Flask, render_template, Response, request, redirect, url_for
+from flask import Flask, render_template, Response, request, redirect, url_for, flash
+from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func, desc
 import os
@@ -26,6 +27,7 @@ import ast
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
@@ -33,7 +35,6 @@ application.url_map.strict_slashes = False
 
 # Keep the code in TESTING mode to avoid running the web scraper excessively
 TESTING = True
-
 # Use the test db by default, avoid corrupting the actual db
 application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
@@ -41,7 +42,23 @@ application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
 # export DATABASE_URL="postgresql:///dojo_listings"
 
+application.secret_key = os.environ.get("SECRET_KEY")
+
+admin_email = "daisycrego@gmail.com"
+admin_email = os.environ.get("ADMIN_EMAIL")
+
+TOKEN = "JRA456"
+access_token = os.environ.get("ACCESS_TOKEN")
+
 db = SQLAlchemy(application)
+
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(application)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # MODELS 
 class Listing(db.Model):
@@ -86,6 +103,12 @@ class DataCollection(db.Model):
     date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     listing_ids = db.Column(db.ARRAY(db.Integer), nullable=True)
     collection_type = db.Column(db.Enum(CollectionType)) # one_time or weekly
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(1000))
 
 # WEB SCRAPER
 class WebScraper:
@@ -222,10 +245,157 @@ class WebScraper:
 
 # ROUTES
 
+## AUTH ROUTES
+### Login
+@application.route("/login/")
+@application.route("/login/<data>")
+@application.route('/login', methods=["POST"])
+def login(data=None):
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        remember = True if request.form.get("remember") else False
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not check_password_hash(user.password, password):
+            flash("Invalid email and/or password.")
+            return redirect(url_for("login", data=dict(request.form)))
+
+        login_user(user, remember=remember)
+        return redirect(url_for("index"))
+    # GET
+    else:
+        if request.args.get("data"):
+            data = ast.literal_eval(request.args.get("data").rstrip('/'))    
+        return render_template("login.html", data=data)
+
+### Logout 
+@application.route('/logout/')
+@login_required
+def logout():
+    logout_user()
+    return(redirect(url_for("login")))
+
+### Register
+### Register
+@application.route("/register/")
+@application.route('/register/<data>')
+@application.route('/register/', methods=["POST"])
+def register(data=None):
+    if request.method == "POST":
+        valid = True
+        errors = []
+        ## validate access token
+        token = request.form.get("token")
+        if not token:
+            flash("Access token required. Contact your system administrator for a new token.")
+            return redirect(url_for('register', data=dict(request.form)))
+
+        elif token != TOKEN:
+            flash("Invalid access token, please contact your system administrator")
+            return redirect(url_for('register', data=dict(request.form)))
+
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        password_confirm = request.form.get('password_confirm')
+
+        if not password:
+            valid = False
+            flash("Password missing")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif not password_confirm:
+            valid = False
+            #errors.append("Retype password")
+            flash("Retype password")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif password != password_confirm:
+            valid = False
+            #errors.append("Passwords must match")
+            flash("Passwords must match")
+            return redirect(url_for("register", data=dict(request.form)))
+
+        user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+
+        if user: # if a user is found, we want to redirect back to signup page so user can try again
+            flash('Email address already in use')
+            return redirect(url_for('register', data=dict(request.form)))
+
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+
+        # add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for("login"))
+    # GET
+    else:
+        if request.args.get("data"):
+            data = ast.literal_eval(request.args.get("data").rstrip('/'))
+        return render_template('register.html', admin_email=admin_email, data=data)@application.route("/register/")
+@application.route('/register/<data>')
+@application.route('/register/', methods=["POST"])
+def register(data=None):
+    if request.method == "POST":
+        valid = True
+        errors = []
+        ## validate access token 
+        token = request.form.get("token")
+        if not token:
+            flash("Access token required. Contact your system administrator for a new token.")
+            return redirect(url_for('register', data=dict(request.form)))
+
+        elif token != TOKEN:
+            flash("Invalid access token, please contact your system administrator")
+            return redirect(url_for('register', data=dict(request.form)))
+
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        password_confirm = request.form.get('password_confirm')
+
+        if not password:
+            valid = False
+            flash("Password missing")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif not password_confirm:
+            valid = False
+            #errors.append("Retype password")
+            flash("Retype password")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif password != password_confirm: 
+            valid = False
+            #errors.append("Passwords must match")
+            flash("Passwords must match")
+            return redirect(url_for("register", data=dict(request.form)))
+
+        user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+
+        if user: # if a user is found, we want to redirect back to signup page so user can try again
+            flash('Email address already in use')
+            return redirect(url_for('register', data=dict(request.form)))
+
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+
+        # add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for("login"))
+    # GET 
+    else: 
+        if request.args.get("data"):
+            data = ast.literal_eval(request.args.get("data").rstrip('/'))    
+        return render_template('register.html', admin_email=admin_email, data=data)
+
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/')
 @application.route('/<message>')
+@login_required
 def index(message=None):
     listings = Listing.query.all()
     return render_template('list.html', listings=listings, message=message)
@@ -233,6 +403,7 @@ def index(message=None):
 ## Listing - Detail View
 @application.route('/listing/')
 @application.route('/listing/<id>')
+@login_required
 def detail_listing(id=None):
     messages = []
     listing = Listing.query.filter_by(id=id).first()
@@ -245,6 +416,7 @@ def detail_listing(id=None):
 
 ## Listing - Create  
 @application.route('/listing/create/', methods=["GET", "POST"])
+@login_required
 def create(errors=None, prev_data=None):
     errors = request.args.getlist("errors")
     if request.args.get("prev_data"):
@@ -311,6 +483,7 @@ def create(errors=None, prev_data=None):
 
 ## Listing - Edit 
 @application.route('/listing/<id>/edit', methods=["GET", "POST"])
+@login_required
 def edit_listing(id=None, errors=None, prev_data=None):
     errors = request.args.getlist("errors")
     if request.args.get("prev_data"):
@@ -393,6 +566,7 @@ def edit_listing(id=None, errors=None, prev_data=None):
 
 ## Listing - Delete 
 @application.route('/listing/<id>/delete')
+@login_required
 def delete_listing(id=None):
     listing = Listing.query.filter_by(id=id).first()
     address = listing.address
@@ -405,6 +579,7 @@ def delete_listing(id=None):
 ## Agents - List  
 @application.route('/agents/')
 @application.route('/agents/<message>')
+@login_required
 def agents(message=None):
     agents = Agent.query.all()
     return render_template('list_agents.html', agents=agents, message=message)
@@ -412,12 +587,14 @@ def agents(message=None):
 ## Agent - Detail 
 @application.route('/agent/')
 @application.route('/agent/<id>')
+@login_required
 def detail_agent(id=None):
     agent = Agent.query.filter_by(id=id).first()
     return render_template('detail_agent.html', id=id, agent=agent)
 
 ## Agent - Create
 @application.route('/agent/create/', methods=["GET", "POST"])
+@login_required
 def create_agent(errors=None, prev_data=None):
     errors = request.args.getlist("errors")
     if request.args.get("prev_data"):
@@ -455,6 +632,7 @@ def create_agent(errors=None, prev_data=None):
 
 ## Agent - Edit
 @application.route('/agent/<id>/edit', methods=["GET", "POST"])
+@login_required
 def agent_edit(id=None, errors=None, prev_data=None):
     errors = request.args.getlist("errors")
     if request.args.get("prev_data"):
@@ -494,8 +672,9 @@ def agent_edit(id=None, errors=None, prev_data=None):
             return render_template('detail_agent.html', id=id, agent=agent, errors=errors, data=prev_data, editing=True)
         return render_template('detail_agent.html', id=id, agent=agent, editing=True)
 
-## Agent - Delete 
+## Agent - Delete
 @application.route('/agent/<id>/delete')
+@login_required 
 def delete_agent(id=None):
     agent = Agent.query.filter_by(id=id).first()
     name = agent.name
@@ -506,6 +685,7 @@ def delete_agent(id=None):
 
 ## Logs - List View
 @application.route('/logs/')
+@login_required
 def list_logs():
     logs = DataCollection.query.order_by(desc(DataCollection.date)).all()
     return render_template("list_logs.html", logs=logs)
@@ -513,6 +693,7 @@ def list_logs():
 ## Logs - Detail View
 @application.route('/log/')
 @application.route('/log/<id>')
+@login_required
 def detail_log(id=None):
     log = DataCollection.query.filter_by(id=id).first()
     listings = [Listing.query.filter_by(id=listing_id).first() for listing_id in log.listing_ids]
@@ -520,11 +701,13 @@ def detail_log(id=None):
 
 ## Help Page 
 @application.route('/help/')
+@login_required
 def help():
     return render_template('help.html')
 
 ## Generates plot of listing views (views per day) for a given Listing ID.
 @application.route("/matplot-as-image-<int:id>.png")
+@login_required
 def plot_png(id=None):
     """ renders the plot on the fly.
     """
@@ -585,6 +768,7 @@ def scrape_listings(listings=None):
 
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
+@login_required
 def scraper(id=None):
     listing = Listing.query.filter_by(id=id).first()
     if TESTING:
@@ -599,6 +783,7 @@ def scraper(id=None):
 
 ## Scrapes listing views for today for all Listings. Updates the db as the results are found. 
 @application.route('/scrape/all/')
+@login_required
 def scrapeAll(id=None):
     listings = Listing.query.all()
     if TESTING:
