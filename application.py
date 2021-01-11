@@ -247,6 +247,13 @@ class WebScraper:
 
 # ROUTES
 
+@application.route("/hello/")
+@application.route("/hello/<name>")
+def hello(name=None):
+    if name == None:
+        name = "world"
+    return "Hello, {}".format(name)
+
 ## AUTH ROUTES
 ### Login
 @application.route("/login/")
