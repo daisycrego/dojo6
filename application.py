@@ -7,7 +7,6 @@ from base64 import b64encode
 import io
 import matplotlib 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-#import multiprocessing
 import time
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -28,12 +27,15 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv # for working locally, to access the .env file
+load_dotenv() # load the env vars from local .env
+
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
 application.url_map.strict_slashes = False
 
-# Keep the code in TESTING mode to avoid running the web scraper excessively
+# Keep the code in TESTING=True mode to avoid running the web scraper excessively
 TESTING = True
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
@@ -227,12 +229,14 @@ class WebScraper:
                     
             driver.quit()
 
-        existing_views = ListingViews.query.filter_by(listing_id=id, date=date.today()).first()
+        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= date.today()).first()
         if not existing_views:
+            print("No ListingViews already found for this listing...")
             views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
             db.session.add(views)
             db.session.commit()
         else:
+            print("ListingViews already scraped today for this listing...")
             existing_views.views_zillow = final_results["zillow"]
             existing_views.views_redfin = final_results["redfin"]
             existing_views.views_cb = final_results["cb"]
@@ -740,6 +744,20 @@ def scrapeAll(id=None):
     # Redirect to the home page (Listings - List View)
     return redirect(url_for('index', id=id))
 
+@application.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
+@application.errorhandler(403)
+def forbidden_page(e):
+    # note that we set the 403 status explicitly
+    return render_template('403.html'), 403
+
+@application.errorhandler(500)
+def internal_server_error(e):
+    # note that we set the 500 status explicitly
+    return render_template('500.html'), 500
 
 def scrape_listings_weekly():
     # Retrieve all of the current listings
@@ -760,6 +778,8 @@ def log_data_collection(collection_type=None, listings=[]):
     data_collection = DataCollection(listing_ids=listing_ids, collection_type=collection_type)
     db.session.add(data_collection)
     db.session.commit()
+
+
 
 # Run the app.
 if __name__ == "__main__":
