@@ -335,61 +335,6 @@ def register(data=None):
         if request.args.get("data"):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
         return render_template('register.html', admin_email=admin_email, data=data)@application.route("/register/")
-@application.route('/register/<data>')
-@application.route('/register/', methods=["POST"])
-def register(data=None):
-    if request.method == "POST":
-        valid = True
-        errors = []
-        ## validate access token 
-        token = request.form.get("token")
-        if not token:
-            flash("Access token required. Contact your system administrator for a new token.")
-            return redirect(url_for('register', data=dict(request.form)))
-
-        elif token != TOKEN:
-            flash("Invalid access token, please contact your system administrator")
-            return redirect(url_for('register', data=dict(request.form)))
-
-        email = request.form.get('email')
-        name = request.form.get('name')
-        password = request.form.get('password')
-        password_confirm = request.form.get('password_confirm')
-
-        if not password:
-            valid = False
-            flash("Password missing")
-            return redirect(url_for("register", data=dict(request.form)))
-        elif not password_confirm:
-            valid = False
-            #errors.append("Retype password")
-            flash("Retype password")
-            return redirect(url_for("register", data=dict(request.form)))
-        elif password != password_confirm: 
-            valid = False
-            #errors.append("Passwords must match")
-            flash("Passwords must match")
-            return redirect(url_for("register", data=dict(request.form)))
-
-        user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
-
-        if user: # if a user is found, we want to redirect back to signup page so user can try again
-            flash('Email address already in use')
-            return redirect(url_for('register', data=dict(request.form)))
-
-        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
-
-        # add the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
-
-        return redirect(url_for("login"))
-    # GET 
-    else: 
-        if request.args.get("data"):
-            data = ast.literal_eval(request.args.get("data").rstrip('/'))    
-        return render_template('register.html', admin_email=admin_email, data=data)
 
 ## LISTINGS ROUTES 
 ## Listings - List View
