@@ -903,7 +903,7 @@ def log_data_collection(collection_type=None, listings=[]):
 if __name__ == "__main__":
     # Setting debug to True enables debug output.
     # REMOVE BEFORE DEPLOYING.
-    application.debug = True
+    #application.debug = True
 
     # disable the auto-reloader - otherwise cron jobs will run twice each time when deployed in DEVELOPMENT mode
     application.run(use_reloader=False)
