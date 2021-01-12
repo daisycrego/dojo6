@@ -902,9 +902,8 @@ def log_data_collection(collection_type=None, listings=[]):
 # Set up weekly cron job for scraping the listings
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.configure(timezone='est')
-#scheduler.add_job(scrape_listings_weekly, minutes=1)
-scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
-#scheduler.add_job(scrape_listings_weekly, /*day_of_week="0-6", hour=10, minute=32*/, minutes=1)
+#scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=10, minute=30)
 scheduler.print_jobs()
 scheduler.start()
 
@@ -912,9 +911,7 @@ scheduler.start()
 if __name__ == "__main__":
     # Setting debug to True enables debug output.
     # REMOVE BEFORE DEPLOYING.
-    #application.debug = True
-
-    
+    application.debug = True
 
     # Shut down the scheduler when exiting the app
     #atexit.register(lambda: scheduler.shutdown())
