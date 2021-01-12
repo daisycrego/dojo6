@@ -901,8 +901,8 @@ def log_data_collection(collection_type=None, listings=[]):
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.configure(timezone='est')
 #scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
-scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=10, minute=30)
-scheduler.print_jobs()
+scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=13, minute=30)
+#scheduler.print_jobs()
 scheduler.start()
 
 # Run the app.
