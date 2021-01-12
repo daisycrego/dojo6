@@ -27,6 +27,7 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
 
@@ -37,6 +38,7 @@ application.url_map.strict_slashes = False
 
 # Keep the code in TESTING=True mode to avoid running the web scraper excessively
 TESTING = True
+#TESTING = False
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
@@ -47,6 +49,16 @@ application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 application.secret_key = os.environ.get("SECRET_KEY")
 
 admin_email = os.environ.get("ADMIN_EMAIL")
+
+application.config['MAIL_SERVER']='smtp.gmail.com'
+application.config['MAIL_PORT'] = 465
+application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAIL_DEFAULT_SENDER")
+application.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
+application.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
+application.config['MAIL_USE_TLS'] = False
+application.config['MAIL_USE_SSL'] = True
+
+mail = Mail(application)
 
 TOKEN = os.environ.get("ACCESS_TOKEN")
 
@@ -109,6 +121,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
+    token = db.Column(db.String(100))
 
 # WEB SCRAPER
 class WebScraper:
@@ -237,6 +250,7 @@ class WebScraper:
             db.session.commit()
         else:
             print("ListingViews already scraped today for this listing...")
+            flash("Data already scraped today")
             existing_views.views_zillow = final_results["zillow"]
             existing_views.views_redfin = final_results["redfin"]
             existing_views.views_cb = final_results["cb"]
@@ -324,6 +338,9 @@ def register(data=None):
             #errors.append("Passwords must match")
             flash("Passwords must match")
             return redirect(url_for("register", data=dict(request.form)))
+        elif len(password) < 8:
+            flash("Password must be at least 8 characters long.")
+            return redirect(url_for("register", data=dict(request.form)))
 
         user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
@@ -345,6 +362,100 @@ def register(data=None):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
         return render_template('register.html', admin_email=admin_email, data=data)
 
+"""
+@application.route("/reset-password/<email>", methods=["GET", "POST"])
+@login_required
+def reset_password():
+    if request.method == "POST":
+        token = request.form.get("token")
+        email = request.form.get("email")
+        if token:
+            # this is the reset password form 
+            email = request.args.get("email")
+            if not email:
+                flash("Please use the password reset link sent to your email.")
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                flash("Unable to reset password. Please use the password reset link sent to your email.")
+                return redirect(url_for("reset_password"))
+
+        else: 
+            # this is the email new access token form 
+            if not email:
+               flash("Please provide an email to reset your password")
+               return redirect(url_for("reset_password")) 
+            user = User.query.filter_by(email=email).first()
+        
+        if not token or not email:
+            
+        else:
+            
+            if not user:
+                flash("Invalid access token and/or email, please check your email for instructions on resetting your password.")
+                return(redirect(url_for("login")))
+            if not token:
+                flash("No access token provided, please provide your email to reset your password.")
+                return redirect(url_for("login"))
+            elif token != user.token:
+                flash("Invalid password reset token")
+                return redirect(url_for("login"))
+            
+            password = request.args.get("password")
+            confirm_password = request.args.get("password-confirm")
+            
+            if not password:
+                flash("Password missing")
+                return redirect(url_for("reset_password", token=token, email=email))
+            elif not password_confirm:
+                flash("Retype password")
+                return redirect(url_for("reset_password", token=token, email=email))
+            elif password != password_confirm:
+                flash("Passwords must match")
+                return redirect(url_for("reset_password", token=token, email=email))
+            elif len(password) < 8:
+                flash("Password must be at least 8 characters long.")
+                return redirect(url_for("reset_password", token=token, email=email))
+
+            user.password = generate_password_hash(password, method='sha256')
+
+            # save the changes in the db 
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Password successfully reset.")
+            return redirect(url_for("login"))
+    # GET request
+    else:
+        token = request.args.get("token")
+        email = request.args.get("email")
+    
+        print(token)
+        print(email)
+        if not token or not email:
+            
+                    
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # generate password reset token
+                new_token = os.random(6)
+                user.token = new_token
+
+                db.session.add(user)
+                db.session.commit()
+            
+                # send a secret token to that email, save the secret token in the db?
+                msg = Message('Hello', recipients = [email])
+                msg.body = f"Please follow this link to reset your password: {request.base_url}/token={new_token}&email={email}"
+                mail.send(msg)
+            flash(f"An email has been sent to {email} with instructions to reset your password.")
+            return redirect(url_for("login"))
+        
+        # GET, no token or email    
+        else:
+            return render_template("reset_password.html", resetting=False)
+        # there is a token and email, allow resetting of the password
+        else: 
+            return render_template("reset_password.html", token=token, resetting=True)
+"""
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/')
@@ -799,8 +910,9 @@ if __name__ == "__main__":
 
     # Set up weekly cron job for scraping the listings
     scheduler = BackgroundScheduler()
-    trigger = CronTrigger(day_of_week='mon-sun')
-    scheduler.add_job(func=scrape_listings_weekly, trigger=trigger)
+    scheduler.configure(timezone='est')
+    trigger = CronTrigger(day_of_week='0-6')
+    scheduler.add_job(scrape_listings_weekly, "cron", day_of_week="1-7", hour=10, minute=15)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
