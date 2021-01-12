@@ -909,9 +909,11 @@ if __name__ == "__main__":
     application.run(use_reloader=False)
 
     # Set up weekly cron job for scraping the listings
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')
-    scheduler.add_job(scrape_listings_weekly, "cron", day_of_week="0-6", hour=10, minute=32)
+    #scheduler.add_job(scrape_listings_weekly, minutes=1)
+    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    #scheduler.add_job(scrape_listings_weekly, /*day_of_week="0-6", hour=10, minute=32*/, minutes=1)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
