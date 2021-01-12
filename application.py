@@ -871,9 +871,13 @@ def scrape_listings_weekly():
     # Email admin if they exist
     admin_email = os.environ.get("ADMIN_EMAIL")
     if admin_email:
-        msg = Message('Hello', recipients = [admin_email])
-        msg.body = f"Property views were scraped for this week. To see which listings were scraped or the results, please visit: {request.base_url}/login"
-        mail.send(msg)
+        body = f"Property views were scraped for this week. To see which listings were scraped or the results, please visit: {request.base_url}/login"
+        send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+
+def send_email(recipients, title, body):
+    msg = Message(title, recipients=recipients)
+    msg.body = body
+    mail.send(msg)s
 
 def log_data_collection(collection_type=None, listings=[]):
     if not collection_type:
@@ -896,7 +900,7 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
 
     # TEST
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=46)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=52)
 
     # Every minute
     # scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
