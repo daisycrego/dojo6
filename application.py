@@ -901,6 +901,9 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     # Every Friday at 5:30 pm 
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
 
+    # TEST
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=26)
+
     # Every minute
     # scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
     
