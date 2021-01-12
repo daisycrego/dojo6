@@ -874,6 +874,13 @@ def scrape_listings_weekly():
     # Log scraping event
     log_data_collection(CollectionType.weekly, listings)
 
+    # Email admin if they exist
+    admin_email = os.environ.get("ADMIN_EMAIL")
+    if admin_email:
+        msg = Message('Hello', recipients = [admin_email])
+        msg.body = f"Property views were scraped for this week. To see which listings were scraped or the results, please visit: {request.base_url}/login"
+        mail.send(msg)
+
 def log_data_collection(collection_type=None, listings=[]):
     if not collection_type:
         return
