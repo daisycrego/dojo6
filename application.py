@@ -877,7 +877,7 @@ def scrape_listings_weekly():
 def send_email(recipients, title, body):
     msg = Message(title, recipients=recipients)
     msg.body = body
-    mail.send(msg)s
+    mail.send(msg)
 
 def log_data_collection(collection_type=None, listings=[]):
     if not collection_type:
