@@ -900,7 +900,7 @@ def log_data_collection(collection_type=None, listings=[]):
 # Only when running in the child reloader process.
 # Prevent the scheduler from running in the master 
 # process. 
-if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')

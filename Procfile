@@ -1,2 +1,2 @@
-web: gunicorn application:application --use_reloader=False
+web: gunicorn application:application
 
