@@ -898,12 +898,30 @@ def log_data_collection(collection_type=None, listings=[]):
     db.session.commit()
 
 # Set up weekly cron job for scraping the listings
-scheduler = BackgroundScheduler(daemon=True)
-scheduler.configure(timezone='est')
-#scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
-scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=13, minute=30)
-#scheduler.print_jobs()
-scheduler.start()
+# Only when running in the child reloader process.
+# Prevent the scheduler from running in the master 
+# process. 
+if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    
+    scheduler = BackgroundScheduler(daemon=True)
+    scheduler.configure(timezone='est')
+    
+    # Every Friday at 5:30 pm 
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
+
+    # Every minute
+    # scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    
+    # Every day at 2:45
+    # scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=14, minute=45)
+    
+    # Check which jobs are scheduled
+    # scheduler.print_jobs()
+
+    scheduler.start()
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
 
 # Run the app.
 if __name__ == "__main__":
@@ -911,8 +929,4 @@ if __name__ == "__main__":
     # REMOVE BEFORE DEPLOYING.
     #application.debug = True
 
-    # Shut down the scheduler when exiting the app
-    #atexit.register(lambda: scheduler.shutdown())
-
-    # disable the auto-reloader - otherwise cron jobs will run twice each time when deployed in DEVELOPMENT mode
-    application.run(use_reloader=False)
+    application.run()
