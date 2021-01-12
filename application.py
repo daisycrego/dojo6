@@ -912,7 +912,7 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.configure(timezone='est')
     trigger = CronTrigger(day_of_week='0-6')
-    scheduler.add_job(scrape_listings_weekly, "cron", day_of_week="1-7", hour=10, minute=15)
+    scheduler.add_job(scrape_listings_weekly, "cron", day_of_week="1-7", hour=10, minute=30)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
