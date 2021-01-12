@@ -919,10 +919,12 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
 
-# Run the app.
-if __name__ == "__main__":
-    # Setting debug to True enables debug output.
-    # REMOVE BEFORE DEPLOYING.
-    #application.debug = False
+application.run(use_reloader=False)
 
-    application.run()
+# Run the app.
+#if __name__ == "__main__":
+#    # Setting debug to True enables debug output.
+#    # REMOVE BEFORE DEPLOYING.
+#    #application.debug = False
+
+#    application.run()
