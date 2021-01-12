@@ -64,13 +64,13 @@ TOKEN = os.environ.get("ACCESS_TOKEN")
 
 db = SQLAlchemy(application)
 
-login_manager = LoginManager()
-login_manager.login_view = 'login'
-login_manager.init_app(application)
+#login_manager = LoginManager()
+#login_manager.login_view = 'login'
+#login_manager.init_app(application)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+#@login_manager.user_loader
+#def load_user(user_id):
+#    return User.query.get(int(user_id))
 
 # MODELS 
 class Listing(db.Model):
@@ -899,7 +899,14 @@ def log_data_collection(collection_type=None, listings=[]):
     db.session.add(data_collection)
     db.session.commit()
 
-
+# Set up weekly cron job for scraping the listings
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.configure(timezone='est')
+#scheduler.add_job(scrape_listings_weekly, minutes=1)
+scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+#scheduler.add_job(scrape_listings_weekly, /*day_of_week="0-6", hour=10, minute=32*/, minutes=1)
+scheduler.print_jobs()
+scheduler.start()
 
 # Run the app.
 if __name__ == "__main__":
@@ -907,17 +914,10 @@ if __name__ == "__main__":
     # REMOVE BEFORE DEPLOYING.
     #application.debug = True
 
-    # Set up weekly cron job for scraping the listings
-    scheduler = BackgroundScheduler(daemon=True)
-    scheduler.configure(timezone='est')
-    #scheduler.add_job(scrape_listings_weekly, minutes=1)
-    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
-    #scheduler.add_job(scrape_listings_weekly, /*day_of_week="0-6", hour=10, minute=32*/, minutes=1)
-    scheduler.print_jobs()
-    scheduler.start()
+    
 
     # Shut down the scheduler when exiting the app
-    atexit.register(lambda: scheduler.shutdown())
+    #atexit.register(lambda: scheduler.shutdown())
 
     # disable the auto-reloader - otherwise cron jobs will run twice each time when deployed in DEVELOPMENT mode
     application.run(use_reloader=False)
