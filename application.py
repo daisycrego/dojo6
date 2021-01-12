@@ -749,12 +749,6 @@ def detail_log(id=None):
     listings = [Listing.query.filter_by(id=listing_id).first() for listing_id in log.listing_ids]
     return render_template('detail_log.html', id=id, log=log, listings=listings)
 
-## Help Page 
-@application.route('/help/')
-@login_required
-def help():
-    return render_template('help.html')
-
 ## Generates plot of listing views (views per day) for a given Listing ID.
 @application.route("/matplot-as-image-<int:id>.png")
 @login_required
@@ -902,13 +896,12 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
 
     # TEST
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=35)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=46)
 
     # Every minute
     # scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
     
-    # Every day at 2:45
-    # scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=14, minute=45)
+    # scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=14, minute=46)
     
     # Check which jobs are scheduled
     # scheduler.print_jobs()
@@ -922,6 +915,6 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
 if __name__ == "__main__":
     # Setting debug to True enables debug output.
     # REMOVE BEFORE DEPLOYING.
-    #application.debug = True
+    application.debug = False
 
     application.run()

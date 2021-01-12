@@ -3,10 +3,10 @@
     ('/', 'listings', 'Listings'),
     ('/agents/', 'agents', 'Agents'),
     ('/logs/', 'logs', 'Logs'),
-    ('/help/', 'help', 'Help'),
     ('/register/', 'register', 'Create Account'),
     ('/login/', 'login', 'Log In'),
-    ('/logout/', 'logout', 'Log Out')
+    ('/logout/', 'logout', 'Log Out'),
+    ('/reset-password', 'reset-password', 'Reset Password'),
 ] -%}
 {% set active_page = active_page|default('listings') -%}
 
@@ -22,7 +22,7 @@
         <ul class="nav" id="navigation">
             {% for href, id, caption in navigation_bar %}
               <li class="nav" {% if id == active_page %} class="active"{% endif
-              %}{% if id=="login" or id=="logout" or id=="register" %}
+              %}{% if id=="login" or id=="reset-password" or id=="logout" or id=="register" %}
               style="float:right"
               {% endif %}><a 
                {% if id == "register" or id == "login" %} 
@@ -30,7 +30,7 @@
                     style="display:none;"
                 {% endif %}
                {% endif %}
-               {% if id=="logout" %}
+               {% if id=="logout" or id=="reset-password" %}
                 {% if not current_user.is_authenticated %}
                     class="hidden"
                 {% endif %}
