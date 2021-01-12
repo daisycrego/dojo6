@@ -886,6 +886,8 @@ def scrape_listings_weekly():
     else:
         scrape_listings(listings)
 
+    scheduler.print_jobs()
+
     # Log scraping event
     log_data_collection(CollectionType.weekly, listings)
 
@@ -911,13 +913,11 @@ if __name__ == "__main__":
     #scheduler.add_job(scrape_listings_weekly, minutes=1)
     scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
     #scheduler.add_job(scrape_listings_weekly, /*day_of_week="0-6", hour=10, minute=32*/, minutes=1)
+    scheduler.print_jobs()
     scheduler.start()
-
-    # disable the auto-reloader - otherwise cron jobs will run twice each time when deployed in DEVELOPMENT mode
-    application.run(use_reloader=False)
-
-    
-    
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
+
+    # disable the auto-reloader - otherwise cron jobs will run twice each time when deployed in DEVELOPMENT mode
+    application.run(use_reloader=False)
