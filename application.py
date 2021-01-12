@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request, redirect, url_for, flash
+from flask import Flask, render_template, Response, request, redirect, url_for, flash, current_app
 from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func, desc
@@ -871,13 +871,20 @@ def scrape_listings_weekly():
     # Email admin if they exist
     admin_email = os.environ.get("ADMIN_EMAIL")
     if admin_email:
-        body = f"Property views were scraped for this week. To see which listings were scraped or the results, please visit: {request.base_url}/login"
+        # within this block, current_app points to app.
+        #print(current_app.name)
+        #print("current_app")
+        #print(current_app)
+        #print(current_app.request)
+        body = f"Property views were scraped for this week."
         send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
 
 def send_email(recipients, title, body):
-    msg = Message(title, recipients=recipients)
-    msg.body = body
-    mail.send(msg)
+    with application.app_context():
+        msg = Message(title, recipients=recipients)
+        msg.body = body
+        current_app.extensions['mail'].send(msg)
+        #current_app.mail.send(msg)
 
 def log_data_collection(collection_type=None, listings=[]):
     if not collection_type:
@@ -899,14 +906,9 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     # Every Friday at 5:30 pm 
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
 
-    # TEST
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="tue", hour=16, minute=55)
-
-    # Every minute
-    # scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
-    
-    # scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="0-6", hour=14, minute=46)
-    
+    # Every minute - TEST
+    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+        
     # Check which jobs are scheduled
     # scheduler.print_jobs()
 
