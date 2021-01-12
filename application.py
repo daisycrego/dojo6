@@ -362,100 +362,85 @@ def register(data=None):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
         return render_template('register.html', admin_email=admin_email, data=data)
 
-"""
-@application.route("/reset-password/<email>", methods=["GET", "POST"])
+@application.route("/reset-password/", methods=["GET", "POST"])
+@application.route("/reset-password?<email>&<token>", methods=["GET", "POST"])
 @login_required
 def reset_password():
     if request.method == "POST":
         token = request.form.get("token")
         email = request.form.get("email")
-        if token:
-            # this is the reset password form 
-            email = request.args.get("email")
-            if not email:
-                flash("Please use the password reset link sent to your email.")
-            user = User.query.filter_by(email=email).first()
-            if not user:
-                flash("Unable to reset password. Please use the password reset link sent to your email.")
-                return redirect(url_for("reset_password"))
-
-        else: 
-            # this is the email new access token form 
-            if not email:
-               flash("Please provide an email to reset your password")
-               return redirect(url_for("reset_password")) 
-            user = User.query.filter_by(email=email).first()
-        
-        if not token or not email:
+        if token and email:
+            # handle POST - check passwords, handle password reset
             
-        else:
-            
-            if not user:
-                flash("Invalid access token and/or email, please check your email for instructions on resetting your password.")
+            # check the token and the user (based on the email)
+            user = User.query.filter_by(email=email).first()
+            if not user or token != user.token:
+                flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!")
                 return(redirect(url_for("login")))
-            if not token:
-                flash("No access token provided, please provide your email to reset your password.")
-                return redirect(url_for("login"))
-            elif token != user.token:
-                flash("Invalid password reset token")
-                return redirect(url_for("login"))
             
-            password = request.args.get("password")
-            confirm_password = request.args.get("password-confirm")
+            password = request.form.get("password")
+            confirm_password = request.form.get("password-confirm")
             
             if not password:
                 flash("Password missing")
-                return redirect(url_for("reset_password", token=token, email=email))
-            elif not password_confirm:
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+            elif not confirm_password:
                 flash("Retype password")
-                return redirect(url_for("reset_password", token=token, email=email))
-            elif password != password_confirm:
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+            elif password != confirm_password:
                 flash("Passwords must match")
-                return redirect(url_for("reset_password", token=token, email=email))
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
             elif len(password) < 8:
                 flash("Password must be at least 8 characters long.")
-                return redirect(url_for("reset_password", token=token, email=email))
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
 
             user.password = generate_password_hash(password, method='sha256')
 
             # save the changes in the db 
-            db.session.add(new_user)
+            db.session.add(user)
             db.session.commit()
             flash("Password successfully reset.")
             return redirect(url_for("login"))
-    # GET request
+        elif email:
+            # handle POST - new password reset access token, url, and email
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Create a token for the reset password link, save it in the db
+                random_bytes = os.urandom(64)
+                new_token = b64encode(random_bytes).decode('utf-8')
+                user.token = new_token
+                db.session.add(user)
+                db.session.commit()
+                
+                # Send the token to user's email
+                msg = Message('Hello', recipients = [email])
+                msg.body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
+                mail.send(msg)
+            
+            flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
+            return redirect(url_for("reset_password"))
+            
+                    
+        else:
+            flash("Please provide an email to get instructions for resetting your password.")
+            return redirect(url_for("reset_password"))
+    # GET
     else:
         token = request.args.get("token")
         email = request.args.get("email")
-    
-        print(token)
-        print(email)
-        if not token or not email:
-            
-                    
-            user = User.query.filter_by(email=email).first()
-            if user:
-                # generate password reset token
-                new_token = os.random(6)
-                user.token = new_token
-
-                db.session.add(user)
-                db.session.commit()
-            
-                # send a secret token to that email, save the secret token in the db?
-                msg = Message('Hello', recipients = [email])
-                msg.body = f"Please follow this link to reset your password: {request.base_url}/token={new_token}&email={email}"
-                mail.send(msg)
-            flash(f"An email has been sent to {email} with instructions to reset your password.")
-            return redirect(url_for("login"))
-        
-        # GET, no token or email    
-        else:
+        if not token and not email:
             return render_template("reset_password.html", resetting=False)
-        # there is a token and email, allow resetting of the password
-        else: 
-            return render_template("reset_password.html", token=token, resetting=True)
-"""
+        else:
+            # Check token and email before showing password reset form
+            user = User.query.filter_by(email=email).first()
+            if not user or not token or token != user.token:
+                if token and token != user.token:
+                    flash("Your password reset link is invalid or expired. Please provide your email for a new link.")
+                else:
+                    flash("Invalid access token and/or email, please check your email for instructions on resetting your password.")
+                return(redirect(url_for("reset_password"))) 
+            return render_template("reset_password.html", resetting=True, token=token, email=email)
+
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/')
