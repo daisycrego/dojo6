@@ -886,8 +886,6 @@ def scrape_listings_weekly():
     else:
         scrape_listings(listings)
 
-    scheduler.print_jobs()
-
     # Log scraping event
     log_data_collection(CollectionType.weekly, listings)
 
@@ -911,7 +909,7 @@ scheduler.start()
 if __name__ == "__main__":
     # Setting debug to True enables debug output.
     # REMOVE BEFORE DEPLOYING.
-    application.debug = True
+    #application.debug = True
 
     # Shut down the scheduler when exiting the app
     #atexit.register(lambda: scheduler.shutdown())
