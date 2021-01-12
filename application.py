@@ -68,6 +68,8 @@ login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(application)
 
+application.debug = False
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -921,6 +923,6 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
 if __name__ == "__main__":
     # Setting debug to True enables debug output.
     # REMOVE BEFORE DEPLOYING.
-    application.debug = False
+    #application.debug = False
 
     application.run()
