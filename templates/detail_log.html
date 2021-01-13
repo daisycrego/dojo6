@@ -42,9 +42,9 @@
         
         <p>{{ price }}</p>
     </span>
+    {% if log.errors %}
     <label for="errors">Errors:</label>
-    <span name="errors">
-        {% if log.errors %}
+    <span name="errors"></span>
         <ul>
             {% for error in log.errors %}
 
@@ -53,8 +53,8 @@
 
             {% endfor %}
         </ul>
-        {% endif %}
     </span>
+    {% endif %}
     
 </span>
 
