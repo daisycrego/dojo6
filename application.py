@@ -43,9 +43,6 @@ TESTING = True
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
-#FIFTEEN_MINUTE_AGO = now - timedelta(minutes=15)
-FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
-
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
 # export DATABASE_URL="postgresql:///dojo_listings"
@@ -185,6 +182,7 @@ class WebScraper:
             return
         listing = Listing.query.filter_by(id=id).first()
 
+        FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
         existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
         if existing_views:
             print("Last scrape was < 15 minutes ago.")
@@ -830,6 +828,7 @@ def scrape_listings(listings=None):
     listings_to_scrape = []
     for listing in listings:
         
+        FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
         existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
         if not existing_views:
             listings_to_scrape.append(listing)
