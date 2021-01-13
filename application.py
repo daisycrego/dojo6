@@ -119,7 +119,7 @@ class DataCollection(db.Model):
     listing_ids = db.Column(db.ARRAY(db.Integer), nullable=True)
     collection_type = db.Column(db.Enum(CollectionType)) # one_time or weekly
     status = db.Column(db.Boolean, unique=False, default=False, nullable=True)
-    errors = db.Column(db.ARRAY(db.String(100)), nullable=True)
+    errors = db.Column(db.ARRAY(db.String(1000)), nullable=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -809,11 +809,11 @@ def plot_png(id=None):
 
 ## Helper - Scrapes all the listings passed in the input array using the WebScraper class
 def scrape_listings(listings=None):
-    if not listings:
-        print("scrape_listings(): No listings to scrape.")
-        return False
-
     errors = []
+    if not listings:
+        errors.append("No listings to scrape.")
+        return errors
+    
     listings_to_scrape = []
     for listing in listings:
         now = datetime.datetime.now()
@@ -838,9 +838,9 @@ def scrape_listings(listings=None):
         
 
     if listings_to_scrape:
-        return True, []
+        return [] # no errors
     else:
-        return False, errors
+        return errors
 
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
@@ -892,33 +892,30 @@ def scrape_listings_weekly():
     # Retrieve all of the current listings
     listings = Listing.query.all()
 
-    scraped, errors = scrape_listings(listings)
-    if not scraped:
-        scraped = False
+    scraped = False
+    errors = scrape_listings(listings)
+    if not len(errors):
+        scraped = True
 
     if scraped:
         # Log scraping event
-        log_data_collection(CollectionType.weekly, listings)
+        log_data_collection(CollectionType.weekly, listings, status=True, errors=errors)
 
-        # Email admin if they exist
+        # Email admin to notify about scraping run.
         admin_email = os.environ.get("ADMIN_EMAIL")
         if admin_email:
-            # within this block, current_app points to app.
-            #print(current_app.name)
-            #print("current_app")
-            #print(current_app)
-            #print(current_app.request)
-            body = f"Property views were scraped for this week."
+            body = f"Property views were scraped for this week.\nJob Status: {scraped}\n"
             send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
     else:
         log_data_collection(CollectionType.weekly, listings, status=False, errors=errors)
 
 def send_email(recipients, title, body):
     with application.app_context():
+        # within this block, current_app points to app.
         msg = Message(title, recipients=recipients)
         msg.body = body
+        # accessing the flask-mail app extension using the app_context (current_app)
         current_app.extensions['mail'].send(msg)
-        #current_app.mail.send(msg)
 
 def log_data_collection(collection_type=None, listings=[], status=True, errors=[]):
     if not collection_type:

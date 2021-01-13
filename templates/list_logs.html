@@ -28,7 +28,9 @@
                     <th>Log ID</th>
                     <th>Collection Type (Weekly vs. One-time)</th>
                     <th>Date</th>
+                    <th>Status</th>
                     <th>Listings Collected (IDs)</th>
+
                 </tr>
     
                 {% for log in logs %} 
@@ -36,6 +38,7 @@
                     <td><a href="/log/{{log.id}}">{{log.id}}</a></td>
                     <td>{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%} </td>
                     <td>{{ log.date }}</a></td>
+                    <td>{% if log.status %} Passed {% else %} Failed {% endif %}</a></td>
                     <td><a href="/log/{{log.id}}">{{ log.listing_ids }}</a></td>
                 </tr>
                 {% endfor %}

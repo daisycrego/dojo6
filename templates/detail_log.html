@@ -39,7 +39,20 @@
         <p> No listings detected for parsing.</p>
         {% endif %}
         
-        <p>{{ price }}</p></span>
+        <p>{{ price }}</p>
+    </span>
+    <span name="errors">
+        {% if log.errors %}
+        <ul>
+            {% for error in log.errors %}
+
+                <li><p>{{ error }}</p></li>
+                <br>
+
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </span>
     
 </span>
 
