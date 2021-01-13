@@ -31,7 +31,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
-
+import random
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
