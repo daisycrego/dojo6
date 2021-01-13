@@ -808,12 +808,13 @@ def plot_png(id=None):
 def scrape_listings(listings=None):
     if not listings:
         print("scrape_listings(): No listings to scrape.")
+        return False
 
     listings_to_scrape = []
     for listing in listings:
         now = datetime.now()
         one_hour_ago = now - timedelta(minutes=15)
-        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= one_hour_ago.first()
+        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= one_hour_ago.first())
         if not existing_views:
             listings_to_scrape.append(listing)
         else:
