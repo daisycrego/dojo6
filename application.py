@@ -44,7 +44,7 @@ TESTING = True
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
 #FIFTEEN_MINUTE_AGO = now - timedelta(minutes=15)
-FIFTEEN_MINUTE_AGO = datetime.now() - timedelta(seconds=30)
+FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
 
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
