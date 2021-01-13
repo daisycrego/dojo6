@@ -825,7 +825,7 @@ def scrape_listings(listings=None):
         for listing in listings_to_scrape:
             views = ListingViews(views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
             db.session.add(views)
-            db.commit()
+            db.session.commit()
     else:
         scraper = WebScraper()
         for listing in listings_to_scrape: 
