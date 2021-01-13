@@ -822,15 +822,17 @@ def scrape_listings(listings=None):
             flash(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
     
     if TESTING:
+        print("TESTING email scraper, generating some random ListingViews object")
         for listing in listings_to_scrape:
-            views = ListingViews(views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
+            views = listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
             db.session.add(views)
             db.session.commit()
     else:
+        print("Scraper is active!")
         scraper = WebScraper()
         for listing in listings_to_scrape: 
             scraper.scrape_listing(listing.id)
-        print("No scraping, only a test")
+        
 
     if listings_to_scrape:
         return True
