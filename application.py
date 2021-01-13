@@ -182,8 +182,8 @@ class WebScraper:
             return
         listing = Listing.query.filter_by(id=id).first()
 
-        FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
-        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
+        fifteen_min_ago = datetime.datetime.now() - timedelta(minutes=15)
+        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date > fifteen_min_ago).first()
         if existing_views:
             print("Last scrape was < 15 minutes ago.")
             return
@@ -254,7 +254,7 @@ class WebScraper:
                     
             driver.quit()
 
-        midnight = datetime.combine(datetime.today(), time.min)
+        midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
         existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= midnight).first()
         if not existing_views:
             print("No ListingViews already found for this listing...")
@@ -264,12 +264,18 @@ class WebScraper:
         else:
             print("ListingViews already scraped today for this listing...")
             flash("Data already scraped today")
+            changed = False
             if final_results["zillow"] > existing_views.views_zillow:
                 existing_views.views_zillow = final_results["zillow"]
+                changed = True 
             if final_results["redfin"] > existing_views.views_redfin:
                 existing_views.views_redfin = final_results["redfin"]
+                changed = True 
             if final_results["cb"] > existing_views.views_cb:
                 existing_views.views_cb = final_results["cb"]
+                changed = True 
+            if changed:
+                existing_views.date = datetime.datetime.now()
             db.session.add(existing_views)
             db.session.commit()
 
@@ -828,8 +834,8 @@ def scrape_listings(listings=None):
     listings_to_scrape = []
     for listing in listings:
         
-        FIFTEEN_MINUTE_AGO = datetime.datetime.now() - timedelta(seconds=30)
-        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
+        fifteen_min_ago = datetime.datetime.now() - timedelta(minutes=15)
+        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date > fifteen_min_ago).first()
         if not existing_views:
             listings_to_scrape.append(listing)
         else:
@@ -837,8 +843,16 @@ def scrape_listings(listings=None):
     
     if TESTING:
         print("TESTING email scraper, generating some random ListingViews object")
+        midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
         for listing in listings_to_scrape:
-            views = ListingViews(listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
+            views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= midnight).first()
+            if views:
+                views.views_zillow = random.randint(0,1000)
+                views.views_redfin = random.randint(0,1000)
+                views.views_cb = random.randint(0,1000)
+                views.date = datetime.datetime.now()
+            else: 
+                views = ListingViews(listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
             db.session.add(views)
             db.session.commit()
     else:
@@ -951,7 +965,7 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
 
     # Every minute - TEST
-    scheduler.add_job(scrape_listings_weekly,'cron',second="*")
+    #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
         
     # Check which jobs are scheduled
     # scheduler.print_jobs()
