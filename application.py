@@ -808,9 +808,26 @@ def plot_png(id=None):
 def scrape_listings(listings=None):
     if not listings:
         print("scrape_listings(): No listings to scrape.")
+
+    listings_to_scrape = []
+    for listing in listings:
+        now = datetime.now()
+        one_hour_ago = now - timedelta(minutes=15)
+        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= one_hour_ago.first()
+        if not existing_views:
+            listings_to_scrape.append(listing)
+        else:
+            flash(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
+    
+
     scraper = WebScraper()
-    for listing in listings: 
+    for listing in listings_to_scrape: 
         scraper.scrape_listing(listing.id)
+
+    if listings_to_scrape:
+        return True
+    else:
+        return False
 
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
@@ -865,21 +882,22 @@ def scrape_listings_weekly():
     if TESTING:
         print("Not actually scraping... in TESTING mode")
     else:
-        scrape_listings(listings)
+        scraped = scrape_listings(listings)
 
-    # Log scraping event
-    log_data_collection(CollectionType.weekly, listings)
+    if scraped:
+        # Log scraping event
+        log_data_collection(CollectionType.weekly, listings)
 
-    # Email admin if they exist
-    admin_email = os.environ.get("ADMIN_EMAIL")
-    if admin_email:
-        # within this block, current_app points to app.
-        #print(current_app.name)
-        #print("current_app")
-        #print(current_app)
-        #print(current_app.request)
-        body = f"Property views were scraped for this week."
-        send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+        # Email admin if they exist
+        admin_email = os.environ.get("ADMIN_EMAIL")
+        if admin_email:
+            # within this block, current_app points to app.
+            #print(current_app.name)
+            #print("current_app")
+            #print(current_app)
+            #print(current_app.request)
+            body = f"Property views were scraped for this week."
+            send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
 
 def send_email(recipients, title, body):
     with application.app_context():
@@ -909,7 +927,7 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sun-fri", hour=17, minute=30)
 
     # Every minute - TEST
-    #scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
         
     # Check which jobs are scheduled
     # scheduler.print_jobs()
