@@ -824,7 +824,7 @@ def scrape_listings(listings=None):
     if TESTING:
         print("TESTING email scraper, generating some random ListingViews object")
         for listing in listings_to_scrape:
-            views = listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
+            views = ListingViews(listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
             db.session.add(views)
             db.session.commit()
     else:
