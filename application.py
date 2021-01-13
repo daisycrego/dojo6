@@ -830,7 +830,6 @@ def scrape_listings(listings=None):
     listings_to_scrape = []
     for listing in listings:
         now = datetime.datetime.now()
-         = now - timedelta(minutes=15)
         existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
         if not existing_views:
             listings_to_scrape.append(listing)
