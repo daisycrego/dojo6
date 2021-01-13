@@ -118,6 +118,8 @@ class DataCollection(db.Model):
     date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     listing_ids = db.Column(db.ARRAY(db.Integer), nullable=True)
     collection_type = db.Column(db.Enum(CollectionType)) # one_time or weekly
+    status = db.Column(db.Boolean, unique=False, default=False, nullable=True)
+    errors = db.Column(db.ARRAY(db.String(100)), nullable=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -811,6 +813,7 @@ def scrape_listings(listings=None):
         print("scrape_listings(): No listings to scrape.")
         return False
 
+    errors = []
     listings_to_scrape = []
     for listing in listings:
         now = datetime.datetime.now()
@@ -819,7 +822,7 @@ def scrape_listings(listings=None):
         if not existing_views:
             listings_to_scrape.append(listing)
         else:
-            flash(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
+            errors.append(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
     
     if TESTING:
         print("TESTING email scraper, generating some random ListingViews object")
@@ -835,9 +838,9 @@ def scrape_listings(listings=None):
         
 
     if listings_to_scrape:
-        return True
+        return True, []
     else:
-        return False
+        return False, errors
 
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
@@ -889,7 +892,7 @@ def scrape_listings_weekly():
     # Retrieve all of the current listings
     listings = Listing.query.all()
 
-    scraped = scrape_listings(listings)
+    scraped, errors = scrape_listings(listings)
     if not scraped:
         scraped = False
 
@@ -907,6 +910,8 @@ def scrape_listings_weekly():
             #print(current_app.request)
             body = f"Property views were scraped for this week."
             send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+    else:
+        log_data_collection(CollectionType.weekly, listings, status=False, errors=errors)
 
 def send_email(recipients, title, body):
     with application.app_context():
@@ -915,13 +920,14 @@ def send_email(recipients, title, body):
         current_app.extensions['mail'].send(msg)
         #current_app.mail.send(msg)
 
-def log_data_collection(collection_type=None, listings=[]):
+def log_data_collection(collection_type=None, listings=[], status=True, errors=[]):
     if not collection_type:
         return
     listing_ids = [listing.id for listing in listings]
-    data_collection = DataCollection(listing_ids=listing_ids, collection_type=collection_type)
+    data_collection = DataCollection(listing_ids=listing_ids, collection_type=collection_type, status=status, errors=errors)
     db.session.add(data_collection)
     db.session.commit()
+
 
 # Set up weekly cron job for scraping the listings
 # Only when running in the child reloader process.
