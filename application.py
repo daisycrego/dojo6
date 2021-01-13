@@ -872,10 +872,7 @@ def scrape_listings(listings=None):
 @login_required
 def scraper(id=None):
     listing = Listing.query.filter_by(id=id).first()
-    if TESTING:
-        print("Not actually scraping... in TESTING mode")
-    else:
-        scrape_listings([listing])
+    scrape_listings([listing])
     
     # Add web scraper run to the DataCollection log
     log_data_collection(CollectionType.one_time, [listing])
@@ -887,10 +884,7 @@ def scraper(id=None):
 @login_required
 def scrapeAll(id=None):
     listings = Listing.query.all()
-    if TESTING:
-        print("Not actually scraping... in TESTING mode")
-    else:
-        scrape_listings(listings)
+    scrape_listings(listings)
     
     # Log scraping event
     log_data_collection(CollectionType.one_time, listings)
@@ -929,7 +923,7 @@ def scrape_listings_weekly():
         # Email admin to notify about scraping run.
         admin_email = os.environ.get("ADMIN_EMAIL")
         if admin_email:
-            body = f"Property views were scraped for this week.\nJob Status: {scraped}\n"
+            body = f"Property views were scraped for this week.\nJob Status: {"Passed" if scraped else "Failed"}\n"
             send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
     else:
         log_data_collection(CollectionType.weekly, listings, status=False, errors=errors)
@@ -981,6 +975,5 @@ if __name__ == "__main__":
     # REMOVE BEFORE DEPLOYING.
     #application.debug = False
 
-    print("in __main__")
     application.run(use_reloader=False)
     
