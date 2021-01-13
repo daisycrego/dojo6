@@ -30,7 +30,7 @@
                     <th>Date</th>
                     <th>Status</th>
                     <th>Listings Collected (IDs)</th>
-
+                    <th>Errors (Preview)</th>
                 </tr>
     
                 {% for log in logs %} 
@@ -40,6 +40,7 @@
                     <td>{{ log.date }}</a></td>
                     <td>{% if log.status %} Passed {% else %} Failed {% endif %}</a></td>
                     <td><a href="/log/{{log.id}}">{{ log.listing_ids }}</a></td>
+                    <td><a href="/log/{{log.id}}">{% if log.errors %}{{ log.errors[0] }}{% else %}No errors reported.{% endif %}</a></td>
                 </tr>
                 {% endfor %}
             <table>
