@@ -879,7 +879,7 @@ def scrape_listings_weekly():
         #print(current_app)
         #print(current_app.request)
         body = f"Property views were scraped for this week."
-        #send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+        send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
 
 def send_email(recipients, title, body):
     with application.app_context():
@@ -906,10 +906,10 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler.configure(timezone='est')
 
     # Every Friday at 5:30 pm 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sun-fri", hour=17, minute=30)
 
     # Every minute - TEST
-    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    #scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
         
     # Check which jobs are scheduled
     # scheduler.print_jobs()
