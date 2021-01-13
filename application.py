@@ -879,7 +879,7 @@ def scrape_listings_weekly():
         #print(current_app)
         #print(current_app.request)
         body = f"Property views were scraped for this week."
-        send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+        #send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
 
 def send_email(recipients, title, body):
     with application.app_context():
