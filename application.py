@@ -7,13 +7,13 @@ from base64 import b64encode
 import io
 import matplotlib 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-import time
+#import time
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 import enum
 from sqlalchemy import asc, Enum
 import requests
@@ -42,6 +42,9 @@ TESTING = True
 #TESTING = False
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
+
+#FIFTEEN_MINUTE_AGO = now - timedelta(minutes=15)
+FIFTEEN_MINUTE_AGO = now - timedelta(seconds=30)
 
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
@@ -181,6 +184,12 @@ class WebScraper:
             print("scrape_listing(): id required")
             return
         listing = Listing.query.filter_by(id=id).first()
+
+        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
+        if existing_views:
+            print("Last scrape was < 15 minutes ago.")
+            return
+
         final_results = {
             "zillow": None,
             "redfin": None,
@@ -247,7 +256,8 @@ class WebScraper:
                     
             driver.quit()
 
-        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= date.today()).first()
+        midnight = datetime.combine(datetime.today(), time.min)
+        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= midnight).first()
         if not existing_views:
             print("No ListingViews already found for this listing...")
             views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
@@ -256,9 +266,12 @@ class WebScraper:
         else:
             print("ListingViews already scraped today for this listing...")
             flash("Data already scraped today")
-            existing_views.views_zillow = final_results["zillow"]
-            existing_views.views_redfin = final_results["redfin"]
-            existing_views.views_cb = final_results["cb"]
+            if final_results["zillow"] > existing_views.views_zillow:
+                existing_views.views_zillow = final_results["zillow"]
+            if final_results["redfin"] > existing_views.views_redfin:
+                existing_views.views_redfin = final_results["redfin"]
+            if final_results["cb"] > existing_views.views_cb:
+                existing_views.views_cb = final_results["cb"]
             db.session.add(existing_views)
             db.session.commit()
 
@@ -817,8 +830,8 @@ def scrape_listings(listings=None):
     listings_to_scrape = []
     for listing in listings:
         now = datetime.datetime.now()
-        one_hour_ago = now - timedelta(minutes=15)
-        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= one_hour_ago).first()
+         = now - timedelta(minutes=15)
+        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
         if not existing_views:
             listings_to_scrape.append(listing)
         else:
@@ -940,7 +953,7 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
 
     # Every minute - TEST
-    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    scheduler.add_job(scrape_listings_weekly,'cron',second="*")
         
     # Check which jobs are scheduled
     # scheduler.print_jobs()
