@@ -886,11 +886,9 @@ def scrape_listings_weekly():
     # Retrieve all of the current listings
     listings = Listing.query.all()
 
-    scraped = False
-    #if TESTING:
-    #    print("Not actually scraping... in TESTING mode")
-    #else:
     scraped = scrape_listings(listings)
+    if not scraped:
+        scraped = False
 
     if scraped:
         # Log scraping event
