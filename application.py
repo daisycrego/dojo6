@@ -44,7 +44,7 @@ TESTING = True
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
 #FIFTEEN_MINUTE_AGO = now - timedelta(minutes=15)
-FIFTEEN_MINUTE_AGO = now - timedelta(seconds=30)
+FIFTEEN_MINUTE_AGO = datetime.now() - timedelta(seconds=30)
 
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 # Run this to setup the postgres db for the production db
@@ -829,7 +829,7 @@ def scrape_listings(listings=None):
     
     listings_to_scrape = []
     for listing in listings:
-        now = datetime.datetime.now()
+        
         existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= FIFTEEN_MINUTE_AGO).first()
         if not existing_views:
             listings_to_scrape.append(listing)
