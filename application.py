@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime
-from datetime import date
+from datetime import date, timedelta
 import enum
 from sqlalchemy import asc, Enum
 import requests
