@@ -930,7 +930,8 @@ def log_data_collection(collection_type=None, listings=[], status=True, errors=[
 # Only when running in the child reloader process.
 # Prevent the scheduler from running in the master 
 # process. 
-if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+#https://stackoverflow.com/questions/9449101/how-to-stop-flask-from-initialising-twice-in-debug-mode
+if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')
@@ -939,7 +940,7 @@ if not application.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
 
     # Every minute - TEST
-    #scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
+    scheduler.add_job(scrape_listings_weekly,'cron',minute="*")
         
     # Check which jobs are scheduled
     # scheduler.print_jobs()
