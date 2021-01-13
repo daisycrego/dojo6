@@ -12,7 +12,8 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from datetime import date, datetime
+import datetime
+from datetime import date
 import enum
 from sqlalchemy import asc, Enum
 import requests
