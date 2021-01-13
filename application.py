@@ -820,10 +820,16 @@ def scrape_listings(listings=None):
         else:
             flash(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
     
-
-    scraper = WebScraper()
-    for listing in listings_to_scrape: 
-        scraper.scrape_listing(listing.id)
+    if TESTING:
+        for listing in listings_to_scrape:
+            views = ListingViews(views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
+            db.session.add(views)
+            db.commit()
+    else:
+        scraper = WebScraper()
+        for listing in listings_to_scrape: 
+            scraper.scrape_listing(listing.id)
+        print("No scraping, only a test")
 
     if listings_to_scrape:
         return True
@@ -880,10 +886,11 @@ def scrape_listings_weekly():
     # Retrieve all of the current listings
     listings = Listing.query.all()
 
-    if TESTING:
-        print("Not actually scraping... in TESTING mode")
-    else:
-        scraped = scrape_listings(listings)
+    scraped = False
+    #if TESTING:
+    #    print("Not actually scraping... in TESTING mode")
+    #else:
+    scraped = scrape_listings(listings)
 
     if scraped:
         # Log scraping event
