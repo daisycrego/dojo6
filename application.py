@@ -310,6 +310,14 @@ def invite_user():
 
     title = "JBG Listings - Create My Account"
     new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+    
+    # delete any existing tokens for this email
+    existing_tokens = Token.query.filter_by(email=email).all()
+    for token in existing_tokens:
+        db.session.delete(token)
+        db.session.commit()
+    
+    # create a new token and email it
     token = Token(email=email, token=new_token)
     db.session.add(token)
     db.session.commit()
