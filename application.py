@@ -29,9 +29,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
+import random, string
+from smtplib import SMTPDataError
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
-import random, string
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
@@ -127,6 +128,13 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
     token = db.Column(db.String(100))
+    is_admin = db.Column(db.Boolean, unique=False, default=False)
+
+class Token(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+    created_time = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
 # WEB SCRAPER
 class WebScraper:
@@ -283,6 +291,83 @@ class WebScraper:
 
 # ROUTES
 
+## Invite New User
+@application.route("/invite-user/", methods=["POST"])
+@login_required
+def invite_user():
+    if not current_user.is_admin:
+        flash("You don't have the privileges to perform this task.")
+        return redirect(url_for("settings"))
+    email = request.form.get("email")
+    if not email:
+        flash("Please provide an email for the invitation.")
+        return redirect(url_for("settings"))
+
+    user_exists = User.query.filter_by(email=email).first()
+    if user_exists:
+        flash("A user with this email already exists.")
+        return redirect(url_for("settings"))
+
+    title = "JBG Listings - Create My Account"
+    new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+    token = Token(email=email, token=new_token)
+    db.session.add(token)
+    db.session.commit()
+    body = f"Welcome to the JBG Listings Portal!\n\nPlease follow this link to create your account: {request.base_url}../register?token={new_token}&email={email}"
+    sent = send_email([email], title, body)
+
+    if sent: 
+        flash(f"An invitation was emailed to {email}")
+    else:
+        flash(f"An invitation was NOT emailed to {email} due to email server issues. Please contact your system administrator.")
+    return redirect(url_for("settings"))
+
+## Settings
+@application.route("/settings/")
+def settings():
+    return render_template("settings.html", is_admin=current_user.is_admin)
+
+@application.route("/settings/edit", methods=["GET", "POST"])
+@login_required
+def settings_edit(prev_data=None):
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
+    if request.method == "POST":
+        valid = True
+        name = request.form.get("name")
+        email = request.form.get("email")
+        if not name and not email:
+            flash("No changes detected.")
+            valid = False
+        elif name == current_user.name and email == current_user.email:
+            flash("No changes detected.")
+            valid = False
+
+        # check if email is taken
+        user_exists = User.query.filter_by(email=email).filter(email!=current_user.email).first()
+        if user_exists: 
+            flash("Email already taken.")
+            valid = False
+
+        if valid: 
+            if name and name != current_user.name:
+                current_user.name = name
+            if email and email != current_user.email:
+                current_user.email = email
+            db.session.add(current_user)
+            db.session.commit()
+            flash("Profile updated.")
+            return redirect(url_for("settings"))
+        else: 
+            if prev_data:
+                return render_template('settings.html', data=prev_data, is_admin=current_user.is_admin)
+            else:
+                return render_template('settings.html', data=dict(request.form), is_admin=current_user.is_admin)
+    else:
+        if prev_data:
+            return render_template("settings.html", is_admin=current_user.is_admin, data=prev_data, editing=True)
+        return render_template("settings.html", is_admin=current_user.is_admin, editing=True)
+
 ## AUTH ROUTES
 ### Login
 @application.route("/login/")
@@ -318,26 +403,29 @@ def logout():
 ### Register
 ### Register
 @application.route("/register/")
-@application.route('/register/<data>')
+@application.route('/register/<data>&<token>')
 @application.route('/register/', methods=["POST"])
 def register(data=None):
+    
     if request.method == "POST":
         valid = True
         errors = []
         ## validate access token
         token = request.form.get("token")
         if not token:
-            flash("Access token required. Contact your system administrator for a new token.")
-            return redirect(url_for('register', data=dict(request.form)))
-
-        elif token != TOKEN:
-            flash("Invalid access token, please contact your system administrator")
-            return redirect(url_for('register', data=dict(request.form)))
+            flash("Invitation required to create an account. Please contact your system administrator.")
+            return redirect(url_for('login'))
 
         email = request.form.get('email')
         name = request.form.get('name')
         password = request.form.get('password')
         password_confirm = request.form.get('password_confirm')
+
+        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+        active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+        if not active_token:
+            flash("Invalid access token, please contact your system administrator")
+            return redirect(url_for('register', data=dict(request.form)))
 
         if not password:
             valid = False
@@ -364,7 +452,7 @@ def register(data=None):
             return redirect(url_for('register', data=dict(request.form)))
 
         # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'), is_admin=False)
 
         # add the new user to the database
         db.session.add(new_user)
@@ -373,9 +461,18 @@ def register(data=None):
         return redirect(url_for("login"))
     # GET
     else:
+        token = request.args.get("token")
+        if not token: 
+            flash("Please check your email for a registration link. Contact your system administrator if you don't receive an email. Make sure to check your spam folder.")
+        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+        active_token = Token.query.filter_by(token=token).filter(Token.created_time > one_hour_ago).first()
+        if not active_token:
+            flash("Your registration link is expired. Please contact your system administrator for a new invitation.")
+            return redirect(url_for("login"))
+        
         if request.args.get("data"):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
-        return render_template('register.html', admin_email=admin_email, data=data)
+        return render_template('register.html', admin_email=admin_email, data=data, token=token)
 
 def send_email(recipients, title, body):
     with application.app_context():
@@ -383,7 +480,24 @@ def send_email(recipients, title, body):
         msg = Message(title, recipients=recipients)
         msg.body = body
         # accessing the flask-mail app extension using the app_context (current_app)
-        current_app.extensions['mail'].send(msg)
+        try:
+            current_app.extensions['mail'].send(msg)
+            return True
+        except SMTPDataError: 
+            print("Daily limits exceeded for primary Gmail SMTP server, switching to backup SMTP server.")
+            current_app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("BACKUP_EMAIL")
+            current_app.config["MAIL_USERNAME"] = os.environ.get("BACKUP_EMAIL")
+            current_app.extensions['mail'] = Mail(current_app)
+            try: 
+                current_app.extensions['mail'].send(msg)
+                return True
+            except SMTPDataError:
+                if current_app.config["MAIL_USERNAME"] == os.environ.get("BACKUP_EMAIL"):
+                    print("MAIL_USERNAME has been set to the backup, but email limits also exceeded on the backup")
+                    return False
+                else:
+                    print("Limits still exceeded. ")
+        return False 
 
 @application.route("/reset-password/", methods=["GET", "POST"])
 @application.route("/reset-password?<email>&<token>", methods=["GET", "POST"])
@@ -432,9 +546,7 @@ def reset_password():
             if user:
                 print("user exists")
                 # Create a token for the reset password link, save it in the db
-                #random_bytes = os.urandom(64)
                 new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
-                #new_token = b64encode(random_bytes).decode('utf-8')
                 user.token = new_token
                 db.session.add(user)
                 db.session.commit()
@@ -442,10 +554,13 @@ def reset_password():
                 # Send the token to user's email
                 title = "Password Reset"
                 body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
-                send_email([email], title, body)
+                sent = send_email([email], title, body)
             else:
                 print("user not found")
-            flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
+            if sent:
+                flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
+            else:
+                flash("Unable to send to email with reset instructions. Please contact your system administrator.")
             return redirect(url_for("reset_password"))
             
                     

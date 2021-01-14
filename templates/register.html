@@ -17,6 +17,8 @@
 
 <div class="box">
     <form method="POST" action="/register">
+        <input class="input is-large" hidden type="text" name="token" {% if token is defined and token %} value="{{ token }}" {% else %} value="" {% endif %}/>
+            
         <div class="field">
             <div class="control">
                 <input class="input is-large" type="email" name="email" placeholder="Email" autofocus="" {% if data is defined and data %} value="{{ data.email }}" {% else %} value="" {% endif %}/>
@@ -41,17 +43,9 @@
             </div>
         </div>
 
-        <div class="field">
-            <div class="control">
-                <input class="input is-large" type="text" name="token" placeholder="Access Token" autofocus="" {% if data is defined and data %} value="{{ data.token }}" {% else %} value="" {% endif %}/>
-            </div>
-        </div>
+        
 
         <br>
-
-        <span> <strong>Note:</strong> Get an Access Token from your <a href="mailto: {{admin_email}}">admin</a> </span>
-
-        <br><br>
 
         <button class="button is-block is-info is-large is-fullwidth">Sign Up</button>
     </form>

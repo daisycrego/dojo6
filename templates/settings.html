@@ -1,0 +1,59 @@
+{% set active_page = "settings" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>{% block title %} Settings {% endblock %}</h3>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-danger">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+<div>
+    <h4>Profile</h4>
+    {% if editing %}
+        <div>
+            <a href="/settings/">Cancel Edit</a>
+        </div>
+        <form class="listing-form detail-items" method="post" action="/settings/edit">
+            <span><label for="name">Name:</label>&nbsp<input name="name" type="text" {% if errors %} value="{{ data.name }}" {% else %} value="{{ current_user.name }}" {% endif %}/> </span>
+            <span><label for="email">Email:</label>&nbsp<input name="email" type="text" {% if errors %} value="{{ data.email }}" {% else %} value="{{ current_user.email }}" {% endif %}/> </span>
+            <button type="submit">Submit</button>
+        </form>
+
+    {% else %}
+    
+        {% if is_admin %}
+
+        <form method="POST" action="/invite-user/">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="email" placeholder="Email"/>
+                </div>
+            </div>
+            <button class="button is-block is-info is-large is-fullwidth">Send Invite Email</button>
+        </form>
+        <hr>
+        {% endif %}
+
+    <div class="">
+        <a href="/settings/edit">Edit Profile</a>
+    </div>
+    <span class="detail-items">
+        <span><label for="name">Name: </label>&nbsp<p name="name">{{ current_user.name }}</p></span>
+        <br>
+        <span><label for="name">Email: </label>&nbsp<p name="email">{{ current_user.email }}</p></span>
+        <span><label for="role">Role: </label>&nbsp{% if current_user.is_admin %} <p name="role">Admin</p>  {% else %} <p name="role">User</p> {% endif %} </span>
+    </span>
+    
+    <a href="/reset-password/">Reset password</a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
