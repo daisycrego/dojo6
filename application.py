@@ -31,7 +31,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
-import random
+import random, string
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
@@ -432,8 +432,9 @@ def reset_password():
             if user:
                 print("user exists")
                 # Create a token for the reset password link, save it in the db
-                random_bytes = os.urandom(64)
-                new_token = b64encode(random_bytes).decode('utf-8')
+                #random_bytes = os.urandom(64)
+                new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+                #new_token = b64encode(random_bytes).decode('utf-8')
                 user.token = new_token
                 db.session.add(user)
                 db.session.commit()
