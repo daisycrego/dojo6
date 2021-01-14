@@ -519,7 +519,9 @@ def reset_password():
             
             # check the token and the user (based on the email)
             user = User.query.filter_by(email=email).first()
-            if not user or token != user.token:
+            one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+            active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+            if not user or not active_token:
                 flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!")
                 return(redirect(url_for("login")))
             
@@ -554,9 +556,14 @@ def reset_password():
             if user:
                 print("user exists")
                 # Create a token for the reset password link, save it in the db
+                # delete any existing tokens for this email
+                existing_tokens = Token.query.filter_by(email=email).all()
+                for token in existing_tokens:
+                    db.session.delete(token)
+                    db.session.commit()
                 new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
-                user.token = new_token
-                db.session.add(user)
+                token = Token(email=user.email, token=new_token)
+                db.session.add(token)
                 db.session.commit()
                 
                 # Send the token to user's email
@@ -582,14 +589,20 @@ def reset_password():
         if not token and not email:
             return render_template("reset_password.html", resetting=False)
         else:
+            if not email:
+                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+            
             # Check token and email before showing password reset form
             user = User.query.filter_by(email=email).first()
-            if not user or not token or token != user.token:
-                if token and token != user.token:
-                    flash("Your password reset link is invalid or expired. Please provide your email for a new link.")
-                else:
-                    flash("Invalid access token and/or email, please check your email for instructions on resetting your password.")
-                return(redirect(url_for("reset_password"))) 
+            
+            if not user or not token:
+                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+            else:
+                one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+                active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+                if not active_token:
+                    flash("Reset link is expired. Please provide your email and request a new reset password link.")
+                    return(redirect(url_for("reset_password"))) 
             return render_template("reset_password.html", resetting=True, token=token, email=email)
 
 ## LISTINGS ROUTES 
