@@ -2,12 +2,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if messages is defined and messages %}
-{% for message in messages %}    
-    <span class="success">{{ message }}</span>
-        <br>
-{% endfor %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
 {% endif %}
+{% endwith %}
 
 <p> This page has the details for a given log, if that log exists. 
     It will allow you to see which Listings were parsed during the logged web scraping event.  
@@ -19,7 +22,8 @@
 <br><br>
 <hr>
 
-<h3>{% block title %} Log {{ id }} {% endblock %}</h3>
+{% if log is defined and log %}
+<h3>{% block title %} Log {{ log.id }} {% endblock %}</h3>
 
 <span class="detail-items">
     <span><label for="collection-type">Collection Type: </label>&nbsp<p name="collection-type">{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%}</p></span>
@@ -58,11 +62,12 @@
     
 </span>
 
-{% if not id %}
+{% else %}
+<br>
 <p>Log not found...</p>
 {% endif %}
 
-<br>
+
 
 
 

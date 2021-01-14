@@ -4,11 +4,15 @@
 
 {% block content %}
 
-{% if message is defined and message %}
-    
-    <span class="success">{{ message }}</span>
-
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
 {% endif %}
+{% endwith %}
 
 <h3>{% block title %} Property View Web Scraper Logs  {% endblock %}</h3>
 <p> This page will have all of the logs for the data collection, whether it's triggered manually or weekly. The log will 

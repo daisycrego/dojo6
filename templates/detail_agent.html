@@ -7,14 +7,17 @@
     It will allow you to edit the details for a Agent. 
     It will also display a list of all the agent's listings.
     Otherwise it will display "This agent has no listings.".</p>
-<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+
+{% if agent is defined and agent %}
+
+<h3>{% block title %} Agent {{ agent.id }} {% endblock %}</h3>
 
 {% if editing %}
 <div>
-    <a href="/agent/{{ id }}">Cancel Edit</a>
+    <a href="/agent/{{ agent.id }}">Cancel Edit</a>
 </div>
-<form class="listing-form detail-items" method="post" action="/agent/{{ id }}/edit">
-    <input type="hidden" name="id" value="{{ id }}"/>
+<form class="listing-form detail-items" method="post" action="/agent/{{ agent.id }}/edit">
+    <input type="hidden" name="id" value="{{ agent.id }}"/>
    <span><label for="name">Name:</label>&nbsp<input name="name" type="text" {% if errors %} value="{{ data.name }}" {% else %} value="{{ agent.name }}" {% endif %}/> </span>
    <button type="submit">Submit</button>
 </form>
@@ -23,17 +26,18 @@
 
 {% else %}
 <div class="">
-    <a href="{{ id }}/edit">Edit Agent</a>
+    <a href="{{ agent.id }}/edit">Edit Agent</a>
 </div>
 <span class="detail-items">
     <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
 </span>
 
-<form class="right-justify" method="get" action="/agent/{{ id }}/delete">
+<form class="right-justify" method="get" action="/agent/{{ agent.id }}/delete">
     <button type="submit" value="Delete Agent" onclick="return confirm('Are you sure you want to do that?');"> Delete Agent </button>
 </form>
 {% endif %}
-{% if not id %}
+
+{% else %}
 <p>Agent not found...</p>
 {% endif %}
 

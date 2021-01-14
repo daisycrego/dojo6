@@ -4,22 +4,14 @@
 
 {% block content %}
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="error">
-    {% for message in messages %}
-    <span class="error">{{ message }}</span>
-    {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
+
 
 <h3>{% block title %} Login {% endblock %}</h3>
 
 <div class="box">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-        <div class="notification is-danger">
+        <div class="error">
             {{ messages[0] }}
         </div>
     {% endif %}

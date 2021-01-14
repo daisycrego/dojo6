@@ -176,17 +176,11 @@ class WebScraper:
         "x-client-data": "CKO1yQEIkLbJAQimtskBCMG2yQEIqZ3KAQi3uMoBCKvHygEI9sfKAQjpyMoBCNzVygEI/ZfLAQiRmcsBCMiZywEIl5rLARiLwcoB"
     }
 
-    def scrape_listing(self, id=None):
+    def scrape_listing(self, id=None, testing=False):
         if not id:
             print("scrape_listing(): id required")
             return
         listing = Listing.query.filter_by(id=id).first()
-
-        fifteen_min_ago = datetime.datetime.now() - timedelta(minutes=15)
-        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date > fifteen_min_ago).first()
-        if existing_views:
-            print("Last scrape was < 15 minutes ago.")
-            return
 
         final_results = {
             "zillow": None,
@@ -198,72 +192,78 @@ class WebScraper:
         url_zillow = listing.url_zillow
         url_redfin = listing.url_redfin
         url_cb = listing.url_cb
-        if listing.url_zillow and "zillow.com" in listing.url_zillow:
-            url_zillow = listing.url_zillow
-            r = requests.get(url=url_zillow, headers=self.zillow_headers)
-            root = lxml.html.fromstring(r.content)
-            results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
-            try: 
-                zillow_views = int(results[1].text.replace(',',''))
-            except (IndexError,ValueError) as e:
-                zillow_views = None
-            final_results["zillow"] = zillow_views
-        
-        # redfin 
-        if listing.url_redfin and "redfin.com" in listing.url_redfin:
-            url_redfin = listing.url_redfin
-            r = requests.get(url=url_redfin, headers=self.redfin_headers)
-            root = lxml.html.fromstring(r.content)
-            try:
-                redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-            except (IndexError,ValueError) as e:
-                redfin_views = None
-            final_results["redfin"] = redfin_views
 
-        # cb 
-        if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-            url_cb = listing.url_cb
-            cb_request = requests.get(url=url_cb, headers=self.cb_headers)
-            root = lxml.html.fromstring(cb_request.content)
-            options = Options()
-            options.headless = True
-            driver = webdriver.Firefox(options=options)
-            driver.set_page_load_timeout(30)
-            #driver.implicitly_wait(30)
-            driver.get(url_cb) 
-
-            attempts = 0
-            while attempts < 100: 
+        if testing:
+            final_results["zillow"] = random.randint(0,10)
+            final_results["redfin"] = random.randint(0,10)
+            final_results["cb"] = random.randint(0,10)
+        else:
+            
+            if listing.url_zillow and "zillow.com" in listing.url_zillow:
+                url_zillow = listing.url_zillow
+                r = requests.get(url=url_zillow, headers=self.zillow_headers)
+                root = lxml.html.fromstring(r.content)
+                results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
                 try: 
-                    #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
-                    elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                    print(url_cb)
-                    print(elem_parent.get_attribute('innerText'))
-                    views = elem_parent.get_attribute('innerText').split(" ")[1]
-                    cb_views = int(views.replace(',',''))
-                    final_results["cb"] = cb_views
-                    break
-                except NoSuchElementException:
-                    attempts += 1
-                    if attempts > 100: 
-                        error_filename = f"{i}_url_err.log"
-                        error_file = open(error_filename, 'w+')
-                        error_file.write(driver.page_source)
-                    else:
-                        continue
-                    
-            driver.quit()
+                    zillow_views = int(results[1].text.replace(',',''))
+                except (IndexError,ValueError) as e:
+                    zillow_views = None
+                final_results["zillow"] = zillow_views
+            
+            # redfin 
+            if listing.url_redfin and "redfin.com" in listing.url_redfin:
+                url_redfin = listing.url_redfin
+                r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                root = lxml.html.fromstring(r.content)
+                try:
+                    redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                except (IndexError,ValueError) as e:
+                    redfin_views = None
+                final_results["redfin"] = redfin_views
+
+            # cb 
+            if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
+                url_cb = listing.url_cb
+                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
+                root = lxml.html.fromstring(cb_request.content)
+                options = Options()
+                options.headless = True
+                driver = webdriver.Firefox(options=options)
+                driver.set_page_load_timeout(30)
+                #driver.implicitly_wait(30)
+                driver.get(url_cb) 
+
+                attempts = 0
+                while attempts < 100: 
+                    try: 
+                        #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
+                        elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
+                        print(url_cb)
+                        print(elem_parent.get_attribute('innerText'))
+                        views = elem_parent.get_attribute('innerText').split(" ")[1]
+                        cb_views = int(views.replace(',',''))
+                        final_results["cb"] = cb_views
+                        break
+                    except NoSuchElementException:
+                        attempts += 1
+                        if attempts > 100: 
+                            error_filename = f"{i}_url_err.log"
+                            error_file = open(error_filename, 'w+')
+                            error_file.write(driver.page_source)
+                        else:
+                            continue
+                        
+                driver.quit()
 
         midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
         existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= midnight).first()
         if not existing_views:
-            print("No ListingViews already found for this listing...")
+            print("No ListingViews already found for this listing... creating a new ListingViews object")
             views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
             db.session.add(views)
             db.session.commit()
         else:
-            print("ListingViews already scraped today for this listing...")
-            flash("Data already scraped today")
+            print("ListingViews already scraped today for this listing... updating the ListingViews object if the new value is larger")
             changed = False
             if final_results["zillow"] > existing_views.views_zillow:
                 existing_views.views_zillow = final_results["zillow"]
@@ -282,13 +282,6 @@ class WebScraper:
         print(f"Listing {id}, {listing.address}: Done scraping from all 3 urls ({url_zillow}, {url_redfin}, {url_cb}) results committed to the db.")
 
 # ROUTES
-
-@application.route("/hello/")
-@application.route("/hello/<name>")
-def hello(name=None):
-    if name == None:
-        name = "world"
-    return "Hello, {}".format(name)
 
 ## AUTH ROUTES
 ### Login
@@ -384,6 +377,14 @@ def register(data=None):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
         return render_template('register.html', admin_email=admin_email, data=data)
 
+def send_email(recipients, title, body):
+    with application.app_context():
+        # within this block, current_app points to app.
+        msg = Message(title, recipients=recipients)
+        msg.body = body
+        # accessing the flask-mail app extension using the app_context (current_app)
+        current_app.extensions['mail'].send(msg)
+
 @application.route("/reset-password/", methods=["GET", "POST"])
 @application.route("/reset-password?<email>&<token>", methods=["GET", "POST"])
 @login_required
@@ -424,9 +425,12 @@ def reset_password():
             flash("Password successfully reset.")
             return redirect(url_for("login"))
         elif email:
+            print("email exists")
+            print(email)
             # handle POST - new password reset access token, url, and email
             user = User.query.filter_by(email=email).first()
             if user:
+                print("user exists")
                 # Create a token for the reset password link, save it in the db
                 random_bytes = os.urandom(64)
                 new_token = b64encode(random_bytes).decode('utf-8')
@@ -435,10 +439,11 @@ def reset_password():
                 db.session.commit()
                 
                 # Send the token to user's email
-                msg = Message('Hello', recipients = [email])
-                msg.body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
-                mail.send(msg)
-            
+                title = "Password Reset"
+                body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
+                send_email([email], title, body)
+            else:
+                print("user not found")
             flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
             return redirect(url_for("reset_password"))
             
@@ -466,36 +471,39 @@ def reset_password():
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/')
-@application.route('/<message>')
+@application.route('/<messages>')
 @login_required
-def index(message=None):
+def index(messages=None):
+    if messages:
+        messages = messages.replace("{","").replace("}","").replace("'", "")
+        
     listings = Listing.query.all()
-    return render_template('list.html', listings=listings, message=message)
+    return render_template('list.html', listings=listings, message=messages)
 
 ## Listing - Detail View
 @application.route('/listing/')
 @application.route('/listing/<id>')
 @login_required
-def detail_listing(id=None):
-    messages = []
+def detail_listing(id=None, errors=None):
+    errors = request.args.getlist("errors")
     listing = Listing.query.filter_by(id=id).first()
     try:
         price = "${:,.2f}".format(listing.price)
     except (ValueError, TypeError, IndexError):
-        messages.append("Price not formatted correctly")
+        flash("Price not formatted correctly")
         price = str(listing.price)
-    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, messages=messages)
+    if errors:
+        flash(f"{errors[0]}. For more details, please see the Logs.")
+    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True)
 
 ## Listing - Create  
 @application.route('/listing/create/', methods=["GET", "POST"])
 @login_required
-def create(errors=None, prev_data=None):
-    errors = request.args.getlist("errors")
+def create(prev_data=None):
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
     if request.method == "POST":
-        errors = []
         address = request.form["address"]
         price = request.form["price"]
         mls = request.form["mls"]
@@ -508,31 +516,31 @@ def create(errors=None, prev_data=None):
         parsed_price = 0
         if not address:
             valid = False
-            errors.append("Address is required")
+            flash("Address is required")
         try:
             if price:
                 parsed_price = int(price.replace("$","").replace(",",""))
                 if parsed_price < 0:
                     valid = False
-                    errors.append("Listing price cannot be negative")
+                    flash("Listing price cannot be negative")
         except ValueError: 
             valid = False
-            errors.append(f"Price of {price} is invalid.")
+            flash(f"Price of {price} is invalid.")
         
         address_exists = len(Listing.query.filter_by(address=address).all()) > 0
         if address_exists:
             valid = False
-            errors.append(f"Listing already exists with this address.")
+            flash(f"Listing already exists with this address.")
 
         if url_zillow and "zillow.com" not in url_zillow:
             valid = False
-            errors.append(f"Zillow URL should contain 'zillow.com'")
+            flash(f"Zillow URL should contain 'zillow.com'")
         if url_redfin and "redfin.com" not in url_redfin:
             valid = False
-            errors.append(f"Redfin URL should contain 'redfin.com'")
+            flash(f"Redfin URL should contain 'redfin.com'")
         if url_cb and "coldwellbankerhomes.com" not in url_cb:
             valid = False
-            errors.append(f"Coldwell Banker URL should contain 'coldwellbankerhomes.com'")
+            flash(f"Coldwell Banker URL should contain 'coldwellbankerhomes.com'")
 
         if valid:
             listing = Listing(address=address, price=parsed_price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
@@ -542,27 +550,26 @@ def create(errors=None, prev_data=None):
         else:
             agents = Agent.query.all()
             default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-            return redirect(url_for("create", errors=errors, prev_data=dict(request.form)))
+            return redirect(url_for("create", prev_data=dict(request.form)))
     # GET 
     else:
         # if there are errors, reload the page content, 
         # otherwise create a new empty form     
         agents = Agent.query.all()
         default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-        if errors:
-            return render_template('create_listing.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
+
+        if prev_data:
+            return render_template('create_listing.html', agents=agents, default_agent=default_agent, data=prev_data)
         return render_template('create_listing.html', agents=agents, default_agent = default_agent)
 
 ## Listing - Edit 
 @application.route('/listing/<id>/edit', methods=["GET", "POST"])
 @login_required
-def edit_listing(id=None, errors=None, prev_data=None):
-    errors = request.args.getlist("errors")
+def edit_listing(id=None, prev_data=None):
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
     if request.method == "POST":
-        errors = []
         address = request.form["address"]
         price = request.form["price"]
         mls = request.form["mls"]
@@ -574,17 +581,17 @@ def edit_listing(id=None, errors=None, prev_data=None):
 
         if not address:
             valid = False
-            errors.append("Address is required")
+            flash("Address is required")
         
         try:
             if price:
                 parsed_price = int(price.replace("$","").replace(",",""))
                 if parsed_price < 0:
                     valid = False
-                    errors.append("Listing price cannot be negative")
+                    flash("Listing price cannot be negative")
         except ValueError: 
             valid = False
-            errors.append(f"Price of {price} is invalid.")
+            flash(f"Price of {price} is invalid.")
         
         listing = Listing.query.filter_by(id=id).first()
         prev_address = listing.address
@@ -592,17 +599,17 @@ def edit_listing(id=None, errors=None, prev_data=None):
         address_exists = len(Listing.query.filter_by(address=address).filter(address!=prev_address).all()) > 0
         if address_exists:
             valid = False
-            errors.append(f"Listing already exists with this address.")
+            flash(f"Listing already exists with this address.")
 
         if url_zillow and "zillow.com" not in url_zillow:
             valid = False
-            errors.append(f"Zillow URL should contain 'zillow.com'")
+            flash(f"Zillow URL should contain 'zillow.com'")
         if url_redfin and "redfin.com" not in url_redfin:
             valid = False
-            errors.append(f"Redfin URL should contain 'redfin.com'")
+            flash(f"Redfin URL should contain 'redfin.com'")
         if url_cb and "coldwellbankerhomes.com" not in url_cb:
             valid = False
-            errors.append(f"Coldwell Banker URL should contain 'redfin.com'")
+            flash(f"Coldwell Banker URL should contain 'redfin.com'")
 
         listing = Listing.query.filter_by(id=id).first()
         agents = Agent.query.all()
@@ -622,9 +629,16 @@ def edit_listing(id=None, errors=None, prev_data=None):
         else:
             agents = Agent.query.all()
             default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-            if errors:
-                return render_template('create_listing.html', agents=agents, default_agent=default_agent, errors=errors, data=prev_data)
-            return redirect(url_for("edit_listing", id=id, errors=errors, prev_data=dict(request.form)))
+            print("prev_data")
+            print(prev_data)
+            print("dict(request.form)")
+            print(dict(request.form))
+            if prev_data:
+                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=prev_data, editing=True)
+            else:
+                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=dict(request.form), editing=True)
+            #else:
+            #    return redirect(url_for("edit_listing", id=id, prev_data=dict(request.form)))
         return redirect(url_for('detail_listing', id=id))
     else: 
         if not id:
@@ -632,9 +646,9 @@ def edit_listing(id=None, errors=None, prev_data=None):
             return
         agents = Agent.query.all()
         listing = Listing.query.filter_by(id=id).first()
-        if errors:
-            return render_template('detail_listing.html', id=id, listing=listing, agents=agents, errors=errors, data=prev_data)
-        return render_template('detail_listing.html', id=id, listing=listing, agents=agents, editing=True)
+        if prev_data:
+            return render_template('detail_listing.html', listing=listing, agents=agents, data=prev_data)
+        return render_template('detail_listing.html', listing=listing, agents=agents, editing=True)
 
 ## Listing - Delete 
 @application.route('/listing/<id>/delete')
@@ -645,7 +659,7 @@ def delete_listing(id=None):
     db.session.delete(listing)
     db.session.commit()
     message = f"Listing ({address}) deleted successfully."
-    return redirect(url_for("index", message=message))
+    return redirect(url_for("index", messages=[message]))
 
 ## AGENT ROUTES
 ## Agents - List  
@@ -662,28 +676,26 @@ def agents(message=None):
 @login_required
 def detail_agent(id=None):
     agent = Agent.query.filter_by(id=id).first()
-    return render_template('detail_agent.html', id=id, agent=agent)
+    return render_template('detail_agent.html', agent=agent)
 
 ## Agent - Create
 @application.route('/agent/create/', methods=["GET", "POST"])
 @login_required
-def create_agent(errors=None, prev_data=None):
-    errors = request.args.getlist("errors")
+def create_agent(prev_data=None):
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/')) 
     valid = True
     if request.method == "POST":
-        errors = []
         name = request.form["name"]
         
         if not name:
             valid = False
-            errors.append("Name is required")
+            flash("Name is required")
         
         agent_exists = len(Agent.query.filter_by(name=name).all()) > 0
         if agent_exists:
             valid = False
-            errors.append(f"Agent already exists with this name.")
+            flash(f"Agent already exists with this name.")
 
         if valid:
             agent = Agent(name=name)
@@ -693,30 +705,28 @@ def create_agent(errors=None, prev_data=None):
         else:
             agents = Agent.query.all()
             default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-            return redirect(url_for("create_agent", errors=errors, prev_data=dict(request.form)))
+            return redirect(url_for("create_agent", prev_data=dict(request.form)))
     # GET 
     else:
         # if there are errors, reload the page content, 
         # otherwise create a new empty form   
-        if errors:
-            return render_template('create_agent.html', errors=errors, data=prev_data)
+        if prev_data:
+            return render_template('create_agent.html', data=prev_data)
         return render_template('create_agent.html')
 
 ## Agent - Edit
 @application.route('/agent/<id>/edit', methods=["GET", "POST"])
 @login_required
-def agent_edit(id=None, errors=None, prev_data=None):
-    errors = request.args.getlist("errors")
+def agent_edit(id=None, prev_data=None):
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
     if request.method == "POST":
-        errors = []
         name = request.form["name"]
 
         if not name:
             valid = False
-            errors.append("Name is required")
+            flash("Name is required")
         
         agent = Agent.query.filter_by(id=id).first()
         prev_name = agent.name
@@ -724,24 +734,24 @@ def agent_edit(id=None, errors=None, prev_data=None):
         name_exists = len(Agent.query.filter_by(name=name).filter(name!=prev_name).all()) > 0
         if name_exists:
             valid = False
-            errors.append(f"Agent already exists with this name.")
+            flash(f"Agent already exists with this name.")
 
         if valid:
             agent.name = name
             db.session.add(agent)
             db.session.commit()
         else:
-            if errors:
-                return render_template('detail_agent.html', id=id, agent=agent, errors=errors, data=prev_data)
-            return redirect(url_for("agent_edit", id=id, agent=agent, errors=errors, prev_data=dict(request.form)))
+            if prev_data:
+                return render_template('detail_agent.html', id=id, agent=agent, data=prev_data)
+            return redirect(url_for("agent_edit", id=id, agent=agent, prev_data=dict(request.form)))
         return redirect(url_for("detail_agent", id=id))
     else: 
         if not id:
             print("Missing ID")
             return
         agent = Agent.query.filter_by(id=id).first()
-        if errors:
-            return render_template('detail_agent.html', id=id, agent=agent, errors=errors, data=prev_data, editing=True)
+        if prev_data:
+            return render_template('detail_agent.html', id=id, agent=agent, data=prev_data, editing=True)
         return render_template('detail_agent.html', id=id, agent=agent, editing=True)
 
 ## Agent - Delete
@@ -840,57 +850,76 @@ def scrape_listings(listings=None):
             listings_to_scrape.append(listing)
         else:
             errors.append(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
-    
+    print("scrape_listings() found errors")
+    print(errors)
+    print("listings_to_scrape")
+    print(listings_to_scrape)
+    """
     if TESTING:
         print("TESTING email scraper, generating some random ListingViews object")
         midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
         for listing in listings_to_scrape:
             views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= midnight).first()
             if views:
-                views.views_zillow = random.randint(0,1000)
-                views.views_redfin = random.randint(0,1000)
-                views.views_cb = random.randint(0,1000)
+                views.views_zillow = random.randint(0,10)
+                views.views_redfin = random.randint(0,10)
+                views.views_cb = random.randint(0,10)
                 views.date = datetime.datetime.now()
             else: 
                 views = ListingViews(listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
             db.session.add(views)
             db.session.commit()
     else:
-        print("Scraper is active!")
-        scraper = WebScraper()
-        for listing in listings_to_scrape: 
-            scraper.scrape_listing(listing.id)
-        
-
-    if listings_to_scrape:
-        return [] # no errors
-    else:
+    """
+    if errors:
         return errors
 
+    print(f"TESTING = {TESTING}")
+    scraper = WebScraper()
+    for listing in listings_to_scrape: 
+        scraper.scrape_listing(listing.id, testing=TESTING)
+        
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
 @login_required
 def scraper(id=None):
     listing = Listing.query.filter_by(id=id).first()
-    scrape_listings([listing])
+    errors = scrape_listings([listing])
+
+    print("ERRORS")
+    print(errors)
+    
+    status = True
+    if errors:
+        status = False
     
     # Add web scraper run to the DataCollection log
-    log_data_collection(CollectionType.one_time, [listing])
+    log_data_collection(CollectionType.one_time, [listing], status=status, errors=errors)
     
-    return redirect(url_for('detail_listing', id=id))
+    return redirect(url_for('detail_listing', id=id, errors=errors))
 
 ## Scrapes listing views for today for all Listings. Updates the db as the results are found. 
 @application.route('/scrape/all/')
 @login_required
 def scrapeAll(id=None):
     listings = Listing.query.all()
-    scrape_listings(listings)
+    errors = scrape_listings(listings)
+
+    print("inside scrapeAll, here are the errors:")
+    print(errors)
+
+    status = True
+    if errors:
+        status = False
     
     # Log scraping event
-    log_data_collection(CollectionType.one_time, listings)
+    log_data_collection(CollectionType.one_time, listings, status=status, errors=errors)
     
     # Redirect to the home page (Listings - List View)
-    return redirect(url_for('index', id=id))
+    if len(errors):
+        print("errors[0]")
+        print(errors[0])
+    return redirect(url_for('index', id=id, messages={errors[0] if len(errors) else None}))
 
 @application.errorhandler(404)
 def page_not_found(e):
@@ -923,18 +952,10 @@ def scrape_listings_weekly():
         # Email admin to notify about scraping run.
         admin_email = os.environ.get("ADMIN_EMAIL")
         if admin_email:
-            body = f"Property views were scraped for this week.\nJob Status: {"Passed" if scraped else "Failed"}\n"
+            body = f"Property views were scraped for this week.\nJob Status: {'Passed' if scraped else 'Failed'}\n"
             send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
     else:
         log_data_collection(CollectionType.weekly, listings, status=False, errors=errors)
-
-def send_email(recipients, title, body):
-    with application.app_context():
-        # within this block, current_app points to app.
-        msg = Message(title, recipients=recipients)
-        msg.body = body
-        # accessing the flask-mail app extension using the app_context (current_app)
-        current_app.extensions['mail'].send(msg)
 
 def log_data_collection(collection_type=None, listings=[], status=True, errors=[]):
     if not collection_type:

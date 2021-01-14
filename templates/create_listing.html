@@ -5,9 +5,9 @@
 
 <a href="/">Back to All Listings</a>
 
-<p> This page is used to add a new Listing manually.</p>
+<p> This page is used to add a new Listing.</p>
 
-<h3>{% block title %} Listing {{ id }} {% endblock %}</h3>
+<h3>{% block title %} Listing {% endblock %}</h3>
 
 <form class="listing-form detail-items" method="post" action="/listing/create">
     
@@ -66,12 +66,13 @@
    <button type="submit">Submit</button>
 </form>
 
-{% if errors is defined %}
-    {% for error in errors %}
-        <span class="error">{{ error }}</span>
-        <br>
-    {% endfor %}    
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+        {{ messages[0] }}
+    </div>
 {% endif %}
+{% endwith %}
 
 <br>
 
