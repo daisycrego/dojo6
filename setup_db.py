@@ -1,5 +1,5 @@
 import os
-from models import User, db 
+from application import User, db 
 db.create_all() # create all the tables
 from csv_loader import CSVLoader
 from werkzeug.security import generate_password_hash

@@ -39,7 +39,7 @@ application = Flask(__name__)
 application.url_map.strict_slashes = False
 
 # Keep the code in TESTING=True mode to avoid running the web scraper excessively
-TESTING = False
+TESTING = True
 #TESTING = False
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
@@ -1073,8 +1073,8 @@ def plot_png(id=None):
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
     axis.plot( 'x', 'y_z', data=df, marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4, label="zillow")
-    axis.plot( 'x', 'y_r', data=df, marker='o', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
-    axis.plot( 'x', 'y_c', data=df, marker='o', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, label="cb")
+    axis.plot( 'x', 'y_r', data=df, marker='x', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
+    axis.plot( 'x', 'y_c', data=df, marker='.', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, label="cb")
     axis.legend()
     
     for x,y in zip([] + x + x + x, [] + y_zillow + y_redfin + y_cb):
