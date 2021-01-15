@@ -40,9 +40,9 @@
                 {% for log in logs %} 
                 <tr>
                     <td><a href="/log/{{log.id}}">{{log.id}}</a></td>
-                    <td>{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%} </td>
-                    <td>{{ log.date }}</a></td>
-                    <td>{% if log.status %} Passed {% else %} Failed {% endif %}</a></td>
+                    <td><p>{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%}</p> </td>
+                    <td><p>{{ log.date }}</p></td>
+                    <td><p>{% if log.status %} Passed {% else %} Failed {% endif %}</p></td>
                     <td><a href="/log/{{log.id}}">{{ log.listing_ids }}</a></td>
                     <td><a href="/log/{{log.id}}">{% if log.errors %}{{ log.errors[0] }}{% else %}No errors reported.{% endif %}</a></td>
                 </tr>

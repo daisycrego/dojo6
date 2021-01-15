@@ -4,11 +4,15 @@
 
 {% block content %}
 
-{% if message is defined and message %}
-    
-    <span class="success">{{ message }}</span>
-
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
 {% endif %}
+{% endwith %}
 
 <h3>{% block title %} {% if not show_inactive is defined or not show_inactive %} Active {% else %} Archived {%endif %} Listings {% endblock %}</h3>
 <p> This page will have all of the Listings listed here, and for each listing it will link to the detail page for that listing </p>
@@ -19,14 +23,16 @@
             <form method="get" action="/scrape/all/">
                 <button type="submit" onclick="return confirm('Are you sure you want to do that?');"> Collect All Listing Views </button>
             </form>
-            
-            <form method="post" action="/toggle_inactive">
+
+            <form method="post" action="/toggle_inactive/listing/">
             {% if show_inactive %} 
                 <button name="show_inactive" type="submit" value={{False}}> View Active Listings </button>
             {% else %} 
                 <button name="show_inactive" type="submit" value={{True}}> View Archived Listings </button>
                 {% endif %}
             </form>
+
+            <a class="button" href="/listings/deleted">View Deleted Listings</a>
             
         </span>
         
@@ -61,9 +67,9 @@
 
                     <tr>
                         <td><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
-                        <td>{{listing.mls}}</td>
+                        <td><p>{{listing.mls}}</p></td>
                         <td><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
-                        <td>{{ "${:,}".format(listing.price) }}</td>
+                        <td><p>{{ "${:,}".format(listing.price) }}</p></td>
                         <td><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
                         <td><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></td>
                         <td><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></td>
@@ -75,7 +81,7 @@
                 {% endfor %}
             <table>
                 {% else %}
-                <H2>No archived listings.</H2>
+                <h2>No archived listings.</h2>
             {% endif %}
 
         </div>

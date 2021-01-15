@@ -74,7 +74,14 @@ li.nav a.nav:hover {
     align-items: center;
     padding: 5px;
 }
-
+/*
+.alongside-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+}
+*/
 .alongside > a,button,table
 .alongside > form > button {
     margin: 5px;
@@ -135,6 +142,9 @@ table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
     text-align: center;
+}
+
+td > p, span, a {
 }
 
 .hidden {

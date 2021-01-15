@@ -7,7 +7,6 @@ from base64 import b64encode
 import io
 import matplotlib 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-#import time
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,14 +14,8 @@ import pandas as pd
 import datetime
 from datetime import date, timedelta, time
 import enum
-from sqlalchemy import asc, Enum
+from sqlalchemy import asc
 import requests
-import lxml.etree
-import lxml.html
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.firefox.options import Options
 import ast
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -31,15 +24,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import random, string
 from smtplib import SMTPDataError
+from web_scraper import *
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
+
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
 application.url_map.strict_slashes = False
 
 # Keep the code in TESTING=True mode to avoid running the web scraper excessively
-TESTING = True
+TESTING = False
 #TESTING = False
 # Use the test db by default, avoid corrupting the actual db
 #application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
@@ -66,6 +61,8 @@ TOKEN = os.environ.get("ACCESS_TOKEN")
 
 db = SQLAlchemy(application)
 
+from models import *
+
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(application)
@@ -76,218 +73,6 @@ application.debug = False
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# MODELS 
-class Listing(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(500), unique=False, nullable=False)
-    url_zillow=db.Column(db.String(500), unique=False, nullable=True)
-    url_redfin=db.Column(db.String(500), unique=False, nullable=True)
-    url_cb=db.Column(db.String(500), unique=False, nullable=True)
-    agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'), nullable=True)
-    agent = db.relationship('Agent', backref=db.backref('listing', lazy=True))
-    price = db.Column(db.Integer, nullable=True)
-    mls = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.Boolean, unique=False, default=True, nullable=False) # True=active, False=inactive
-
-    def __repr__(self):
-        return '<Listing %r>' % self.address
-
-class Agent(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    status = db.Column(db.Boolean, unique=False, default=True, nullable=False) # True=active, False=inactive
-
-    def __repr__(self):
-        return '<Agent %r>' % self.name
-
-class ListingViews(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    views_zillow = db.Column(db.Integer, nullable=True)
-    views_redfin = db.Column(db.Integer, nullable=True)
-    views_cb = db.Column(db.Integer, nullable=True)
-    listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=True)
-    listing = db.relationship('Listing', backref=db.backref('listingviews', lazy=True))
-
-    def __repr__(self):
-        return '<ListingViews for %r>' % self.listing_id
-
-class CollectionType(enum.Enum):
-    one_time = 1
-    weekly = 2
-
-class DataCollection(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    listing_ids = db.Column(db.ARRAY(db.Integer), nullable=True)
-    collection_type = db.Column(db.Enum(CollectionType)) # one_time or weekly
-    status = db.Column(db.Boolean, unique=False, default=False, nullable=True)
-    errors = db.Column(db.ARRAY(db.String(1000)), nullable=True)
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(100))
-    name = db.Column(db.String(1000))
-    token = db.Column(db.String(100))
-    is_admin = db.Column(db.Boolean, unique=False, default=False)
-
-class Token(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(100))
-    email = db.Column(db.String(100))
-    created_time = db.Column(db.DateTime(timezone=True), server_default=func.now())
-
-# WEB SCRAPER
-class WebScraper:
-    zillow_headers = {
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "cache-control": "no-cache",
-        "cookie": "JSESSIONID=E988E25011499DF287B3336BE0E5F5F0; zguid=23|%2422236d48-1875-434d-b8f2-d1421d073afd; zgsession=1|2b52934e-1667-431f-9ec9-82007785df2a; _ga=GA1.2.1982612433.1604442799; _gid=GA1.2.620325738.1604442799; zjs_user_id=null; zjs_anonymous_id=%2222236d48-1875-434d-b8f2-d1421d073afd%22; _pxvid=92a1511a-1e24-11eb-8532-0242ac120018; _gcl_au=1.1.1767744341.1604442801; KruxPixel=true; DoubleClickSession=true; __gads=ID=41906d69e2453aa2-22d228f5397a006b:T=1604442801:S=ALNI_MYdXvUPJMu2Teg1lshpPkb5Ji_RVA; _fbp=fb.1.1604442801842.727886612; _pin_unauth=dWlkPU5EQmpaVGxoWkRrdE5qWTJPUzAwTVRJd0xUaGlNekF0TXpNeFlUZzVaREF3T0RReg; search=6|1607034817342%7Crect%3D40.78606556037442%252C-73.85258674621582%252C40.71688335199443%252C-74.20723915100098%26rid%3D25146%26disp%3Dmap%26mdm%3Dauto%26p%3D1%26z%3D1%26pt%3Dpmf%252Cpf%26fs%3D1%26fr%3D0%26mmm%3D1%26rs%3D0%26ah%3D0%26singlestory%3D0%26housing-connector%3D0%26abo%3D0%26garage%3D0%26pool%3D0%26ac%3D0%26waterfront%3D0%26finished%3D0%26unfinished%3D0%26cityview%3D0%26mountainview%3D0%26parkview%3D0%26waterview%3D0%26hoadata%3D1%26zillow-owned%3D0%263dhome%3D0%09%09%09%09%09%09%09%09; _px3=3429246752721cd227605773f1b990296844cc3b7adf99d73db1641b9fbd7524:HyhtsCiMCjoXm9YCLqUyYvVN6efdCzIdoSd+zu5Fou3woWXM3ouLAMEgw+vvoadA2GEfCRLJMBAtsdG3obEb2Q==:1000:WFzQZqPXu1SGFlXAM2Sa3b1ddSBnf/TdcWupq2Muc7NzUQfxNTQK9Mzpbt86RfiaHArwpcS4V3i9V+VEVoB7v58pm0C9FL2IkALrsTHHlQWQ25JMYDjgm8kPx8qWlas1+OSEOjGKwf+nuBKX7kjdN2KzMdxkpVySMkvEtZLoJ3k=; _uetsid=940faaa01e2411eb878aa964e2fb93d7; _uetvid=940ffda01e2411eb9bb3456f6030a021; AWSALB=lOVOVmEArl7Hkta9wCWOwWj3OzDo8E0zavfRORSHJRtpjlgqblhOKL0o7n0wNhn3CR7zrJpDRDgFMiPRuLsb/zny6hY2Ttw4KoOm5fRdnA2WU729Z1jXP6lLvtc5; AWSALBCORS=lOVOVmEArl7Hkta9wCWOwWj3OzDo8E0zavfRORSHJRtpjlgqblhOKL0o7n0wNhn3CR7zrJpDRDgFMiPRuLsb/zny6hY2Ttw4KoOm5fRdnA2WU729Z1jXP6lLvtc5; KruxAddition=true",
-        "pragma": "no-cache",
-        "sec-fetch-dest": "document",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-user": "?1",
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"
-    }
-    redfin_headers = {
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "cache-control": "no-cache",
-        "cookie": "RF_CORVAIR_LAST_VERSION=338.2.1; RF_BROWSER_ID=68NeycsSR0u5ZYJe3HNFeg; RF_VISITED=false; RF_BID_UPDATED=1; RF_MARKET=newjersey; RF_BUSINESS_MARKET=41; AKA_A2=A; _gcl_au=1.1.594105178.1604444441; AMP_TOKEN=%24NOT_FOUND; _ga=GA1.2.241545075.1604444442; _gid=GA1.2.517680459.1604444442; _uetsid=65e404c01e2811eb9ad809962c95ca2f; _uetvid=65e44e601e2811eb93ecc7484b75a7c7; RF_BROWSER_CAPABILITIES=%7B%22screen-size%22%3A4%2C%22ie-browser%22%3Afalse%2C%22events-touch%22%3Afalse%2C%22ios-app-store%22%3Afalse%2C%22google-play-store%22%3Afalse%2C%22ios-web-view%22%3Afalse%2C%22android-web-view%22%3Afalse%7D; RF_LAST_SEARCHED_CITY=Hoboken; userPreferences=parcels%3Dtrue%26schools%3Dfalse%26mapStyle%3Ds%26statistics%3Dtrue%26agcTooltip%3Dfalse%26agentReset%3Dfalse%26ldpRegister%3Dfalse%26afCard%3D2%26schoolType%3D0%26lastSeenLdp%3DnoSharedSearchCookie; RF_LDP_VIEWS_FOR_PROMPT=%7B%22viewsData%22%3A%7B%2211-03-2020%22%3A%7B%22122200495%22%3A1%7D%7D%2C%22expiration%22%3A%222022-11-03T23%3A00%3A43.223Z%22%2C%22totalPromptedLdps%22%3A0%7D; FEED_COUNT=0%3Af; G_ENABLED_IDPS=google; RF_LISTING_VIEWS=122200495",
-        "pragma": "no-cache",
-        "sec-fetch-dest": "document",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-site": "same-origin",
-        "sec-fetch-user": "?1",
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"
-    }
-    cb_headers = {
-        "accept": "*/*",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "cache-control": "no-cache",
-        "content-length": "0",
-        "content-type": "text/plain",
-        "cookie": "IDE=AHWqTUkqjk9aEsiwwq7Of_DhztqOLy8hRBhPMSenMOcZsNelDowpIl4Mng4ScA1C; DSID=AAO-7r7zzuHNo0Cqvl0Fu2PGvpAEl4mR_KdOuVZpergV7fKeY8emo1Tw4bZ-92VdKbS2-aT3jRqAQtTL_1TTcRMO9XDTZt3Lo7GiPdv5W4ku3JU9-fjNcE0",
-        "origin": "https://www.coldwellbankerhomes.com",
-        "pragma": "no-cache",
-        "referer": "https://www.coldwellbankerhomes.com/",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "cross-site",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36",
-        "x-client-data": "CKO1yQEIkLbJAQimtskBCMG2yQEIqZ3KAQi3uMoBCKvHygEI9sfKAQjpyMoBCNzVygEI/ZfLAQiRmcsBCMiZywEIl5rLARiLwcoB"
-    }
-
-    def scrape_listing(self, id=None, testing=False):
-        if not id:
-            print("scrape_listing(): id required")
-            return
-        listing = Listing.query.filter_by(id=id).first()
-
-        final_results = {
-            "zillow": None,
-            "redfin": None,
-            "cb": None,
-        }
-
-        # zillow
-        url_zillow = listing.url_zillow
-        url_redfin = listing.url_redfin
-        url_cb = listing.url_cb
-
-        if testing:
-            final_results["zillow"] = random.randint(0,10)
-            final_results["redfin"] = random.randint(0,10)
-            final_results["cb"] = random.randint(0,10)
-        else:
-            
-            if listing.url_zillow and "zillow.com" in listing.url_zillow:
-                url_zillow = listing.url_zillow
-                r = requests.get(url=url_zillow, headers=self.zillow_headers)
-                root = lxml.html.fromstring(r.content)
-                results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
-                try: 
-                    zillow_views = int(results[1].text.replace(',',''))
-                except (IndexError,ValueError) as e:
-                    zillow_views = None
-                final_results["zillow"] = zillow_views
-            
-            # redfin 
-            if listing.url_redfin and "redfin.com" in listing.url_redfin:
-                url_redfin = listing.url_redfin
-                r = requests.get(url=url_redfin, headers=self.redfin_headers)
-                root = lxml.html.fromstring(r.content)
-                try:
-                    redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                except (IndexError,ValueError) as e:
-                    redfin_views = None
-                final_results["redfin"] = redfin_views
-
-            # cb 
-            if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-                url_cb = listing.url_cb
-                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
-                root = lxml.html.fromstring(cb_request.content)
-                options = Options()
-                options.headless = True
-                driver = webdriver.Firefox(options=options)
-                driver.set_page_load_timeout(30)
-                #driver.implicitly_wait(30)
-                driver.get(url_cb) 
-
-                attempts = 0
-                while attempts < 100: 
-                    try: 
-                        #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
-                        elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                        views = elem_parent.get_attribute('innerText').split(" ")[1]
-                        cb_views = int(views.replace(',',''))
-                        final_results["cb"] = cb_views
-                        break
-                    except NoSuchElementException:
-                        attempts += 1
-                        if attempts > 100: 
-                            error_filename = f"{i}_url_err.log"
-                            error_file = open(error_filename, 'w+')
-                            error_file.write(driver.page_source)
-                        else:
-                            continue
-                        
-                driver.quit()
-
-        midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
-        existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= midnight).first()
-        if not existing_views:
-            print("No ListingViews already found for this listing... creating a new ListingViews object")
-            views = ListingViews(listing_id=id, listing=listing, views_zillow=final_results["zillow"], views_redfin=final_results["redfin"], views_cb=final_results["cb"] )
-            db.session.add(views)
-            db.session.commit()
-        else:
-            print("ListingViews already scraped today for this listing... updating the ListingViews object if the new value is larger")
-            changed = False
-            if final_results["zillow"] > existing_views.views_zillow:
-                existing_views.views_zillow = final_results["zillow"]
-                changed = True 
-            if final_results["redfin"] > existing_views.views_redfin:
-                existing_views.views_redfin = final_results["redfin"]
-                changed = True 
-            if final_results["cb"] > existing_views.views_cb:
-                existing_views.views_cb = final_results["cb"]
-                changed = True 
-            if changed:
-                existing_views.date = datetime.datetime.now()
-            db.session.add(existing_views)
-            db.session.commit()
-
-        print(f"Listing {id}, {listing.address}: Done scraping from all 3 urls ({url_zillow}, {url_redfin}, {url_cb}) results committed to the db.")
 
 # ROUTES
 
@@ -609,15 +394,30 @@ def index(show_inactive=None):
     if not show_inactive:
         show_inactive = request.args.get("show_inactive")
     show_inactive = True if show_inactive == "True" else False
-    listings = Listing.query.all()
+    listings = Listing.query.filter(Listing.status!=Status.deleted).all()
     return render_template('list.html', listings=listings, show_inactive=show_inactive)
 
-@application.route("/toggle_inactive", methods=["POST"])
+@application.route('/listings/deleted')
 @login_required
-def toggle_inactive():
+def deleted_listings():
+    listings = Listing.query.filter_by(status=Status.deleted).all()
+    return render_template('deleted_listings.html', listings=listings)
+
+@application.route("/toggle_inactive/<type>/", methods=["POST"])
+@login_required
+def toggle_inactive(type=None):
+    if not type:
+        type = request.args.get("type")
+        print(f"toggle_inactive(): type: {type}")
     show_inactive = request.form.get("show_inactive")
     print(f"toggle_inactive(): Toggling inactive to {show_inactive}")
-    return redirect(url_for('index', show_inactive=show_inactive))
+    if type == "listing": 
+        return redirect(url_for('index', show_inactive=show_inactive))
+    elif type == "agent": 
+        return redirect(url_for('agents', show_inactive=show_inactive))
+    else: 
+        print(f"Type {type} not valid.")
+        return redirect(url_for('index'))
 
 ## Listing - Detail View
 @application.route('/listing/')
@@ -625,6 +425,10 @@ def toggle_inactive():
 @login_required
 def detail_listing(id=None, errors=None):
     errors = request.args.getlist("errors")
+    statuses = dict()
+    for category in Status:
+        statuses.update({category.value: category.name})
+    print(statuses)
     listing = Listing.query.filter_by(id=id).first()
     try:
         price = "${:,.2f}".format(listing.price)
@@ -633,7 +437,7 @@ def detail_listing(id=None, errors=None):
         price = str(listing.price)
     if errors:
         flash(f"{errors[0]}. For more details, please see the Logs.")
-    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True)
+    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses)
 
 ## Listing - Create  
 @application.route('/listing/create/', methods=["GET", "POST"])
@@ -705,6 +509,10 @@ def create(prev_data=None):
 @application.route('/listing/<id>/edit', methods=["GET", "POST"])
 @login_required
 def edit_listing(id=None, prev_data=None):
+    statuses = dict()
+    for category in Status:
+        statuses.update({category.value: category.name})
+    print(statuses)
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
@@ -718,11 +526,19 @@ def edit_listing(id=None, prev_data=None):
         agent_id = request.form.get("agent")
         agent = Agent.query.filter_by(id=agent_id).first()
         status = request.form.get("status")
-        status = True if status == "True" else False 
+        print(f"status: {status} is just a number")
+        if not status:
+            valid = False
+            flash("Status is required")
+            return redirect(url_for('detail_listing', id=id))
+        
+        status = Status(int(status)) # this should now be an enum
+        print(f"enum option: {type(status)}")
+
         if not address:
             valid = False
             flash("Address is required")
-        
+
         try:
             if price:
                 parsed_price = int(price.replace("$","").replace(",",""))
@@ -771,9 +587,9 @@ def edit_listing(id=None, prev_data=None):
             agents = Agent.query.all()
             default_agent = Agent.query.filter_by(name="Jill Biggs").first()            
             if prev_data:
-                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=prev_data, editing=True)
+                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=prev_data, editing=True, statuses=statuses)
             else:
-                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=dict(request.form), editing=True)
+                return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=dict(request.form), editing=True, statuses=statuses)
             #else:
             #    return redirect(url_for("edit_listing", id=id, prev_data=dict(request.form)))
         return redirect(url_for('detail_listing', id=id))
@@ -784,17 +600,26 @@ def edit_listing(id=None, prev_data=None):
         agents = Agent.query.all()
         listing = Listing.query.filter_by(id=id).first()
         if prev_data:
-            return render_template('detail_listing.html', listing=listing, agents=agents, data=prev_data)
-        return render_template('detail_listing.html', listing=listing, agents=agents, editing=True)
+            return render_template('detail_listing.html', listing=listing, agents=agents, data=prev_data, editing=True, statuses=statuses)
+        return render_template('detail_listing.html', listing=listing, agents=agents, editing=True, statuses=statuses)
 
 ## AGENT ROUTES
 ## Agents - List  
 @application.route('/agents/')
-@application.route('/agents/<message>')
+@application.route('/agents/<show_inactive>')
 @login_required
-def agents(message=None):
-    agents = Agent.query.all()
-    return render_template('list_agents.html', agents=agents, message=message)
+def agents(show_inactive=None):
+    if not show_inactive:
+        show_inactive = request.args.get("show_inactive")
+    show_inactive = True if show_inactive == "True" else False
+    agents = Agent.query.filter(Agent.status!=Status.deleted).all()
+    return render_template('list_agents.html', agents=agents, show_inactive=show_inactive)
+
+@application.route('/agents/deleted')
+@login_required
+def deleted_agents():
+    agents = Agent.query.filter_by(status=Status.deleted).all()
+    return render_template('deleted_agents.html', agents=agents)
 
 ## Agent - Detail 
 @application.route('/agent/')
@@ -845,16 +670,17 @@ def create_agent(prev_data=None):
 def agent_archive(id=None):
     if not id:
         flash("Missing id. Unable to archive this agent.")
+        return redirect(request.referrer)
     else:
         agent = Agent.query.filter_by(id=id).first()
         if agent:
-            agent.status = False
+            agent.status = Status.archived
             db.session.add(agent)
             db.session.commit()
             flash("Agent archived.")
         else:
             flash("No agent found with this id. Unable to archive this agent.")
-    return redirect(url_for("detail_agent", id=id))
+    return redirect(request.referrer)
 
 @application.route('/listing/<id>/archive')
 @login_required
@@ -864,13 +690,13 @@ def listing_archive(id=None):
     else:
         listing = Listing.query.filter_by(id=id).first()
         if listing:
-            listing.status = False
+            listing.status = Status.archived
             db.session.add(listing)
             db.session.commit()
             flash("Listing archived.")
         else:
             flash("No listing found with this id. Unable to archive this listing.")
-    return redirect(url_for("detail_listing", id=id))
+    return redirect(request.referrer)
 
 ## Agent - Edit
 @application.route('/agent/<id>/edit', methods=["GET", "POST"])
@@ -912,16 +738,69 @@ def agent_edit(id=None, prev_data=None):
             return render_template('detail_agent.html', id=id, agent=agent, data=prev_data, editing=True)
         return render_template('detail_agent.html', id=id, agent=agent, editing=True)
 
-## Agent - Delete
 @application.route('/agent/<id>/delete')
-@login_required 
+@login_required
 def delete_agent(id=None):
+    if not id:
+        flash("Cannot delete. No id provided.")
+        return redirect(request.referrer)
     agent = Agent.query.filter_by(id=id).first()
-    name = agent.name
-    db.session.delete(agent)
-    db.session.commit()
-    message = f"Agent ({name}) deleted successfully."
-    return redirect(url_for("agents", message=message))
+    if agent:
+            agent.status = Status.deleted
+            db.session.add(agent)
+            db.session.commit()
+            flash("Agent deleted successfully.")
+    else:
+        flash(f"Agent not found with id: {id}. Unable to delete this agent.")
+    return redirect(request.referrer)
+
+@application.route('/agent/<id>/recover')
+@login_required
+def recover_agent(id=None):
+    if not id:
+        flash("Cannot recover. No id provided.")
+        return redirect(request.referrer)
+    agent = Agent.query.filter_by(id=id).first()
+    if agent:
+            agent.status = Status.active
+            db.session.add(agent)
+            db.session.commit()
+            flash("Agent recovered successfully.")
+    else:
+        flash(f"Agent not found with id: {id}. Unable to recover this agent.")
+    return redirect(request.referrer)
+
+@application.route('/listing/<id>/delete')
+@login_required
+def delete_listing(id=None):
+    if not id:
+        flash("Cannot delete. No id provided.")
+        return redirect(request.referrer)
+    listing = Listing.query.filter_by(id=id).first()
+    if listing:
+            listing.status = Status.deleted
+            db.session.add(listing)
+            db.session.commit()
+            flash("Listing deleted successfully.")
+    else:
+        flash(f"Listing not found with id: {id}. Unable to delete this listing.")
+    return redirect(request.referrer)
+
+@application.route('/listing/<id>/recover')
+@login_required
+def recover_listing(id=None):
+    if not id:
+        flash("Cannot recover. No id provided.")
+        return redirect(request.referrer)
+    listing = Listing.query.filter_by(id=id).first()
+    if listing:
+            listing.status = Status.active
+            db.session.add(listing)
+            db.session.commit()
+            flash("Listing recovered successfully.")
+    else:
+        flash(f"Listing not found with id: {id}. Unable to recover this listing.")
+    return redirect(request.referrer)
 
 ## Logs - List View
 @application.route('/logs/')

@@ -1,0 +1,71 @@
+
+{% set active_page = "deleted_listings" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
+<h3>{% block title %} Deleted Listings {% endblock %}</h3>
+        <span class="alongside">
+
+            <a class="button" href="/">Back</a>
+            
+        </span>
+
+        {% if listings %}
+
+        
+        <div class="table-container">
+
+            
+            <table>
+                <tr>
+                    <th>Undo delete?</th>
+                    <th>Listing Address</th>
+                    <th>MLS</th>
+                    <th>Agent</th>
+                    <th>Listing Price</th>
+                    <th>Status</th>
+                    <th>Zillow Listing</th>
+                    <th>Redfin Listing</th>
+                    <th>Coldwell Banker Listing</th>
+                    
+                </tr>
+                {% for listing in listings %}
+                    
+                    
+
+                    <tr>
+                        <td><a href="/listing/{{listing.id}}/recover">Yes!</a></td>
+                        <td><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
+                        <td>{{listing.mls}}</td>
+                        <td><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
+                        <td>{{ "${:,}".format(listing.price) }}</td>
+                        <td><p>{{ sentence_case(listing.status.name) }}</p></td>
+                        <td><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></td>
+                        <td><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></td>
+                        <td><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></td>
+                    </tr>                
+                {% endfor %}
+            <table>
+
+        </div>
+            {% else %}
+            <H2>No listings.</H2>
+
+        {% endif %}
+        
+
+        
+
+
+{% endblock %}

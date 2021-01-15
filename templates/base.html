@@ -9,7 +9,9 @@
     ('/settings', 'settings', 'Settings'),
 ] -%}
 {% set active_page = active_page|default('listings') -%}
-
+{% macro sentence_case(text) %}
+    {{ text[0]|upper}}{{text[1:] }}
+{% endmacro %}
 
 <!doctype html>
 <html>

@@ -1,5 +1,6 @@
 from csv import DictReader
-from application import Agent, Listing, db
+from application import db
+from models import Agent, Listing
 
 class CSVLoader:
     def readListingCSV(filename=None):

@@ -3,38 +3,67 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if message is defined and message %}
-    
-    <span class="success">{{ message }}</span>
 
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
 {% endif %}
+{% endwith %}
 
 <h3>{% block title %} Agents {% endblock %}</h3>
-<p> This page will have all of the Agents listed here, and for each agent it will link to the detail page for that agent </p>
 
-        <div class="flex-row alongside">
+        <div class="alongside">
             <a class="button" href="../agent/create">Add an Agent</a>
 
-            {% if agents %}
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                </tr>
+            <form method="post" action="/toggle_inactive/agent/">
+            {% if show_inactive %} 
+                <button name="show_inactive" type="submit" value={{False}}> View Active Listings </button>
+            {% else %} 
+                <button name="show_inactive" type="submit" value={{True}}> View Archived Listings </button>
+                {% endif %}
+            </form>
 
-                {% for agent in agents %} 
-                <tr>
-                    <td>{{agent.id}}</td>
-                    <td><a href="/agent/{{agent.id}}">{{agent.name}}</a></td>
-                </tr>
-                {% endfor %}
-            <table>
+            <a class="button" href="/agents/deleted">View Deleted Agents</a>
         </div>
-        
-        
-        {% else %}
-        <h2>No agents yet.</h2>
+            {% if agents %}
+                {% set ns = namespace(inactive_found=false) %}
+                {% for agent in agents %}
+                    {% if not agent.status %}
+                        {% set ns.inactive_found = True %}
+                    {% endif %}
+                {% endfor %}
+                {% if not show_inactive or (show_inactive and ns.inactive_found) %}
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
 
-        {% endif %}
+                        {% for agent in agents %} 
+                            {% if (not show_inactive and agent.status) or (show_inactive and not agent.status) %}
+                            <tr>
+                                <td><p>{{agent.id}}</p></td>
+                                <td><a href="/agent/{{agent.id}}">{{agent.name}}</a></td>
+                                <td><p>{{sentence_case(agent.status.name)}}</p></td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    <table>
+                {% else %}
+                    <h2>No archived agents.</h2>
+                {% endif %}
+            {% else %}
+            <h2>No agents yet.</h2>
+    
+            {% endif %}
+       
+        
+        
+        
 
 {% endblock %}

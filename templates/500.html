@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Page Not Found{% endblock %}
 {% block body %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
   <h1>Internal Server Error</h1>
   <p>Sit back and relax, it could be awhile.</p>
   <p>If you know how to, check <code>heroku logs --tail</code>. Otherwise, contact 

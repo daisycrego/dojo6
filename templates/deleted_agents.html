@@ -1,0 +1,59 @@
+
+{% set active_page = "deleted_agents" %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="error">
+    {% for message in messages %}
+    <span class="error">{{ message }}</span>
+    {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
+<h3>{% block title %} Deleted Agents {% endblock %}</h3>
+        <span class="alongside">
+
+            <a class="button" href="/agents/">Back</a>
+            
+        </span>
+
+        {% if agents %}
+
+        
+        <div class="table-container">
+
+            
+            <table>
+                <tr>
+                    <th>Undo delete?</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                </tr>
+                {% for agent in agents %}
+                    
+                    <tr>
+                        <td><a href="/agent/{{agent.id}}/recover">Yes!</a></td>
+                        <td>{{agent.name}}</td>
+                        <td><p>{{ sentence_case(agent.status.name) }} </p></td>
+                    </tr>
+
+                    
+                
+                {% endfor %}
+            <table>
+
+        </div>
+            {% else %}
+            <H2>No agents.</H2>
+
+        {% endif %}
+        
+
+        
+
+
+{% endblock %}
