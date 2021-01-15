@@ -1,7 +1,7 @@
 from sqlalchemy.sql import func
 import enum
 from flask_login import UserMixin
-from application import db
+from ../ import db
 
 # MODELS 
 class Status(enum.Enum):
