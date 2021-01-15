@@ -1014,6 +1014,8 @@ def scrape_listings(listings=None):
     scraper = WebScraper()
     for listing in listings_to_scrape: 
         scraper.scrape_listing(listing.id, testing=TESTING)
+
+    return errors
         
 ## Scrapes listing views for today for a given Listing ID. Updates the db directly once the results are retrieved.
 @application.route('/scrape/<id>/')
@@ -1047,7 +1049,7 @@ def scrapeAll(id=None):
     # Redirect to the home page (Listings - List View)
     if len(errors):
         flash(errors[0])
-    return redirect(url_for('index', id=id))
+    return redirect(url_for('list_logs'))
 
 @application.errorhandler(404)
 def page_not_found(e):
