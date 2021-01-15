@@ -61,8 +61,6 @@ TOKEN = os.environ.get("ACCESS_TOKEN")
 
 db = SQLAlchemy(application)
 
-from models import *
-
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(application)
