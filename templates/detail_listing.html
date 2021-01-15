@@ -43,7 +43,14 @@
             <option value="{{agent.id}}">{{ agent.name }}</option>
             {% endfor %}
         </select> 
-   </span>     
+    </span>
+    <span>
+        <label for="status">Status:</label>
+        <select name="status">
+            <option value={{True}} {% if listing.status %}selected="selected"{% endif %}>Active</option>
+            <option value={{False}} {% if not listing.status %} selected="selected" {% endif %}>Inactive</option>
+        </select> 
+    </span>     
 
    <span><label for="url_zillow">Zillow URL:</label>&nbsp<input name="url_zillow" type="text" {% if data is defined and data %} value="{{ data.url_zillow }}" {% else %}value="{{ listing.url_zillow }}"{% endif %}/></span>
    <span><label for="url_redfin">Redfin URL:</label>&nbsp<input name="url_redfin" type="text" {% if data is defined and data %} value="{{ data.url_redfin }}" {% else %}value="{{ listing.url_redfin }}"{% endif %}/></span>
@@ -68,6 +75,7 @@
     <span><label for="url_zillow">Zillow URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_zillow}}">{{listing.url_zillow}}</a></p></span>
     <span><label for="url_redfin">Redfin URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_redfin}}">{{listing.url_redfin}}</a></p></span>
     <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_cb}}">{{listing.url_cb}}</a></p></span>
+    <span><label for="status">Status:</label>&nbsp<p>{% if listing.status %} Active {% else %} Archived {% endif %}</p></span>
 </span>
 
 
@@ -86,8 +94,8 @@
 
 <br>
 
-<form class="right-justify" method="get" action="/listing/{{ listing.id }}/delete">
-    <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
+<form class="right-justify" method="get" action="/listing/{{ listing.id }}/archive">
+    <button type="submit" value="Archive Listing" onclick="return confirm('Are you sure you want to do that?');"> Archive Listing </button>
 </form>
 
 <br>

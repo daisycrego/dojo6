@@ -79,7 +79,7 @@ def load_user(user_id):
 # MODELS 
 class Listing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(500), unique=True, nullable=False)
+    address = db.Column(db.String(500), unique=False, nullable=False)
     url_zillow=db.Column(db.String(500), unique=False, nullable=True)
     url_redfin=db.Column(db.String(500), unique=False, nullable=True)
     url_cb=db.Column(db.String(500), unique=False, nullable=True)
@@ -87,6 +87,7 @@ class Listing(db.Model):
     agent = db.relationship('Agent', backref=db.backref('listing', lazy=True))
     price = db.Column(db.Integer, nullable=True)
     mls = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.Boolean, unique=False, default=True, nullable=False) # True=active, False=inactive
 
     def __repr__(self):
         return '<Listing %r>' % self.address
@@ -94,6 +95,7 @@ class Listing(db.Model):
 class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
+    status = db.Column(db.Boolean, unique=False, default=True, nullable=False) # True=active, False=inactive
 
     def __repr__(self):
         return '<Agent %r>' % self.name
@@ -246,8 +248,6 @@ class WebScraper:
                     try: 
                         #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                         elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                        print(url_cb)
-                        print(elem_parent.get_attribute('innerText'))
                         views = elem_parent.get_attribute('innerText').split(" ")[1]
                         cb_views = int(views.replace(',',''))
                         final_results["cb"] = cb_views
@@ -504,7 +504,7 @@ def send_email(recipients, title, body):
                     print("MAIL_USERNAME has been set to the backup, but email limits also exceeded on the backup")
                     return False
                 else:
-                    print("Limits still exceeded. ")
+                    print("Limits still exceeded, but MAIL_USERNAME has not been set to backup.")
         return False 
 
 @application.route("/reset-password/", methods=["GET", "POST"])
@@ -549,12 +549,9 @@ def reset_password():
             flash("Password successfully reset.")
             return redirect(url_for("login"))
         elif email:
-            print("email exists")
-            print(email)
             # handle POST - new password reset access token, url, and email
             user = User.query.filter_by(email=email).first()
             if user:
-                print("user exists")
                 # Create a token for the reset password link, save it in the db
                 # delete any existing tokens for this email
                 existing_tokens = Token.query.filter_by(email=email).all()
@@ -570,8 +567,6 @@ def reset_password():
                 title = "Password Reset"
                 body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
                 sent = send_email([email], title, body)
-            else:
-                print("user not found")
             if sent:
                 flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
             else:
@@ -608,14 +603,21 @@ def reset_password():
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/')
-@application.route('/<messages>')
+@application.route('/<show_inactive>')
 @login_required
-def index(messages=None):
-    if messages:
-        messages = messages.replace("{","").replace("}","").replace("'", "")
-        
+def index(show_inactive=None):
+    if not show_inactive:
+        show_inactive = request.args.get("show_inactive")
+    show_inactive = True if show_inactive == "True" else False
     listings = Listing.query.all()
-    return render_template('list.html', listings=listings, message=messages)
+    return render_template('list.html', listings=listings, show_inactive=show_inactive)
+
+@application.route("/toggle_inactive", methods=["POST"])
+@login_required
+def toggle_inactive():
+    show_inactive = request.form.get("show_inactive")
+    print(f"toggle_inactive(): Toggling inactive to {show_inactive}")
+    return redirect(url_for('index', show_inactive=show_inactive))
 
 ## Listing - Detail View
 @application.route('/listing/')
@@ -707,15 +709,16 @@ def edit_listing(id=None, prev_data=None):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
     if request.method == "POST":
-        address = request.form["address"]
-        price = request.form["price"]
-        mls = request.form["mls"]
-        url_zillow = request.form["url_zillow"]
-        url_redfin = request.form["url_redfin"]
-        url_cb = request.form["url_cb"]
-        agent_id = request.form["agent"]
+        address = request.form.get("address")
+        price = request.form.get("price")
+        mls = request.form.get("mls")
+        url_zillow = request.form.get("url_zillow")
+        url_redfin = request.form.get("url_redfin")
+        url_cb = request.form.get("url_cb")
+        agent_id = request.form.get("agent")
         agent = Agent.query.filter_by(id=agent_id).first()
-
+        status = request.form.get("status")
+        status = True if status == "True" else False 
         if not address:
             valid = False
             flash("Address is required")
@@ -761,15 +764,12 @@ def edit_listing(id=None, prev_data=None):
             listing.url_cb = url_cb
             listing.agent = agent
             listing.agent_id = agent_id
+            listing.status = status
             db.session.add(listing)
             db.session.commit()
         else:
             agents = Agent.query.all()
-            default_agent = Agent.query.filter_by(name="Jill Biggs").first()
-            print("prev_data")
-            print(prev_data)
-            print("dict(request.form)")
-            print(dict(request.form))
+            default_agent = Agent.query.filter_by(name="Jill Biggs").first()            
             if prev_data:
                 return render_template('detail_listing.html', listing=listing, agents=agents, default_agent=default_agent, data=prev_data, editing=True)
             else:
@@ -786,17 +786,6 @@ def edit_listing(id=None, prev_data=None):
         if prev_data:
             return render_template('detail_listing.html', listing=listing, agents=agents, data=prev_data)
         return render_template('detail_listing.html', listing=listing, agents=agents, editing=True)
-
-## Listing - Delete 
-@application.route('/listing/<id>/delete')
-@login_required
-def delete_listing(id=None):
-    listing = Listing.query.filter_by(id=id).first()
-    address = listing.address
-    db.session.delete(listing)
-    db.session.commit()
-    message = f"Listing ({address}) deleted successfully."
-    return redirect(url_for("index", messages=[message]))
 
 ## AGENT ROUTES
 ## Agents - List  
@@ -850,6 +839,38 @@ def create_agent(prev_data=None):
         if prev_data:
             return render_template('create_agent.html', data=prev_data)
         return render_template('create_agent.html')
+
+@application.route('/agent/<id>/archive')
+@login_required
+def agent_archive(id=None):
+    if not id:
+        flash("Missing id. Unable to archive this agent.")
+    else:
+        agent = Agent.query.filter_by(id=id).first()
+        if agent:
+            agent.status = False
+            db.session.add(agent)
+            db.session.commit()
+            flash("Agent archived.")
+        else:
+            flash("No agent found with this id. Unable to archive this agent.")
+    return redirect(url_for("detail_agent", id=id))
+
+@application.route('/listing/<id>/archive')
+@login_required
+def listing_archive(id=None):
+    if not id:
+        flash("Missing id. Unable to archive this listing.")
+    else:
+        listing = Listing.query.filter_by(id=id).first()
+        if listing:
+            listing.status = False
+            db.session.add(listing)
+            db.session.commit()
+            flash("Listing archived.")
+        else:
+            flash("No listing found with this id. Unable to archive this listing.")
+    return redirect(url_for("detail_listing", id=id))
 
 ## Agent - Edit
 @application.route('/agent/<id>/edit', methods=["GET", "POST"])
@@ -987,31 +1008,9 @@ def scrape_listings(listings=None):
             listings_to_scrape.append(listing)
         else:
             errors.append(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
-    print("scrape_listings() found errors")
-    print(errors)
-    print("listings_to_scrape")
-    print(listings_to_scrape)
-    """
-    if TESTING:
-        print("TESTING email scraper, generating some random ListingViews object")
-        midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
-        for listing in listings_to_scrape:
-            views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date >= midnight).first()
-            if views:
-                views.views_zillow = random.randint(0,10)
-                views.views_redfin = random.randint(0,10)
-                views.views_cb = random.randint(0,10)
-                views.date = datetime.datetime.now()
-            else: 
-                views = ListingViews(listing_id=listing.id, listing=listing, views_zillow=random.randint(0,1000), views_redfin=random.randint(0,1000), views_cb=random.randint(0,1000))
-            db.session.add(views)
-            db.session.commit()
-    else:
-    """
     if errors:
         return errors
 
-    print(f"TESTING = {TESTING}")
     scraper = WebScraper()
     for listing in listings_to_scrape: 
         scraper.scrape_listing(listing.id, testing=TESTING)
@@ -1021,11 +1020,7 @@ def scrape_listings(listings=None):
 @login_required
 def scraper(id=None):
     listing = Listing.query.filter_by(id=id).first()
-    errors = scrape_listings([listing])
-
-    print("ERRORS")
-    print(errors)
-    
+    errors = scrape_listings([listing])    
     status = True
     if errors:
         status = False
@@ -1042,9 +1037,6 @@ def scrapeAll(id=None):
     listings = Listing.query.all()
     errors = scrape_listings(listings)
 
-    print("inside scrapeAll, here are the errors:")
-    print(errors)
-
     status = True
     if errors:
         status = False
@@ -1054,9 +1046,8 @@ def scrapeAll(id=None):
     
     # Redirect to the home page (Listings - List View)
     if len(errors):
-        print("errors[0]")
-        print(errors[0])
-    return redirect(url_for('index', id=id, messages={errors[0] if len(errors) else None}))
+        flash(errors[0])
+    return redirect(url_for('index', id=id))
 
 @application.errorhandler(404)
 def page_not_found(e):
@@ -1134,4 +1125,7 @@ if __name__ == "__main__":
     #application.debug = False
 
     application.run(use_reloader=False)
+
+    print(f"TESTING = {TESTING}")
+
     
