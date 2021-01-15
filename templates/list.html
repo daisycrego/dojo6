@@ -33,8 +33,16 @@
 
 
         {% if listings %}
+
+        {% set ns = namespace(inactive_found=false) %}
+        {% for listing in listings %}
+            {% if not listing.status %}
+                {% set ns.inactive_found = True %}
+            {% endif %}
+        {% endfor %}
         <div class="table-container">
 
+            {% if not show_inactive or (show_inactive and ns.inactive_found) %}
             <table>
                 <tr>
                     <th>Listing Address</th>
@@ -47,9 +55,8 @@
                     <th>Coldwell Banker Listing</th>
                     
                 </tr>
-    
                 {% for listing in listings %}
-                
+                    
                     {% if (not show_inactive and listing.status) or (show_inactive and not listing.status) %}
 
                     <tr>
@@ -67,13 +74,17 @@
                 
                 {% endfor %}
             <table>
+                {% else %}
+                <H2>No archived listings.</H2>
+            {% endif %}
 
         </div>
         
-        
+            
+            
         
             {% else %}
-            <H2>No listings yet.</H2>
+            <H2>No listings.</H2>
 
         {% endif %}
         
