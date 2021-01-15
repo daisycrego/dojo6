@@ -397,9 +397,9 @@ def login(data=None):
         return redirect(url_for("index"))
     # GET
     else:
-        if request.args.get("data"):
-            data = ast.literal_eval(request.args.get("data").rstrip('/'))    
-        return render_template("login.html", data=data)
+        #if request.args.get("data"):
+        #    data = ast.literal_eval(request.args.get("data").rstrip('/'))    
+        return render_template("login.html")
 
 ### Logout 
 @application.route('/logout/')
