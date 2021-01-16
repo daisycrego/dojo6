@@ -47,9 +47,9 @@
                         {% for agent in agents %} 
                             {% if (not show_inactive and agent.status) or (show_inactive and not agent.status) %}
                             <tr>
-                                <td><p>{{agent.id}}</p></td>
-                                <td><a href="/agent/{{agent.id}}">{{agent.name}}</a></td>
-                                <td><p>{{sentence_case(agent.status.name)}}</p></td>
+                                <td class="padding"><p>{{agent.id}}</p></td>
+                                <td class="padding"><a href="/agent/{{agent.id}}">{{agent.name}}</a></td>
+                                <td class="padding"><p>{{sentence_case(agent.status.name)}}</p></td>
                             </tr>
                             {% endif %}
                         {% endfor %}

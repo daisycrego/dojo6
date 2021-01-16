@@ -13,11 +13,6 @@
 {% endif %}
 {% endwith %}
 
-<p> This page has the details for a given agent, if that agent exists. 
-    It will allow you to edit the details for a Agent. 
-    It will also display a list of all the agent's listings.
-    Otherwise it will display "This agent has no listings.".</p>
-
 {% if agent is defined and agent %}
 
 <h3>{% block title %} Agent {{ agent.id }} {% endblock %}</h3>

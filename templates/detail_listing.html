@@ -13,12 +13,6 @@
 {% endif %}
 {% endwith %}
 
-
-<p> This page has the details for a given listing, if that listing exists. 
-    It will allow you to edit the details for a Listing. 
-    It will also display a graph of all the ListingViews. 
-    Otherwise it will display "Listing not found".</p>
-
 {% if listing is defined and listing %}
 
 <h3>{% block title %} Listing {{ listing.id }} {% endblock %}</h3>
