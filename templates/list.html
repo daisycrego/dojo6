@@ -66,11 +66,11 @@
                     {% if (not show_inactive and listing.status) or (show_inactive and not listing.status) %}
 
                     <tr>
-                        <td><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
-                        <td><p>{{listing.mls}}</p></td>
-                        <td><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
-                        <td><p>{{ "${:,}".format(listing.price) }}</p></td>
-                        <td><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
+                        <td class="nowrap"><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
+                        <td class="padding"><p>{{listing.mls}}</p></td>
+                        <td class="nowrap"><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
+                        <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
+                        <td class="padding"><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
                         <td><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></td>
                         <td><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></td>
                         <td><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></td>
