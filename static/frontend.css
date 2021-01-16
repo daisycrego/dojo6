@@ -155,3 +155,16 @@ table, th, td {
 .hidden {
     display: none;
 }
+
+tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #C8E3CF;
+}
+
+tbody tr:first-child {
+    background-color: green;
+    color: white;
+}
