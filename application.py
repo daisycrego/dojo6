@@ -469,6 +469,12 @@ def register(data=None):
             flash('Email address already in use')
             return redirect(url_for('register', data=dict(request.form)))
 
+        # delete the tokens associated with this email, ensure one time use
+        existing_tokens = Token.query.filter_by(email=email).all()
+        for token in existing_tokens:
+            db.session.delete(token)
+            db.session.commit()
+
         # create a new user with the form data. Hash the password so the plaintext version isn't saved.
         new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'), is_admin=False)
 
@@ -550,6 +556,12 @@ def reset_password():
             elif len(password) < 8:
                 flash("Password must be at least 8 characters long.")
                 return render_template("reset_password.html", resetting=True, token=token, email=email)
+
+            # delete all the tokens for this email, ensure one time use
+            existing_tokens = Token.query.filter_by(email=email).all()
+            for token in existing_tokens:
+                db.session.delete(token)
+                db.session.commit()
 
             user.password = generate_password_hash(password, method='sha256')
 
