@@ -14,16 +14,16 @@
 {% endif %}
 {% endwith %}
 
-<h3>{% block title %} Agents {% endblock %}</h3>
+<h2>{% block title %} Agents {% endblock %}</h2>
 
         <div class="alongside">
             <a class="button" href="../agent/create">Add an Agent</a>
 
             <form method="post" action="/toggle_inactive/agent/">
             {% if show_inactive %} 
-                <button name="show_inactive" type="submit" value={{False}}> View Active Listings </button>
+                <button name="show_inactive" type="submit" value={{False}}> Show Active Agents </button>
             {% else %} 
-                <button name="show_inactive" type="submit" value={{True}}> View Archived Listings </button>
+                <button name="show_inactive" type="submit" value={{True}}> Show Archived Agents </button>
                 {% endif %}
             </form>
 

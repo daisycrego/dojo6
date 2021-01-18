@@ -19,7 +19,7 @@
 <hr>
 
 {% if log is defined and log %}
-<h3>{% block title %} Log {{ log.id }} {% endblock %}</h3>
+<h2>{% block title %} Log {{ log.id }} {% endblock %}</h2>
 
 <span class="detail-items">
     <span><label for="collection-type">Collection Type: </label>&nbsp<p name="collection-type">{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%}</p></span>

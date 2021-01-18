@@ -14,12 +14,14 @@
 {% endif %}
 {% endwith %}
 
-<h3>{% block title %} Deleted Agents {% endblock %}</h3>
+
         <span class="alongside">
 
             <a class="button" href="/agents/">Back</a>
             
         </span>
+
+        <h2>{% block title %} Deleted Agents {% endblock %}</h2>
 
         {% if agents %}
 
@@ -48,7 +50,7 @@
 
         </div>
             {% else %}
-            <H2>No agents.</H2>
+            <H3>No agents.</H3>
 
         {% endif %}
         

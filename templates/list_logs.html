@@ -14,9 +14,9 @@
 {% endif %}
 {% endwith %}
 
-<h3>{% block title %} Property View Web Scraper Logs  {% endblock %}</h3>
+<h2>{% block title %} Property View Web Scraper Logs  {% endblock %}</h2>
 
-    <form method="get" action="/scrape/all/">
+    <form class="padded-container" method="get" action="/scrape/all/">
         <button type="submit" onclick="return confirm('Are you sure you want to do that?');"> Collect All Listing Views </button>
     </form>
 

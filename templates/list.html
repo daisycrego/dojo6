@@ -14,29 +14,36 @@
 {% endif %}
 {% endwith %}
 
-<h3>{% block title %} {% if not show_inactive is defined or not show_inactive %} Active {% else %} Archived {%endif %} Listings {% endblock %}</h3>
+<h2>{% block title %} {% if not show_inactive is defined or not show_inactive %} Active {% else %} Archived {%endif %} Listings {% endblock %}</h3>
 
         <span class="alongside">
-            <a class="button" href="listing/create">Add a Listing</a>
-
-            <form method="get" action="/scrape/all/">
-                <button type="submit" onclick="return confirm('Are you sure you want to do that?');"> Collect All Listing Views </button>
+            <form class="search" method="post" action="/">
+                <input type="hidden" name="show-inactive" value={{show_inactive}}></input>
+                <label class="big" for="search"> Search (by address): </label>&nbsp<input name="search"></input>
+                <button type="submit"> Go </button>
             </form>
+
+
+            <a class="button" href="listing/create">Create a Listing</a>
 
             <form method="post" action="/toggle_inactive/listing/">
             {% if show_inactive %} 
-                <button name="show_inactive" type="submit" value={{False}}> View Active Listings </button>
+                <button name="show_inactive" type="submit" value={{False}}> Show Active Listings </button>
             {% else %} 
-                <button name="show_inactive" type="submit" value={{True}}> View Archived Listings </button>
-                {% endif %}
+                <button name="show_inactive" type="submit" value={{True}}> Show Archived Listings </button>
+            {% endif %}
             </form>
 
-            <a class="button" href="/listings/deleted">View Deleted Listings</a>
+            <a class="button" href="/listings/deleted">Go to Deleted Listings</a>
+
+
+            <form method="get" action="/scrape/all/">
+                <button type="submit" onclick="return confirm('Are you sure you want to do that? This will run the web scraper for all of the current listings.');"> Collect All Listing Views </button>
+            </form>
+            
             
         </span>
         
-
-
         {% if listings %}
 
         {% set ns = namespace(inactive_found=false) %}
@@ -45,8 +52,8 @@
                 {% set ns.inactive_found = True %}
             {% endif %}
         {% endfor %}
+        
         <div class="table-container">
-
             {% if not show_inactive or (show_inactive and ns.inactive_found) %}
             <table>
                 <tr>
@@ -55,9 +62,9 @@
                     <th>Agent</th>
                     <th>Listing Price</th>
                     <th>Status</th>
-                    <th>Zillow Listing</th>
-                    <th>Redfin Listing</th>
-                    <th>Coldwell Banker Listing</th>
+                    <th>Latest Zillow Views </th>
+                    <th>Latest Redfin Views</th>
+                    <th>Latest Coldwell Banker Views</th>
                     
                 </tr>
                 {% for listing in listings %}
@@ -70,9 +77,69 @@
                         <td class="nowrap"><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
                         <td class="padding"><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
-                        <td><a target="_blank" href={{listing.url_zillow}}>{{listing.url_zillow}}</a></td>
-                        <td><a target="_blank" href={{listing.url_redfin}}>{{listing.url_redfin}}</a></td>
-                        <td><a target="_blank" href={{listing.url_cb}}>{{listing.url_cb}}</a></td>
+                        <td>
+                            {% if latest_listing_views[listing.id] %} 
+                                <span class="above-below">
+                                    <p class="big-font">{{ latest_listing_views[listing.id].views_zillow }} </p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span> 
+                            {% else %} 
+                                <span class="above-below">
+                                    <p class="big-font">-</p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span>
+                            {% endif %}
+                            </td>
+                        <td>
+                            {% if latest_listing_views[listing.id] %} 
+                                <span class="above-below">
+                                    <p class="big-font">{{ latest_listing_views[listing.id].views_redfin }} </p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span> 
+                            {% else %} 
+                                <span class="above-below">
+                                    <p class="big-font">-</p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if latest_listing_views[listing.id] %} 
+                                <span class="above-below">
+                                    <p class="big-font">{{ latest_listing_views[listing.id].views_cb }} </p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span> 
+                            {% else %} 
+                                <span class="above-below">
+                                    <p class="big-font">-</p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span>
+                            {% endif %}
+                        </td>
                     </tr>
 
                     {% endif %}

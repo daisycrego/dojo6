@@ -2,6 +2,24 @@ body {
     font-family: Helvetica;
     font-size: 16px;
     line-height: 1.5em;
+    background-color: #001820;
+    color: #d6b0b1;
+}
+
+.big-font {
+    font-size:2em;
+}
+
+.padded-container, .padded-container > * {
+    padding: 0.5em;
+}
+
+h2, h3 {
+    margin-left: 0.5em;
+}
+
+form.search {
+    margin-left: 0.5em;
 }
 
 /* Navbar styling */
@@ -10,19 +28,36 @@ ul.nav {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #333;
+    background-color: #393D4A;
 }
 
 li.nav {
     float: left;
 }
 
+input, select {
+    color: #d6b0b1;
+    background-color: #393D4A;
+    font-size: 1.5em;
+}
+
+input:focus {
+    outline: none !important;
+    border:1px solid #393D4A;
+    box-shadow: 0 0 10px#345d66;
+}
+
 li.nav a.nav {
     display: block;
-    color: white;
+    color: #d6b0b1;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
+    font-size: 1.5em;
+}
+
+.big {
+    font-size: 1.5em;
 }
 
 .active {
@@ -35,10 +70,14 @@ li.nav a.nav:hover {
     
 }
 
-
 .listing-form {
     display: flex;
     flex-direction: column;
+    width:30%;
+}
+
+.listing-form > input {
+    text-align: left; 
 }
 
 /* Display a label next to the value for each item in the Listing Detail View */
@@ -50,19 +89,19 @@ li.nav a.nav:hover {
 
 /* Set all the form/display element widths */
 .detail-items > span > label {
-    width: 15%;
+    width: 25%;
 }
 
 .detail-items > span > input {
-    width: 85%;
+    width: 75%;
 }
 
 .detail-items > span > select {
-    width: 86%;
+    width: 76%;
 }
 
 .detail-items > button {
-    width: 15%;
+    width: 30%;
     align-self: flex-end;
     padding: 10px;
 }
@@ -74,14 +113,19 @@ li.nav a.nav:hover {
     align-items: center;
     padding: 5px;
 }
-/*
-.alongside-buttons {
+
+.above-below {
+    margin-top: 1.4em;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     padding: 5px;
 }
-*/
+
+.small-icon {
+    font-size: 0.8em;
+}
+
 .alongside > a,button,table
 .alongside > form > button {
     margin: 5px;
@@ -106,24 +150,35 @@ li.nav a.nav:hover {
 }
 
 button {
-    background-color: #038001;
-    color: white;
+    background-color: /*#6dda89*/#345d66;
+    color: /*#BEA386*/#d6b0b1;
     padding: 1em 1.5em;
     text-decoration: none;
-    border: 2px solid #038001;
+    border: 2px solid #345d66;
     cursor: pointer;
     font-size: 1.2em;
+    text-align: center;
 }
 
 /* Style a link as a button */
 a.button {
-    background-color: #038001;
-    color: white;
+    background-color: #345d66;
+    color: #d6b0b1;
     padding: 1em 1.5em;
     text-decoration: none;
-    border: 2px solid #038001;
+    border: 2px solid #345d66;
     cursor: pointer;
     font-size: 1.2em;
+    text-align: center;
+}
+/* For Listing detail text */
+span.listing_detail > span > p > a {
+    color: #d6b0b1;
+}
+
+button:hover, a.button:hover  {
+    color: white; 
+    background-color: #038001;
 }
 
 .error {
@@ -138,10 +193,16 @@ a.button {
     overflow-x: auto;
 }
 
-table, th, td {
+table, td, th {
     border: 1px solid black;
     border-collapse: collapse;
     text-align: center;
+    margin-left:0.5em;
+    margin-right:0.5em;
+}
+
+th {
+    padding: 0.25em 0.25em 0.25em 0.25em; 
 }
 
 .nowrap {
@@ -157,14 +218,32 @@ table, th, td {
 }
 
 tbody tr:nth-child(odd) {
-    background-color: #ffffff;
+    background-color: #393D4A;
+    color: #BEA386;
+}
+
+tbody tr:nth-child(odd) > td > a {
+    color: #BEA386;
+}
+
+tbody tr:nth-child(odd) > td > span.above-below > p.shift-end > a {
+    color: #00222D;
 }
 
 tbody tr:nth-child(even) {
-    background-color: #C8E3CF;
+    background-color: #00222D;
+    color: #BEA386;
+}
+
+tbody tr:nth-child(even) > td > a {
+    color: #BEA386;
+}
+
+tbody tr:nth-child(even) > td > span.above-below > p.shift-end > a {
+    color: #393D4A;
 }
 
 tbody tr:first-child {
-    background-color: green;
-    color: white;
+    background-color: #393D4A;
+    color: #BEA386;
 }

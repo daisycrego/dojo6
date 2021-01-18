@@ -3,11 +3,13 @@
 
 {% block content %}
 
-<a href="/agents">Back</a>
+<br>
+<a class="button" href="/agents">Back</a>
+<br>
+<br>
+<h2>{% block title %} Agent {% endblock %}</h2>
 
-<h3>{% block title %} Agent {% endblock %}</h3>
-
-<form class="listing-form detail-items" method="post" action="/agent/create">
+<form class="listing-form detail-items padded-container" method="post" action="/agent/create">
     
    <span>
        <label for="name">Name:</label>

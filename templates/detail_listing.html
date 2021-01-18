@@ -13,22 +13,32 @@
 {% endif %}
 {% endwith %}
 
+<br>
+<div class="padded-container">
+    <a class="button" href="/">Back to All Listings</a>
+</div>
+
+<br><br>
+
 {% if listing is defined and listing %}
 
-<h3>{% block title %} Listing {{ listing.id }} {% endblock %}</h3>
+<h2>{% block title %} Listing {{ listing.id }} {% endblock %}</h2>
+<br>
+
+{% if plot %}
+    <img src="/matplot-as-image-{{listing.id}}.png"
+        alt="Property views"
+        height="500"
+    >
+{% endif %}
 
 {% if editing %}
 <div class="">
-    <a href="/listing/{{ listing.id }}">Cancel Edit</a>
+    <a class="button" href="/listing/{{ listing.id }}">Cancel Edit</a>
 </div>
+<br>
 
-
-{% for id, text in statuses.items() %}
-<p>id: {{id}}</p>
-<p>text: {{sentence_case(text)}}</p>
-{% endfor %}
-
-<form class="listing-form detail-items" method="post" action="/listing/{{ listing.id }}/edit">
+<form class="listing-form detail-items padded-container" method="post" action="/listing/{{ listing.id }}/edit">
     <input type="hidden" name="id" value="{{ listing.id }}"/>
    <span><label for="address">Address:</label>&nbsp<input name="address" type="text" {% if data is defined and data %} value={{ data.address }} {% else %} value="{{ listing.address }}" {% endif %}/> </span>
    <span><label for="mls">MLS ID:</label>&nbsp<input name="mls" type="text" {% if data is defined and data %} value={{ data.mls }} {% else %} value="{{ listing.mls }}"{% endif %}/></span> 
@@ -64,16 +74,31 @@
 </form>
 
 
-
 {% else %}
-<div class="">
-    <a href="{{ listing.id }}/edit">Edit Listing</a>
+<div class="padded-container alongside">
+    <a class="button" href="{{ listing.id }}/edit">Edit Listing</a>
+    <form method="get" action="/scrape/{{ listing.id }}/">
+        <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
+    </form>
+        {% if listing.status.name == "deleted" %}
+        <form method="get" action="/listing/{{ listing.id }}/recover">
+            <button type="submit" value="Recover Deleted Listing" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Listing </button>
+        </form>
+        {% endif %}
+        {% if listing.status.name == "active" %}
+        <form method="get" action="/listing/{{ listing.id }}/archive">
+            <button type="submit" value="Archive Listing" onclick="return confirm('Are you sure you want to do that?');"> Archive Listing </button>
+        </form>
+        {% endif %}
+        {% if listing.status.name == "active" or listing.status.name == "archived" %}
+        <form method="get" action="/listing/{{ listing.id }}/delete">
+            <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
+        </form>
+        {% endif %}
 </div>
-<form class="right-justify" method="get" action="/scrape/{{ listing.id }}/">
-    <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
-</form>
 
-<span class="detail-items">
+
+<span class="detail-items listing_detail padded-container">
     <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>
     <span><label for="mls">MLS ID:</label>&nbsp<p name="mls">{{ listing.mls }}</p></span>
     <span><label for="price">Listing Price:</label>&nbsp<p>{{ price }}</p></span>
@@ -85,38 +110,19 @@
 </span>
 
 
+<br>
+
+
+
 {% endif %}
 
 {% else %}
 <p>Listing not found...</p>
 {% endif %}
 
-{% if plot %}
-    <img src="/matplot-as-image-{{listing.id}}.png"
-        alt="Property views"
-        height="500"
-    >
-{% endif %}
 
-<br>
-<div class="alongside-buttons">
-    {% if listing.status.name == "deleted" %}
-    <form class="right-justify" method="get" action="/listing/{{ listing.id }}/recover">
-        <button type="submit" value="Recover Deleted Listing" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Listing </button>
-    </form>
-    {% endif %}
-    {% if listing.status.name == "active" %}
-    <form class="right-justify" method="get" action="/listing/{{ listing.id }}/archive">
-        <button type="submit" value="Archive Listing" onclick="return confirm('Are you sure you want to do that?');"> Archive Listing </button>
-    </form>
-    {% endif %}
-    {% if listing.status.name == "active" or listing.status.name == "archived" %}
-    <form class="right-justify" method="get" action="/listing/{{ listing.id }}/delete">
-        <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
-    </form>
-    {% endif %}
-</div>
 
-<a href="/">Back to All Listings</a>
+
+
 
 {% endblock %}

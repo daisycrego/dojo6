@@ -2,12 +2,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<br>
+<a class="button" href="/">Back to All Listings</a>
+<br><br>
+<h2>{% block title %} Listing {% endblock %}</h2>
 
-<a href="/">Back to All Listings</a>
-
-<h3>{% block title %} Listing {% endblock %}</h3>
-
-<form class="listing-form detail-items" method="post" action="/listing/create">
+<form class="listing-form detail-items padded-container" method="post" action="/listing/create">
     
    <span>
        <label for="address">Address:</label>

@@ -13,57 +13,56 @@
 {% endif %}
 {% endwith %}
 
+<br>
+<div class="padded-container">
+    <a class="button" href="/agents/">Back to All Agents</a>
+</div>
+<br><br>
+
 {% if agent is defined and agent %}
 
-<h3>{% block title %} Agent {{ agent.id }} {% endblock %}</h3>
-
+<h2>{% block title %} Agent {{ agent.id }} {% endblock %}</h2>
+<br>
 {% if editing %}
-<div>
-    <a href="/agent/{{ agent.id }}">Cancel Edit</a>
+<div class="padded-container">
+    <a class="button" href="/agent/{{ agent.id }}">Cancel Edit</a>
 </div>
-<form class="listing-form detail-items" method="post" action="/agent/{{ agent.id }}/edit">
+<br>
+<form class="listing-form detail-items padded-container" method="post" action="/agent/{{ agent.id }}/edit">
     <input type="hidden" name="id" value="{{ agent.id }}"/>
    <span><label for="name">Name:</label>&nbsp<input name="name" type="text" {% if errors %} value="{{ data.name }}" {% else %} value="{{ agent.name }}" {% endif %}/> </span>
    <button type="submit">Submit</button>
 </form>
 
 {% else %}
-<div class="">
-    <a href="{{ agent.id }}/edit">Edit Agent</a>
-</div>
-<span class="detail-items">
-    <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
-    <span><label for="name">Status: </label>&nbsp<p name="name">{{sentence_case(agent.status.name)}}</p></span>
-</span>
-
-{% if agent.status.name == "deleted" %}
-    <form class="right-justify" method="get" action="/agent/{{ agent.id }}/recover">
+<div class="padded-container alongside">
+    <a class="button" href="{{ agent.id }}/edit">Edit Agent</a>
+    {% if agent.status.name == "deleted" %}
+    <form method="get" action="/agent/{{ agent.id }}/recover">
         <button type="submit" value="Recover Deleted Agent" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Agent </button>
     </form>
     {% endif %}
     {% if agent.status.name == "active" %}
-    <form class="right-justify" method="get" action="/agent/{{ agent.id }}/archive">
+    <form method="get" action="/agent/{{ agent.id }}/archive">
         <button type="submit" value="Archive Agent" onclick="return confirm('Are you sure you want to do that?');"> Archive Agent </button>
     </form>
     {% endif %}
     {% if agent.status.name == "active" or agent.status.name == "archived" %}
-    <form class="right-justify" method="get" action="/agent/{{ agent.id }}/delete">
+    <form method="get" action="/agent/{{ agent.id }}/delete">
         <button type="submit" value="Delete Agent" onclick="return confirm('Are you sure you want to do that?');"> Delete Agent </button>
     </form>
     {% endif %}
 {% endif %}
+</div>
+<span class="detail-items padded-container">
+    <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
+    <span><label for="name">Status: </label>&nbsp<p name="name">{{sentence_case(agent.status.name)}}</p></span>
+</span>
+
+
 
 {% else %}
 <p>Agent not found...</p>
 {% endif %}
-
-<br>
-
-
-
-
-
-
-<a href="/agents/">Back to All Agents</a>
 
 {% endblock %}

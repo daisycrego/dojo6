@@ -8,7 +8,6 @@ import io
 import matplotlib 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime
@@ -624,15 +623,35 @@ def reset_password():
 
 ## LISTINGS ROUTES 
 ## Listings - List View
-@application.route('/')
-@application.route('/<show_inactive>')
+@application.route('/', methods=["GET", "POST"])
+@application.route('/<show_inactive>', methods=["GET", "POST"])
 @login_required
 def index(show_inactive=None):
-    if not show_inactive:
-        show_inactive = request.args.get("show_inactive")
-    show_inactive = True if show_inactive == "True" else False
-    listings = Listing.query.filter(Listing.status!=Status.deleted).all()
-    return render_template('list.html', listings=listings, show_inactive=show_inactive)
+    if request.method == "POST":
+        show_inactive = request.form.get("show_inactive")
+        query = request.form.get("search")
+        if not query:
+            flash("Please provide a listing address to perform a search.")
+        #listings = Listing.query.filter(Listing.address.ilike(query)).all()
+        listings = Listing.query.filter(func.lower(Listing.address).contains(query.lower())).all()        
+        latest_listing_views = [ ListingViews.query.filter_by(id=listing.id).order_by(desc(ListingViews.date)).first() for listing in listings]
+        dict_views = dict()
+        for views in latest_listing_views:
+            dict_views[views.listing_id] = views
+        if not len(listings):
+            flash(f"No listings found with an address containing '{query}'")
+        return render_template('list.html', listings=listings, show_inactive=show_inactive, latest_listing_views=dict_views)
+    else:
+        if not show_inactive:
+            show_inactive = request.args.get("show_inactive")
+        show_inactive = True if show_inactive == "True" else False
+        listings = Listing.query.filter(Listing.status!=Status.deleted).all()
+        # list of the most recent ListingViews object for each id
+        latest_listing_views = [ ListingViews.query.filter_by(id=listing.id).order_by(desc(ListingViews.date)).first() for listing in listings]
+        dict_views = dict()
+        for views in latest_listing_views:
+            dict_views[views.listing_id] = views
+        return render_template('list.html', listings=listings, show_inactive=show_inactive, latest_listing_views=dict_views)
 
 @application.route('/listings/deleted')
 @login_required
@@ -1082,12 +1101,27 @@ def plot_png(id=None):
 
     df=pd.DataFrame(dataObject)
 
+    light = '#D6B0B1'
+    medium = '#3B5360'
+    dark = '#00181f'
+
     fig = Figure()
+    fig.patch.set_facecolor(dark)
     axis = fig.add_subplot(1, 1, 1)
     axis.plot( 'x', 'y_z', data=df, marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4, label="zillow")
     axis.plot( 'x', 'y_r', data=df, marker='x', markerfacecolor='red', markersize=12, color='red', linewidth=4, label="redfin")
     axis.plot( 'x', 'y_c', data=df, marker='.', markerfacecolor='olive', markersize=12, color='olive', linewidth=4, label="cb")
-    axis.legend()
+    axis.legend(fontsize='large', labelcolor=light, facecolor=dark, edgecolor=light)
+    axis.set_facecolor(medium)
+    axis.spines['bottom'].set_color('#D6B0B1')
+    axis.spines['top'].set_color('#D6B0B1')
+    axis.spines['left'].set_color('#D6B0B1')
+    axis.spines['right'].set_color('#D6B0B1')
+    axis.xaxis.label.set_color('#D6B0B1')
+    axis.yaxis.label.set_color('#D6B0B1')
+    axis.tick_params(axis='x', colors='#D6B0B1')
+    axis.tick_params(axis='y', colors='#D6B0B1')
+    axis.labelsize = 'large'
     
     for x,y in zip([] + x + x + x, [] + y_zillow + y_redfin + y_cb):
         # add labels to the points
@@ -1097,7 +1131,7 @@ def plot_png(id=None):
                         y, 
                         (x,y),
                         textcoords="offset points", # how to position the text
-                        bbox=dict(boxstyle="round", fc="white", ec="black"),
+                        bbox=dict(boxstyle="round", fc="#D6B0B1", ec="#D6B0B1"),
                         xytext=(0,10), # distance from text to points (x,y)
                         ha='center') # horizontal alignment can be left, right or center.          
             except TypeError:
