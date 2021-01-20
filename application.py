@@ -1159,7 +1159,7 @@ def login(data=None):
             return redirect(url_for("login", data=dict(request.form)))
 
         login_user(user, remember=remember)
-        return redirect(url_for("index", reset=False))
+        return redirect(url_for("index"))
     # GET
     else:
         #if request.args.get("data"):
