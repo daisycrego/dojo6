@@ -507,7 +507,7 @@ def detail_listing(id=None, errors=None):
         flash("Price not formatted correctly")
         price = str(listing.price)
     if errors:
-        flash(f"{errors[0]}. For more details, please see the Logs.")
+        flash(f"{errors[0]} For more details, please see the Logs.")
     return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses)
 
 ## Listing - Create  
@@ -991,7 +991,10 @@ def scraper(id=None):
     
     # Add web scraper run to the DataCollection log
     log_data_collection(CollectionType.one_time, [listing], status=status, errors=errors)
-    
+    if len(errors):
+        flash(errors[0])
+    else:
+        flash(f"Scraped listing views for {listing.address}")
     return redirect(url_for('detail_listing', id=id, errors=errors))
 
 ## Scrapes listing views for today for all Listings. Updates the db as the results are found. 
@@ -1011,6 +1014,8 @@ def scrapeAll(id=None):
     # Redirect to the home page (Listings - List View)
     if len(errors):
         flash(errors[0])
+    else:
+        flash("Scraped all listing views.")
     return redirect(request.referrer)
 
 @application.errorhandler(404)
