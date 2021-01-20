@@ -479,7 +479,8 @@ def toggle_filter_state(filter_type):
         filterState.agents = [agent.id for agent in Agent.query.all()]
         filterState.statuses = [Status.active.value]
         filterState.query_string = None
-
+    elif filter_type == "reset_query":
+        filterState.query_string = None
     db.session.add(filterState)
     db.session.commit()
     return redirect(request.referrer)
