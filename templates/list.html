@@ -18,32 +18,44 @@
 
     <div class="listings-page">
         <span class="alongside">
+            <span class="search-container">
+                <form class="search" method="post" action="/">
+                    <input type="hidden" name="show-inactive" value={{show_inactive}}></input>
+                    <label class="big" for="search"> Search: </label>&nbsp<input placeholder="address, mls #" name="search"></input>
+                    <button class="search-button glyphicon glyphicon-search" type="submit"></button>
+                </form>
+                {% if filterState.query_string %}
+                    <span class="reset_query_container">
+                        <span>{{ filterState.query_string}}</span>
+                        <form id="reset_query_form" method="post" action="/toggle_filter_state/reset_query/">   
+                            <a href="javascript:{}" onclick="document.getElementById('reset_query_form').submit();">
+                                <span class="remove-icon glyphicon glyphicon-remove"></span>
+                            </a>
+                        </form>
+                    </span>
+                {% endif %}
+
+            </span>
             
-            <form class="search" method="post" action="/">
-                <input type="hidden" name="show-inactive" value={{show_inactive}}></input>
-                <label class="big" for="search"> Search: </label>&nbsp<input placeholder="address, mls #" name="search"></input>
-                <button type="submit"> Go </button>
-            </form>
 
 
-            <a class="button" href="listing/create">Create a Listing</a>
+
+
+            <a title="Create a new Listing" class="button" href="listing/create"><i class="glyphicon glyphicon-plus"></i>&nbspAdd Listing</a>
 
             <form method="get" action="/scrape/all/">
-                <button type="submit" onclick="return confirm('Are you sure you want to do that? This will run the web scraper for all of the current listings.');"> Collect All Listing Views </button>
+                <button type="submit" onclick="return confirm('Are you sure you want to do that? This will run the web scraper for all of the current listings.');"> Collect Listing Views </button>
             </form>
 
-            <a class="button" href="/listings/deleted"><i class="glyphicon glyphicon-trash"></i></a>
-
-            
+            <a title="Recover deleted listings" class="button glyphicon glyphicon-trash" href="/listings/deleted"></a>            
 
             <span class="refresh-container">
-                
-                <form id="filter_agents_form" method="post" action="/toggle_filter_state/reset/">   
-                    <a href="javascript:{}" onclick="document.getElementById('filter_agents_form').submit();">
+                <form id="reset_all_form" method="post" action="/toggle_filter_state/reset/">   
+                    <a title="Clear filters" href="javascript:{}" onclick="document.getElementById('reset_all_form').submit();">
                         <span class="refresh-icon glyphicon glyphicon-refresh"></span>
                     </a>
                 </form>
-                <span>Clear</span>
+                <span>Clear filters</span>
             </span>
             
             
@@ -81,7 +93,7 @@
                     <th>
                         <span class="header-and-icon">
                             <p> Agent </p>
-                            <a href="javascript:{}" onclick="var filters = document.getElementById('agent-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
+                            <a title="Filter by agent name" href="javascript:{}" onclick="var filters = document.getElementById('agent-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
                         </span>
                         <span id="agent-filters" style="display: none;" class="agent-filter">
                             <div>
@@ -199,6 +211,7 @@
                             </span>
                         </div>
                     </th>
+                    <th>Make changes</th>
                 </tr>
                 {% for listing in listings %}
                     
@@ -206,10 +219,9 @@
                     {% if filterState.agents and listing.agent.id in filterState.agents %}
                     {% if filterState.statuses and listing.status.value in filterState.statuses %}
                     <tr>
-                        
-                        <td class="nowrap"><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
+                        <td class="nowrap"><a title="Go to Listing Details" href="/listing/{{listing.id}}">{{listing.address}}</a></td>
                         <td class="padding"><p>{{listing.mls}}</p></td>
-                        <td class="nowrap"><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
+                        <td class="nowrap"><a title="Go to Agent Details" href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
                         <td class="padding"><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
                         <td>
@@ -274,6 +286,13 @@
                                     </p>
                                 </span>
                             {% endif %}
+                        </td>
+                        <td>
+
+                            <form method="get" action="/listing/{{ listing.id }}/delete">
+                                <button title="Delete Listing" type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> <span class="glyphicon glyphicon-trash"></span> </button>
+                            </form>
+
                         </td>
                     </tr>
                     {% endif %}

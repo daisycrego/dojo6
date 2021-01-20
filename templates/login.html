@@ -6,19 +6,19 @@
 
 {% with messages = get_flashed_messages() %}
     {% if messages %}
-        <div class="padded-container error">
+        <div title="{{messages[0]}}" class="padded-container error">
             {{ messages[0] }}
         </div>
     {% endif %}
     {% endwith %}
     
 <div class="padded-container login-page">
-    <h2>{% block title %} Login {% endblock %}</h2>
+    <h2 title="Login form">{% block title %} Login {% endblock %}</h2>
     <form class="login-grid" method="POST" action="/login">
-        <input type="email" name="email" placeholder="Your Email" autofocus="" {% if data is defined and data %} {{ data.email }} {% else %} value="" {% endif %}/>
-        <input type="password" name="password" placeholder="Your Password">
-        <a class="login-button smaller-text" href="/reset-password/">Forgot password?</a>
-        <button class="login-button">Login</button>
+        <input title="Email field" type="email" name="email" placeholder="Your Email" autofocus="" {% if data is defined and data %} {{ data.email }} {% else %} value="" {% endif %}/>
+        <input title="Password field" type="password" name="password" placeholder="Your Password">
+        <a title="Forgot password?" class="login-button smaller-text" href="/reset-password/">Forgot password?</a>
+        <button title="Login" class="login-button">Login</button>
     </form>
 </div>
 

@@ -30,7 +30,7 @@
                 {% if id=="login" or id=="settings" or id=="logout" or id=="register" %}
                     style="float:right"
                 {% endif %}>
-              <a      
+              <a title="Go to {{ id }} page"      
                 class="{% if (not current_user.is_authenticated and (id =='logout' or id == 'settings')) or (current_user.is_authenticated and (id=='register' or id=='login')) %} hidden {% endif %}{% if id == active_page %}active-nav {% endif %}"
                 href="{{ href|e }}">{{ caption|e }}</a></li>
             {% endfor %}
@@ -38,6 +38,6 @@
         {% block content %}{% endblock %}
     </body>
     <footer>
-        <p>&copy; 2021 Jill Biggs, Inc.<p></p>
+        <p title="Copyrighted 2021 by Jill Biggs, Incorporated.">&copy; 2021 Jill Biggs, Inc.<p></p>
     </footer>
 </html>
