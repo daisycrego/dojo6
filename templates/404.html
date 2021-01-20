@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% with messages = get_flashed_messages() %}
 {% if messages %}
-    <div class="error">
+    <div class="error padded-container">
     {% for message in messages %}
     <span class="error">{{ message }}</span>
     {% endfor %}

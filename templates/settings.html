@@ -4,16 +4,16 @@
 {% block content %}
 
 <h2>{% block title %} Settings {% endblock %}</h2>
-
+<hr>
 {% with messages = get_flashed_messages() %}
     {% if messages %}
-        <div class="notification is-danger">
+        <div class="padded-container notification is-danger">
             {{ messages[0] }}
         </div>
     {% endif %}
     {% endwith %}
 
-<div>
+<div class="padded-container">
     
     {% if editing %}
         <br>
@@ -29,12 +29,12 @@
 
     {% else %}
     
-        
-
-    <h4>Profile</h4>
+    <h3>Profile</h3>
+    <br>
     <div class="">
         <a class="button" href="/settings/edit">Edit Profile</a>
     </div>
+    <br>
     <span class="detail-items">
         <span><label for="name">Name: </label>&nbsp<p name="name">{{ current_user.name }}</p></span>
         <br>
@@ -45,7 +45,7 @@
     <hr>
 
     {% if is_admin %}
-    <h4>Invite New Users</h4>
+    <h3>Invite New Users</h3>
         
     <form method="POST" action="/invite-user/" class="alongside">
         <div class="field">
@@ -60,7 +60,10 @@
     {% endif %}
 
     <br>
-    <a class="button" href="/reset-password/">Reset password</a>
+    <div class="padded-container">
+        <a class="button" href="/reset-password/">Reset password</a>
+    </div>
+    
 
     {% endif %}
 

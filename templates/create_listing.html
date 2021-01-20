@@ -3,7 +3,9 @@
 
 {% block content %}
 <br>
-<a class="button" href="/">Back to All Listings</a>
+<div class="padded-container">
+    <a class="button" href="/">Back to All Listings</a>
+</div> 
 <br><br>
 <h2>{% block title %} Listing {% endblock %}</h2>
 
@@ -66,7 +68,7 @@
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
-    <div class="error">
+    <div class="padded-container error">
         {{ messages[0] }}
     </div>
 {% endif %}

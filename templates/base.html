@@ -3,8 +3,8 @@
     ('/', 'listings', 'Listings'),
     ('/agents/', 'agents', 'Agents'),
     ('/logs/', 'logs', 'Logs'),
-    ('/register/', 'register', 'Create Account'),
     ('/login/', 'login', 'Log In'),
+    ('/register/', 'register', 'Create Account'),
     ('/logout/', 'logout', 'Log Out'),
     ('/settings', 'settings', 'Settings'),
 ] -%}
@@ -22,27 +22,22 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='frontend.css') }}">
         
     </head>
+    
     <body>
         <ul class="nav" id="navigation">
             {% for href, id, caption in navigation_bar %}
-              <li class="nav" {% if id == active_page %} class="active"{% endif
-              %}{% if id=="login" or id=="settings" or id=="logout" or id=="register" %}
-              style="float:right"
-              {% endif %}><a 
-               {% if id == "register" or id == "login" %} 
-                {% if current_user.is_authenticated %}
-                    style="display:none;"
-                {% endif %}
-               {% endif %}
-               {% if id=="logout" or id=="settings" %}
-                {% if not current_user.is_authenticated %}
-                    class="hidden"
-                {% endif %}
-                {% endif %}
-               class="nav" href="{{ href|e }}">{{ caption|e }}</a></li>
-              
+              <li class="nav"
+                {% if id=="login" or id=="settings" or id=="logout" or id=="register" %}
+                    style="float:right"
+                {% endif %}>
+              <a      
+                class="{% if (not current_user.is_authenticated and (id =='logout' or id == 'settings')) or (current_user.is_authenticated and (id=='register' or id=='login')) %} hidden {% endif %}{% if id == active_page %}active-nav {% endif %}"
+                href="{{ href|e }}">{{ caption|e }}</a></li>
             {% endfor %}
             </ul>
         {% block content %}{% endblock %}
     </body>
+    <footer>
+        <p>&copy; 2021 Jill Biggs, Inc.<p></p>
+    </footer>
 </html>

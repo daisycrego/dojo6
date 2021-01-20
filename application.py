@@ -13,7 +13,7 @@ import pandas as pd
 import datetime
 from datetime import date, timedelta, time
 import enum
-from sqlalchemy import asc
+from sqlalchemy import asc, desc
 import requests
 import ast
 import atexit
@@ -232,6 +232,7 @@ class WebScraper:
 
 
 # MODELS 
+
 class Status(enum.Enum):
     active = 1
     archived = 2
@@ -298,382 +299,196 @@ class Token(db.Model):
     email = db.Column(db.String(100))
     created_time = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
+class SortOptions(enum.Enum):
+    asc = 1
+    desc = 2
+    default = 2
+
+class SortCategory(enum.Enum):
+    address = 1
+    price = 2
+    views_zillow = 3
+    views_redfin = 4
+    views_cb = 5
+    default = 2
+
+# Each user has a FilterState, which is their latest settings for the Listings - List View table filters (sort asc/desc, sort by category)
+class FilterState(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship('User', backref=db.backref('filterstate', lazy=True))
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
+    statuses = db.Column(db.ARRAY(db.Integer), nullable=True)
+    agents = db.Column(db.ARRAY(db.Integer), nullable=True)
+    
+    sort_category = db.Column(db.Enum(SortCategory), default=SortCategory.price, nullable=True)
+    sort_order = db.Column(db.Enum(SortOptions), default=SortOptions.desc, nullable=True)
+    query_string = db.Column(db.String(1000), default=None, nullable=True)
+
+
 # ROUTES
-
-## Invite New User
-@application.route("/invite-user/", methods=["POST"])
-@login_required
-def invite_user():
-    if not current_user.is_admin:
-        flash("You don't have the privileges to perform this task.")
-        return redirect(url_for("settings"))
-    email = request.form.get("email")
-    if not email:
-        flash("Please provide an email for the invitation.")
-        return redirect(url_for("settings"))
-
-    user_exists = User.query.filter_by(email=email).first()
-    if user_exists:
-        flash("A user with this email already exists.")
-        return redirect(url_for("settings"))
-
-    title = "JBG Listings - Create My Account"
-    new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
-    
-    # delete any existing tokens for this email
-    existing_tokens = Token.query.filter_by(email=email).all()
-    for token in existing_tokens:
-        db.session.delete(token)
-        db.session.commit()
-    
-    # create a new token and email it
-    token = Token(email=email, token=new_token)
-    db.session.add(token)
-    db.session.commit()
-    body = f"Welcome to the JBG Listings Portal!\n\nPlease follow this link to create your account: {request.base_url}../register?token={new_token}&email={email}"
-    sent = send_email([email], title, body)
-
-    if sent: 
-        flash(f"An invitation was emailed to {email}")
-    else:
-        flash(f"An invitation was NOT emailed to {email} due to email server issues. Please contact your system administrator.")
-    return redirect(url_for("settings"))
-
-## Settings
-@application.route("/settings/")
-def settings():
-    return render_template("settings.html", is_admin=current_user.is_admin)
-
-@application.route("/settings/edit", methods=["GET", "POST"])
-@login_required
-def settings_edit(prev_data=None):
-    if request.args.get("prev_data"):
-        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
-    if request.method == "POST":
-        valid = True
-        name = request.form.get("name")
-        email = request.form.get("email")
-        if not name and not email:
-            flash("No changes detected.")
-            valid = False
-        elif name == current_user.name and email == current_user.email:
-            flash("No changes detected.")
-            valid = False
-
-        # check if email is taken
-        user_exists = User.query.filter_by(email=email).filter(email!=current_user.email).first()
-        if user_exists: 
-            flash("Email already taken.")
-            valid = False
-
-        if valid: 
-            if name and name != current_user.name:
-                current_user.name = name
-            if email and email != current_user.email:
-                current_user.email = email
-            db.session.add(current_user)
-            db.session.commit()
-            flash("Profile updated.")
-            return redirect(url_for("settings"))
-        else: 
-            if prev_data:
-                return render_template('settings.html', data=prev_data, is_admin=current_user.is_admin)
-            else:
-                return render_template('settings.html', data=dict(request.form), is_admin=current_user.is_admin)
-    else:
-        if prev_data:
-            return render_template("settings.html", is_admin=current_user.is_admin, data=prev_data, editing=True)
-        return render_template("settings.html", is_admin=current_user.is_admin, editing=True)
-
-## AUTH ROUTES
-### Login
-@application.route("/login/")
-@application.route("/login/<data>")
-@application.route('/login', methods=["POST"])
-def login(data=None):
-    if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        remember = True if request.form.get("remember") else False
-
-        user = User.query.filter_by(email=email).first()
-
-        if not user or not check_password_hash(user.password, password):
-            flash("Invalid email and/or password.")
-            return redirect(url_for("login", data=dict(request.form)))
-
-        login_user(user, remember=remember)
-        return redirect(url_for("index"))
-    # GET
-    else:
-        #if request.args.get("data"):
-        #    data = ast.literal_eval(request.args.get("data").rstrip('/'))    
-        return render_template("login.html")
-
-### Logout 
-@application.route('/logout/')
-@login_required
-def logout():
-    logout_user()
-    return(redirect(url_for("login")))
-
-### Register
-### Register
-@application.route("/register/")
-@application.route('/register/<data>&<token>')
-@application.route('/register/', methods=["POST"])
-def register(data=None):
-    
-    if request.method == "POST":
-        valid = True
-        errors = []
-        ## validate access token
-        token = request.form.get("token")
-        if not token:
-            flash("Invitation required to create an account. Please contact your system administrator.")
-            return redirect(url_for('login'))
-
-        email = request.form.get('email')
-        name = request.form.get('name')
-        password = request.form.get('password')
-        password_confirm = request.form.get('password_confirm')
-
-        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
-        active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
-        if not active_token:
-            flash("Invalid access token, please contact your system administrator")
-            return redirect(url_for('register', data=dict(request.form)))
-
-        if not password:
-            valid = False
-            flash("Password missing")
-            return redirect(url_for("register", data=dict(request.form)))
-        elif not password_confirm:
-            valid = False
-            #errors.append("Retype password")
-            flash("Retype password")
-            return redirect(url_for("register", data=dict(request.form)))
-        elif password != password_confirm:
-            valid = False
-            #errors.append("Passwords must match")
-            flash("Passwords must match")
-            return redirect(url_for("register", data=dict(request.form)))
-        elif len(password) < 8:
-            flash("Password must be at least 8 characters long.")
-            return redirect(url_for("register", data=dict(request.form)))
-
-        user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
-
-        if user: # if a user is found, we want to redirect back to signup page so user can try again
-            flash('Email address already in use')
-            return redirect(url_for('register', data=dict(request.form)))
-
-        # delete the tokens associated with this email, ensure one time use
-        existing_tokens = Token.query.filter_by(email=email).all()
-        for token in existing_tokens:
-            db.session.delete(token)
-            db.session.commit()
-
-        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'), is_admin=False)
-
-        # add the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
-
-        return redirect(url_for("login"))
-    # GET
-    else:
-        token = request.args.get("token")
-        if not token: 
-            flash("Please check your email for a registration link. Contact your system administrator if you don't receive an email. Make sure to check your spam folder.")
-        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
-        active_token = Token.query.filter_by(token=token).filter(Token.created_time > one_hour_ago).first()
-        if not active_token:
-            flash("Your registration link is expired. Please contact your system administrator for a new invitation.")
-            return redirect(url_for("login"))
-        
-        if request.args.get("data"):
-            data = ast.literal_eval(request.args.get("data").rstrip('/'))
-        return render_template('register.html', admin_email=admin_email, data=data, token=token)
-
-def send_email(recipients, title, body):
-    with application.app_context():
-        # within this block, current_app points to app.
-        msg = Message(title, recipients=recipients)
-        msg.body = body
-        # accessing the flask-mail app extension using the app_context (current_app)
-        try:
-            current_app.extensions['mail'].send(msg)
-            return True
-        except SMTPDataError: 
-            print("Daily limits exceeded for primary Gmail SMTP server, switching to backup SMTP server.")
-            current_app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("BACKUP_EMAIL")
-            current_app.config["MAIL_USERNAME"] = os.environ.get("BACKUP_EMAIL")
-            current_app.extensions['mail'] = Mail(current_app)
-            try: 
-                current_app.extensions['mail'].send(msg)
-                return True
-            except SMTPDataError:
-                if current_app.config["MAIL_USERNAME"] == os.environ.get("BACKUP_EMAIL"):
-                    print("MAIL_USERNAME has been set to the backup, but email limits also exceeded on the backup")
-                    return False
-                else:
-                    print("Limits still exceeded, but MAIL_USERNAME has not been set to backup.")
-        return False 
-
-@application.route("/reset-password/", methods=["GET", "POST"])
-@application.route("/reset-password?<email>&<token>", methods=["GET", "POST"])
-@login_required
-def reset_password():
-    if request.method == "POST":
-        token = request.form.get("token")
-        email = request.form.get("email")
-        if token and email:
-            # handle POST - check passwords, handle password reset
-            
-            # check the token and the user (based on the email)
-            user = User.query.filter_by(email=email).first()
-            one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
-            active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
-            if not user or not active_token:
-                flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!")
-                return(redirect(url_for("login")))
-            
-            password = request.form.get("password")
-            confirm_password = request.form.get("password-confirm")
-            
-            if not password:
-                flash("Password missing")
-                return render_template("reset_password.html", resetting=True, token=token, email=email)
-            elif not confirm_password:
-                flash("Retype password")
-                return render_template("reset_password.html", resetting=True, token=token, email=email)
-            elif password != confirm_password:
-                flash("Passwords must match")
-                return render_template("reset_password.html", resetting=True, token=token, email=email)
-            elif len(password) < 8:
-                flash("Password must be at least 8 characters long.")
-                return render_template("reset_password.html", resetting=True, token=token, email=email)
-
-            # delete all the tokens for this email, ensure one time use
-            existing_tokens = Token.query.filter_by(email=email).all()
-            for token in existing_tokens:
-                db.session.delete(token)
-                db.session.commit()
-
-            user.password = generate_password_hash(password, method='sha256')
-
-            # save the changes in the db 
-            db.session.add(user)
-            db.session.commit()
-            flash("Password successfully reset.")
-            return redirect(url_for("login"))
-        elif email:
-            # handle POST - new password reset access token, url, and email
-            user = User.query.filter_by(email=email).first()
-            if user:
-                # Create a token for the reset password link, save it in the db
-                # delete any existing tokens for this email
-                existing_tokens = Token.query.filter_by(email=email).all()
-                for token in existing_tokens:
-                    db.session.delete(token)
-                    db.session.commit()
-                new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
-                token = Token(email=user.email, token=new_token)
-                db.session.add(token)
-                db.session.commit()
-                
-                # Send the token to user's email
-                title = "Password Reset"
-                body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
-                sent = send_email([email], title, body)
-            if sent:
-                flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
-            else:
-                flash("Unable to send to email with reset instructions. Please contact your system administrator.")
-            return redirect(url_for("reset_password"))
-            
-                    
-        else:
-            flash("Please provide an email to get instructions for resetting your password.")
-            return redirect(url_for("reset_password"))
-    # GET
-    else:
-        token = request.args.get("token")
-        email = request.args.get("email")
-        if not token and not email:
-            return render_template("reset_password.html", resetting=False)
-        else:
-            if not email:
-                flash("Invalid reset link, please check your email for instructions on resetting your password.")
-            
-            # Check token and email before showing password reset form
-            user = User.query.filter_by(email=email).first()
-            
-            if not user or not token:
-                flash("Invalid reset link, please check your email for instructions on resetting your password.")
-            else:
-                one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
-                active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
-                if not active_token:
-                    flash("Reset link is expired. Please provide your email and request a new reset password link.")
-                    return(redirect(url_for("reset_password"))) 
-            return render_template("reset_password.html", resetting=True, token=token, email=email)
 
 ## LISTINGS ROUTES 
 ## Listings - List View
 @application.route('/', methods=["GET", "POST"])
-@application.route('/<show_inactive>', methods=["GET", "POST"])
 @login_required
-def index(show_inactive=None):
+def index():    
     if request.method == "POST":
-        show_inactive = request.form.get("show_inactive")
         query = request.form.get("search")
-        if not query:
-            flash("Please provide a listing address to perform a search.")
-        #listings = Listing.query.filter(Listing.address.ilike(query)).all()
-        listings = Listing.query.filter(func.lower(Listing.address).contains(query.lower())).all()        
-        latest_listing_views = [ ListingViews.query.filter_by(id=listing.id).order_by(desc(ListingViews.date)).first() for listing in listings]
-        dict_views = dict()
-        for views in latest_listing_views:
-            dict_views[views.listing_id] = views
-        if not len(listings):
-            flash(f"No listings found with an address containing '{query}'")
-        return render_template('list.html', listings=listings, show_inactive=show_inactive, latest_listing_views=dict_views)
+        filterState = FilterState.query.filter_by(user=current_user).first()
+        if not filterState: 
+            filterState = FilterState(user_id=current_user.id, user=current_user, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
+        # If this was a POST from a search form submission, there will be a query, so we either update the existing FilterState or create a new one, then redirect to the GET
+        # The GET query can handle the actual searching, we don't need to do it here at all. 
+        if query:
+            filterState.query_string = query if query else filterState.query_string
+        db.session.add(filterState)
+        db.session.commit()
+        return redirect(url_for('index'))
     else:
-        if not show_inactive:
-            show_inactive = request.args.get("show_inactive")
-        show_inactive = True if show_inactive == "True" else False
-        listings = Listing.query.filter(Listing.status!=Status.deleted).all()
+        filterState = FilterState.query.filter_by(user=current_user).first()
+
+        if not filterState: 
+            filterState = FilterState(user_id=current_user.id, user=current_user, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
+
+        # perform query filtering if needed
+        query = filterState.query_string
+        if query:
+            listings = Listing.query.filter(func.lower(Listing.address).contains(query.lower())).union(Listing.query.filter(Listing.mls == query))
+            if not len(listings.all()):
+                flash(f"No listings found with an address containing '{query}'")
+        else: 
+            listings = Listing.query; 
+
+        if filterState.sort_category:
+            if filterState.sort_category == SortCategory.address: 
+                listings = listings.order_by(asc(Listing.address) if filterState.sort_order == SortOptions.asc else desc(Listing.address)).all()
+            elif filterState.sort_category == SortCategory.price: 
+                listings = listings.order_by(asc(Listing.price) if filterState.sort_order == SortOptions.asc else desc(Listing.price)).all()
+            elif filterState.sort_category == SortCategory.views_zillow:
+                if query: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).filter(Listing.id.in_([listing.id for listing in listings.all()])
+                    ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+                else: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+            elif filterState.sort_category == SortCategory.views_redfin: 
+                if query: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).filter(Listing.id.in_([listing.id for listing in listings.all()])
+                    ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+                else: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+            elif filterState.sort_category == SortCategory.views_cb: 
+                if query: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).filter(Listing.id.in_([listing.id for listing in listings.all()])
+                    ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+                else: 
+                    listings = db.session.query(Listing).join(ListingViews
+                    ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).all()
+        else: 
+            if query: 
+                listings = listings.order_by(desc(Listing.price)
+                ).filter(Listing.id.in_([listing.id for listing in listings.all()])
+                ).all()
+            else: 
+                listings = listings.order_by(desc(Listing.price)
+                ).all()
+
+        
+
         # list of the most recent ListingViews object for each id
         latest_listing_views = [ ListingViews.query.filter_by(id=listing.id).order_by(desc(ListingViews.date)).first() for listing in listings]
+
         dict_views = dict()
-        for views in latest_listing_views:
-            dict_views[views.listing_id] = views
-        return render_template('list.html', listings=listings, show_inactive=show_inactive, latest_listing_views=dict_views)
+        if len(latest_listing_views): 
+            for views in latest_listing_views:
+                if views:
+                    dict_views[views.listing_id] = views
+        if not len(dict_views):
+            dict_views = None
+        
+        statuses = dict()
+        for category in Status:
+            statuses.update({category.value: category.name})
+        agents = Agent.query.all()
+
+        return render_template('list.html', listings=listings, agents=agents, filterState=filterState, latest_listing_views=dict_views, statuses=statuses)
+
+@application.route('/toggle_filter_state/<filter_type>/', methods=["POST"])
+@login_required
+def toggle_filter_state(filter_type):
+    state = request.form.get(filter_type)
+    filterState = FilterState.query.filter_by(user=current_user).first()
+    if not filterState:
+        filterState = FilterState(user=current_user, user_id=current_user.id, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
+    if filter_type == "address":
+        if state == "asc":
+            filterState.sort_category = SortCategory.address
+            filterState.sort_order = SortOptions.asc
+        elif state == "desc":
+            filterState.sort_category = SortCategory.address
+            filterState.sort_order = SortOptions.desc
+    elif filter_type == "agent":
+        agents = [int(item) for item in request.form.getlist('check') ]
+        filterState.agents = agents
+    elif filter_type == "price":
+        if state == "asc":
+            filterState.sort_category = SortCategory.price
+            filterState.sort_order = SortOptions.asc
+        else:
+            filterState.sort_category = SortCategory.price
+            filterState.sort_order = SortOptions.desc     
+    elif filter_type == "status":
+        statuses = [int(item) for item in request.form.getlist('check') ]
+        filterState.statuses = statuses
+    elif filter_type == "views_zillow":
+        if state == "asc":
+            filterState.sort_category = SortCategory.views_zillow
+            filterState.sort_order = SortOptions.asc
+        elif state == "desc":
+            filterState.sort_category = SortCategory.views_zillow
+            filterState.sort_order = SortOptions.desc
+    elif filter_type == "views_redfin":
+        if state == "asc":
+            filterState.sort_category = SortCategory.views_redfin
+            filterState.sort_order = SortOptions.asc
+        elif state == "desc":
+            filterState.sort_category = SortCategory.views_redfin
+            filterState.sort_order = SortOptions.desc
+    elif filter_type == "views_cb":
+        if state == "asc":
+            filterState.sort_category = SortCategory.views_cb
+            filterState.sort_order = SortOptions.asc
+        elif state == "desc":
+            filterState.sort_category = SortCategory.views_cb
+            filterState.sort_order = SortOptions.desc
+    elif filter_type == "reset":
+        filterState.sort_category = SortCategory.price
+        filterState.sort_order = SortOptions.desc
+        filterState.agents = [agent.id for agent in Agent.query.all()]
+        filterState.statuses = [Status.active.value]
+        filterState.query_string = None
+
+    db.session.add(filterState)
+    db.session.commit()
+    return redirect(request.referrer)
 
 @application.route('/listings/deleted')
 @login_required
 def deleted_listings():
     listings = Listing.query.filter_by(status=Status.deleted).all()
     return render_template('deleted_listings.html', listings=listings)
-
-@application.route("/toggle_inactive/<type>/", methods=["POST"])
-@login_required
-def toggle_inactive(type=None):
-    if not type:
-        type = request.args.get("type")
-        print(f"toggle_inactive(): type: {type}")
-    show_inactive = request.form.get("show_inactive")
-    print(f"toggle_inactive(): Toggling inactive to {show_inactive}")
-    if type == "listing": 
-        return redirect(url_for('index', show_inactive=show_inactive))
-    elif type == "agent": 
-        return redirect(url_for('agents', show_inactive=show_inactive))
-    else: 
-        print(f"Type {type} not valid.")
-        return redirect(url_for('index'))
 
 ## Listing - Detail View
 @application.route('/listing/')
@@ -684,7 +499,6 @@ def detail_listing(id=None, errors=None):
     statuses = dict()
     for category in Status:
         statuses.update({category.value: category.name})
-    print(statuses)
     listing = Listing.query.filter_by(id=id).first()
     try:
         price = "${:,.2f}".format(listing.price)
@@ -768,7 +582,6 @@ def edit_listing(id=None, prev_data=None):
     statuses = dict()
     for category in Status:
         statuses.update({category.value: category.name})
-    print(statuses)
     if request.args.get("prev_data"):
         prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
     valid = True
@@ -782,14 +595,12 @@ def edit_listing(id=None, prev_data=None):
         agent_id = request.form.get("agent")
         agent = Agent.query.filter_by(id=agent_id).first()
         status = request.form.get("status")
-        print(f"status: {status} is just a number")
         if not status:
             valid = False
             flash("Status is required")
             return redirect(url_for('detail_listing', id=id))
         
         status = Status(int(status)) # this should now be an enum
-        print(f"enum option: {type(status)}")
 
         if not address:
             valid = False
@@ -1199,7 +1010,7 @@ def scrapeAll(id=None):
     # Redirect to the home page (Listings - List View)
     if len(errors):
         flash(errors[0])
-    return redirect(url_for('list_logs'))
+    return redirect(request.referrer)
 
 @application.errorhandler(404)
 def page_not_found(e):
@@ -1245,6 +1056,326 @@ def log_data_collection(collection_type=None, listings=[], status=True, errors=[
     db.session.add(data_collection)
     db.session.commit()
 
+## Invite New User
+@application.route("/invite-user/", methods=["POST"])
+@login_required
+def invite_user():
+    if not current_user.is_admin:
+        flash("You don't have the privileges to perform this task.")
+        return redirect(url_for("settings"))
+    email = request.form.get("email")
+    if not email:
+        flash("Please provide an email for the invitation.")
+        return redirect(url_for("settings"))
+
+    user_exists = User.query.filter_by(email=email).first()
+    if user_exists:
+        flash("A user with this email already exists.")
+        return redirect(url_for("settings"))
+
+    title = "JBG Listings - Create My Account"
+    new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+    
+    # delete any existing tokens for this email
+    existing_tokens = Token.query.filter_by(email=email).all()
+    for token in existing_tokens:
+        db.session.delete(token)
+        db.session.commit()
+    
+    # create a new token and email it
+    token = Token(email=email, token=new_token)
+    db.session.add(token)
+    db.session.commit()
+    body = f"Welcome to the JBG Listings Portal!\n\nPlease follow this link to create your account: {request.base_url}../register?token={new_token}&email={email}"
+    sent = send_email([email], title, body)
+
+    if sent: 
+        flash(f"An invitation was emailed to {email}")
+    else:
+        flash(f"An invitation was NOT emailed to {email} due to email server issues. Please contact your system administrator.")
+    return redirect(url_for("settings"))
+
+## Settings
+@application.route("/settings/")
+def settings():
+    return render_template("settings.html", is_admin=current_user.is_admin)
+
+@application.route("/settings/edit", methods=["GET", "POST"])
+@login_required
+def settings_edit(prev_data=None):
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
+    if request.method == "POST":
+        valid = True
+        name = request.form.get("name")
+        email = request.form.get("email")
+        if not name and not email:
+            flash("No changes detected.")
+            valid = False
+        elif name == current_user.name and email == current_user.email:
+            flash("No changes detected.")
+            valid = False
+
+        # check if email is taken
+        user_exists = User.query.filter_by(email=email).filter(email!=current_user.email).first()
+        if user_exists: 
+            flash("Email already taken.")
+            valid = False
+
+        if valid: 
+            if name and name != current_user.name:
+                current_user.name = name
+            if email and email != current_user.email:
+                current_user.email = email
+            db.session.add(current_user)
+            db.session.commit()
+            flash("Profile updated.")
+            return redirect(url_for("settings"))
+        else: 
+            if prev_data:
+                return render_template('settings.html', data=prev_data, is_admin=current_user.is_admin)
+            else:
+                return render_template('settings.html', data=dict(request.form), is_admin=current_user.is_admin)
+    else:
+        if prev_data:
+            return render_template("settings.html", is_admin=current_user.is_admin, data=prev_data, editing=True)
+        return render_template("settings.html", is_admin=current_user.is_admin, editing=True)
+
+## AUTH ROUTES
+### Login
+@application.route("/login/")
+@application.route("/login/<data>")
+@application.route('/login', methods=["POST"])
+def login(data=None):
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        remember = True if request.form.get("remember") else False
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not check_password_hash(user.password, password):
+            flash("Invalid email and/or password.")
+            return redirect(url_for("login", data=dict(request.form)))
+
+        login_user(user, remember=remember)
+        return redirect(url_for("index", reset=False))
+    # GET
+    else:
+        #if request.args.get("data"):
+        #    data = ast.literal_eval(request.args.get("data").rstrip('/'))    
+        return render_template("login.html")
+
+### Logout 
+@application.route('/logout/')
+@login_required
+def logout():
+    logout_user()
+    return(redirect(url_for("login")))
+
+### Register
+### Register
+@application.route("/register/")
+@application.route('/register/<data>&<token>')
+@application.route('/register/', methods=["POST"])
+def register(data=None):
+    
+    if request.method == "POST":
+        valid = True
+        errors = []
+        ## validate access token
+        token = request.form.get("token")
+        if not token:
+            flash("Invitation required to create an account. Please contact your system administrator.")
+            return redirect(url_for('login'))
+
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        password_confirm = request.form.get('password_confirm')
+
+        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+        active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+        if not active_token:
+            flash("Invalid access token, please contact your system administrator")
+            return redirect(url_for('register', data=dict(request.form)))
+
+        if not password:
+            valid = False
+            flash("Password missing")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif not password_confirm:
+            valid = False
+            #errors.append("Retype password")
+            flash("Retype password")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif password != password_confirm:
+            valid = False
+            #errors.append("Passwords must match")
+            flash("Passwords must match")
+            return redirect(url_for("register", data=dict(request.form)))
+        elif len(password) < 8:
+            flash("Password must be at least 8 characters long.")
+            return redirect(url_for("register", data=dict(request.form)))
+
+        user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+
+        if user: # if a user is found, we want to redirect back to signup page so user can try again
+            flash('Email address already in use')
+            return redirect(url_for('register', data=dict(request.form)))
+
+        # delete the tokens associated with this email, ensure one time use
+        existing_tokens = Token.query.filter_by(email=email).all()
+        for token in existing_tokens:
+            db.session.delete(token)
+            db.session.commit()
+
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'), is_admin=False)
+
+        # add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for("login"))
+    # GET
+    else:
+        token = request.args.get("token")
+        if not token: 
+            flash("Please check your email for a registration link. Contact your system administrator if you don't receive an email. Make sure to check your spam folder.")
+        one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+        active_token = Token.query.filter_by(token=token).filter(Token.created_time > one_hour_ago).first()
+        if not active_token:
+            flash("Your registration link is expired. Please contact your system administrator for a new invitation.")
+            return redirect(url_for("login"))
+        
+        if request.args.get("data"):
+            data = ast.literal_eval(request.args.get("data").rstrip('/'))
+        return render_template('register.html', admin_email=admin_email, data=data, token=token)
+
+def send_email(recipients, title, body):
+    with application.app_context():
+        # within this block, current_app points to app.
+        msg = Message(title, recipients=recipients)
+        msg.body = body
+        # accessing the flask-mail app extension using the app_context (current_app)
+        try:
+            current_app.extensions['mail'].send(msg)
+            return True
+        except SMTPDataError: 
+            print("Daily limits exceeded for primary Gmail SMTP server, switching to backup SMTP server.")
+            current_app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("BACKUP_EMAIL")
+            current_app.config["MAIL_USERNAME"] = os.environ.get("BACKUP_EMAIL")
+            current_app.extensions['mail'] = Mail(current_app)
+            try: 
+                current_app.extensions['mail'].send(msg)
+                return True
+            except SMTPDataError:
+                if current_app.config["MAIL_USERNAME"] == os.environ.get("BACKUP_EMAIL"):
+                    print("MAIL_USERNAME has been set to the backup, but email limits also exceeded on the backup")
+                    return False
+                else:
+                    print("Limits still exceeded, but MAIL_USERNAME has not been set to backup.")
+        return False 
+
+@application.route("/reset-password/", methods=["GET", "POST"])
+@application.route("/reset-password?<email>&<token>", methods=["GET", "POST"])
+@login_required
+def reset_password():
+    if request.method == "POST":
+        token = request.form.get("token")
+        email = request.form.get("email")
+        if token and email:
+            # handle POST - check passwords, handle password reset
+            
+            # check the token and the user (based on the email)
+            user = User.query.filter_by(email=email).first()
+            one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+            active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+            if not user or not active_token:
+                flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!")
+                return(redirect(url_for("login")))
+            
+            password = request.form.get("password")
+            confirm_password = request.form.get("password-confirm")
+            
+            if not password:
+                flash("Password missing")
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+            elif not confirm_password:
+                flash("Retype password")
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+            elif password != confirm_password:
+                flash("Passwords must match")
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+            elif len(password) < 8:
+                flash("Password must be at least 8 characters long.")
+                return render_template("reset_password.html", resetting=True, token=token, email=email)
+
+            # delete all the tokens for this email, ensure one time use
+            existing_tokens = Token.query.filter_by(email=email).all()
+            for token in existing_tokens:
+                db.session.delete(token)
+                db.session.commit()
+
+            user.password = generate_password_hash(password, method='sha256')
+
+            # save the changes in the db 
+            db.session.add(user)
+            db.session.commit()
+            flash("Password successfully reset.")
+            return redirect(url_for("login"))
+        elif email:
+            # handle POST - new password reset access token, url, and email
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Create a token for the reset password link, save it in the db
+                # delete any existing tokens for this email
+                existing_tokens = Token.query.filter_by(email=email).all()
+                for token in existing_tokens:
+                    db.session.delete(token)
+                    db.session.commit()
+                new_token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+                token = Token(email=user.email, token=new_token)
+                db.session.add(token)
+                db.session.commit()
+                
+                # Send the token to user's email
+                title = "Password Reset"
+                body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
+                sent = send_email([email], title, body)
+            if sent:
+                flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
+            else:
+                flash("Unable to send to email with reset instructions. Please contact your system administrator.")
+            return redirect(url_for("reset_password"))
+            
+                    
+        else:
+            flash("Please provide an email to get instructions for resetting your password.")
+            return redirect(url_for("reset_password"))
+    # GET
+    else:
+        token = request.args.get("token")
+        email = request.args.get("email")
+        if not token and not email:
+            return render_template("reset_password.html", resetting=False)
+        else:
+            if not email:
+                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+            
+            # Check token and email before showing password reset form
+            user = User.query.filter_by(email=email).first()
+            
+            if not user or not token:
+                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+            else:
+                one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
+                active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
+                if not active_token:
+                    flash("Reset link is expired. Please provide your email and request a new reset password link.")
+                    return(redirect(url_for("reset_password"))) 
+            return render_template("reset_password.html", resetting=True, token=token, email=email)
 
 # Set up weekly cron job for scraping the listings
 # Only when running in the child reloader process.

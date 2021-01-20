@@ -4,7 +4,10 @@
 {% block content %}
 
 <br>
-<a class="button" href="/agents">Back</a>
+<div class="padded-container">
+    <a class="button" href="/agents">Back</a>
+</div>
+
 <br>
 <br>
 <h2>{% block title %} Agent {% endblock %}</h2>
@@ -21,10 +24,12 @@
 </form>
 
 {% if errors is defined and errors %}
-    {% for error in errors %}
+    <div class="padded-container">
+        {% for error in errors %}
         <span class="error">{{ error }}</span>
         <br>
-    {% endfor %}    
+        {% endfor %}  
+    </div> 
 {% endif %}
 
 <br>

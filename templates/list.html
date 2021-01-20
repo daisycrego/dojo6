@@ -6,7 +6,7 @@
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
-    <div class="error">
+    <div class="padded-container error">
     {% for message in messages %}
     <span class="error">{{ message }}</span>
     {% endfor %}
@@ -17,70 +17,206 @@
 <h2>{% block title %} {% if not show_inactive is defined or not show_inactive %} Active {% else %} Archived {%endif %} Listings {% endblock %}</h3>
 
         <span class="alongside">
+            <span class="refresh-container">
+                
+                <form id="filter_agents_form" method="post" action="/toggle_filter_state/reset/">   
+                    <a href="javascript:{}" onclick="document.getElementById('filter_agents_form').submit();">
+                        <span class="refresh-icon glyphicon glyphicon-refresh"></span>
+                    </a>
+                </form>
+                <span>Clear</span>
+            </span>
+            
+
             <form class="search" method="post" action="/">
                 <input type="hidden" name="show-inactive" value={{show_inactive}}></input>
-                <label class="big" for="search"> Search (by address): </label>&nbsp<input name="search"></input>
+                <label class="big" for="search"> Search: </label>&nbsp<input placeholder="address, mls #" name="search"></input>
                 <button type="submit"> Go </button>
             </form>
 
 
             <a class="button" href="listing/create">Create a Listing</a>
 
-            <form method="post" action="/toggle_inactive/listing/">
-            {% if show_inactive %} 
-                <button name="show_inactive" type="submit" value={{False}}> Show Active Listings </button>
-            {% else %} 
-                <button name="show_inactive" type="submit" value={{True}}> Show Archived Listings </button>
-            {% endif %}
-            </form>
-
-            <a class="button" href="/listings/deleted">Go to Deleted Listings</a>
-
-
             <form method="get" action="/scrape/all/">
                 <button type="submit" onclick="return confirm('Are you sure you want to do that? This will run the web scraper for all of the current listings.');"> Collect All Listing Views </button>
             </form>
+
+            <a class="button" href="/listings/deleted"><i class="glyphicon glyphicon-trash"></i></a>
+
+            
+
+            
             
             
         </span>
         
         {% if listings %}
 
-        {% set ns = namespace(inactive_found=false) %}
-        {% for listing in listings %}
-            {% if not listing.status %}
-                {% set ns.inactive_found = True %}
-            {% endif %}
-        {% endfor %}
-        
-        <div class="table-container">
-            {% if not show_inactive or (show_inactive and ns.inactive_found) %}
+        <div class="table-container">            
             <table>
                 <tr>
-                    <th>Listing Address</th>
-                    <th>MLS</th>
-                    <th>Agent</th>
-                    <th>Listing Price</th>
-                    <th>Status</th>
-                    <th>Latest Zillow Views </th>
-                    <th>Latest Redfin Views</th>
-                    <th>Latest Coldwell Banker Views</th>
                     
+                    <th>
+
+                        <div class="header-and-arrow-icons">
+                            <span>Listing Address</span>
+                            <span class="arrow-icons">
+                                <form id="filter_address_asc" method="post" action="/toggle_filter_state/address/">
+                                    <input type="hidden" value="asc" name="address"/>
+                                    <a {% if filterState.sort_category.name == "address" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_asc').submit();">
+                                        
+                                        <span class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                </form>
+                                <form id="filter_address_desc" method="post" action="/toggle_filter_state/address/">
+                                    <input type="hidden" value="desc" name="address"/>
+                                    <a {% if filterState.sort_category.name == "address" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_desc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-down"></span>
+                                    </a>
+                                </form>
+                            </span>
+                        </div>
+
+                    </th>
+                    <th>MLS</th>
+                    <th>
+                        <span class="header-and-icon">
+                            <p> Agent </p>
+                            <a href="javascript:{}" onclick="var filters = document.getElementById('agent-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
+                        </span>
+                        <span id="agent-filters" style="display: none;" class="agent-filter">
+                            <div>
+                                <form id="filter-agent" method="post" action="/toggle_filter_state/agent">
+                                {% for agent in agents %}
+                                
+                                    <input type="checkbox" name="check" value="{{agent.id}}" id="{{agent.name}}" {% if filterState.agents and agent.id in filterState.agents %} checked {% endif %}>
+                                        <label for="check">{{agent.name}}</label>
+                                   <br>
+                                
+                                {% endfor %}
+                                <button type="submit">Apply Filter</button>
+                                </form>
+                            </div>                       
+                        </span>
+                    </th>
+
+                    <th>
+                        <div class="header-and-arrow-icons">
+                            <span>Listing Price</span>
+                            <span class="arrow-icons">
+                                <form id="filter_price_asc" method="post" action="/toggle_filter_state/price/">
+                                    <input type="hidden" value="asc" name="price"/>
+                                    <a {% if filterState.sort_category.name == "price" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_asc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                </form>
+                                <form id="filter_price_desc" method="post" action="/toggle_filter_state/price/">
+                                    <input type="hidden" value="desc" name="price"/>
+                                    <a {% if (filterState.sort_category.name == "default" or filterState.sort_category.name=="default") or (filterState.sort_category.name == 'price' and filterState.sort_order.name == "desc") %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_desc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-down"></span>
+                                    </a>
+                                </form>
+                            </span>
+                        </div>    
+                    </th>
+                    <th>
+
+                        <span class="header-and-icon">
+                            <p> Status </p>
+                            <a href="javascript:{}" onclick="var filters = document.getElementById('status-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
+                        </span>
+                        <span id="status-filters" style="display: none;" class="status-filter">
+                            <div>
+                                <form id="filter-status" method="post" action="/toggle_filter_state/status">
+                                {% for id, text in statuses.items() %}
+                                
+                                    <input type="checkbox" name="check" value="{{id}}" id="{{text}}" {% if filterState.statuses and id in filterState.statuses %} checked {% endif %}>
+                                        <label for="check">{{sentence_case(text)}}</label>
+                                   <br>
+                                
+                                {% endfor %}
+                                <button type="submit">Apply Filter</button>
+                                </form>
+                            </div>                       
+                        </span>
+
+                    </th>
+                    <th>
+                        <div class="header-and-arrow-icons">
+                            <span>Latest Zillow Views</span>
+                            <span class="arrow-icons">
+                                <form id="filter_views_zillow_asc" method="post" action="/toggle_filter_state/views_zillow/">
+                                    <input type="hidden" value="asc" name="views_zillow"/>
+                                    <a {% if filterState.sort_category.name == "views_zillow" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_asc').submit();">
+                                        
+                                        <span class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                </form>
+                                <form id="filter_views_zillow_desc" method="post" action="/toggle_filter_state/views_zillow/">
+                                    <input type="hidden" value="desc" name="views_zillow"/>
+                                    <a {% if filterState.sort_category.name == "views_zillow" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_desc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-down"></span>
+                                    </a>
+                                </form>
+                            </span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="header-and-arrow-icons">
+                            <span>Latest Redfin Views</span>
+                            <span class="arrow-icons">
+                                <form id="filter_views_redfin_asc" method="post" action="/toggle_filter_state/views_redfin/">
+                                    <input type="hidden" value="asc" name="views_redfin"/>
+                                    <a {% if filterState.sort_category.name == "views_redfin" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_asc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                </form>
+                                <form id="filter_views_redfin_desc" method="post" action="/toggle_filter_state/views_redfin/">
+                                    <input type="hidden" value="desc" name="views_redfin"/>
+                                    <a {% if filterState.sort_category.name == "views_redfin" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_desc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-down"></span>
+                                    </a>
+                                </form>
+                            </span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="header-and-arrow-icons">
+                            <span>Latest Coldwell Banker Views</span>
+                            <span class="arrow-icons">
+                                <form id="filter_views_cb_asc" method="post" action="/toggle_filter_state/views_cb/">
+                                    <input type="hidden" value="asc" name="views_cb"/>
+                                    <a {% if filterState.sort_category.name == "views_cb" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_asc').submit();">
+                                        
+                                        <span class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                </form>
+                                <form id="filter_views_cb_desc" method="post" action="/toggle_filter_state/views_cb/">
+                                    <input type="hidden" value="desc" name="views_cb"/>
+                                    <a {% if filterState.sort_category.name == "views_cb" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_desc').submit();">
+                                        <span class="glyphicon glyphicon-chevron-down"></span>
+                                    </a>
+                                </form>
+                            </span>
+                        </div>
+                    </th>
                 </tr>
                 {% for listing in listings %}
                     
                     {% if (not show_inactive and listing.status) or (show_inactive and not listing.status) %}
-
+                    {% if filterState.agents and listing.agent.id in filterState.agents %}
+                    {% if filterState.statuses and listing.status.value in filterState.statuses %}
                     <tr>
+                        
                         <td class="nowrap"><a href="/listing/{{listing.id}}">{{listing.address}}</a></td>
                         <td class="padding"><p>{{listing.mls}}</p></td>
                         <td class="nowrap"><a href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
                         <td class="padding"><p>{% if listing.status %} Active {% else %} Archived {% endif%}</p></td>
                         <td>
-                            {% if latest_listing_views[listing.id] %} 
+                            {% if listing %} 
                                 <span class="above-below">
-                                    <p class="big-font">{{ latest_listing_views[listing.id].views_zillow }} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_zillow }}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
                                             <span class="glyphicon glyphicon-share"></span>
@@ -99,9 +235,9 @@
                             {% endif %}
                             </td>
                         <td>
-                            {% if latest_listing_views[listing.id] %} 
+                            {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{{ latest_listing_views[listing.id].views_redfin }} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
                                             <span class="glyphicon glyphicon-share"></span>
@@ -120,9 +256,9 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if latest_listing_views[listing.id] %} 
+                            {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{{ latest_listing_views[listing.id].views_cb }} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_cb }}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
                                             <span class="glyphicon glyphicon-share"></span>
@@ -141,15 +277,13 @@
                             {% endif %}
                         </td>
                     </tr>
-
+                    {% endif %}
+                    {% endif %}
                     {% endif %}
                 
                 {% endfor %}
             <table>
-                {% else %}
-                <h2>No archived listings.</h2>
-            {% endif %}
-
+                
         </div>
         
             
