@@ -14,20 +14,11 @@
 {% endif %}
 {% endwith %}
 
-<h2>{% block title %} {% if not show_inactive is defined or not show_inactive %} Active {% else %} Archived {%endif %} Listings {% endblock %}</h3>
+<h2>{% block title %} Listings {% endblock %}</h3>
 
+    <div class="listings-page">
         <span class="alongside">
-            <span class="refresh-container">
-                
-                <form id="filter_agents_form" method="post" action="/toggle_filter_state/reset/">   
-                    <a href="javascript:{}" onclick="document.getElementById('filter_agents_form').submit();">
-                        <span class="refresh-icon glyphicon glyphicon-refresh"></span>
-                    </a>
-                </form>
-                <span>Clear</span>
-            </span>
             
-
             <form class="search" method="post" action="/">
                 <input type="hidden" name="show-inactive" value={{show_inactive}}></input>
                 <label class="big" for="search"> Search: </label>&nbsp<input placeholder="address, mls #" name="search"></input>
@@ -45,7 +36,15 @@
 
             
 
-            
+            <span class="refresh-container">
+                
+                <form id="filter_agents_form" method="post" action="/toggle_filter_state/reset/">   
+                    <a href="javascript:{}" onclick="document.getElementById('filter_agents_form').submit();">
+                        <span class="refresh-icon glyphicon glyphicon-refresh"></span>
+                    </a>
+                </form>
+                <span>Clear</span>
+            </span>
             
             
         </span>
@@ -283,19 +282,13 @@
                 
                 {% endfor %}
             <table>
-                
+                     
         </div>
-        
-            
-            
-        
-            {% else %}
-            <H2>No listings.</H2>
+        {% else %}
+        <H2>No listings.</H2>
 
         {% endif %}
-        
-
-        
+    </div>
 
 
 {% endblock %}

@@ -220,6 +220,7 @@ with class alongside one another (left to right)*/
     flex-direction: row;
     align-items: center;
     padding: 5px;
+    justify-content: center;
 }
 
 .alongside > a,button,table
@@ -334,7 +335,7 @@ button:hover, a.button:hover  {
 }
 
 .refresh-icon {
-    font-size: 3em;
+    font-size: 2em;
     color: #d6b0b1;
 }
 
@@ -346,11 +347,16 @@ button:hover, a.button:hover  {
     text-align: center;
     margin-left: 1em;
     margin-right: 1em;
-    margin-bottom: 1em;
+    margin-bottom: .1em;
 }
 
 .table-container {
+    display: grid;
+    justify-content: center;
+    align-items: center;
     overflow-x: auto;
+    margin-right: 0px;
+    margin-left: 0px;
 }
 
 table, td, th {
