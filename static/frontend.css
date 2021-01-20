@@ -16,6 +16,10 @@ footer {
     text-align: center;
 }
 
+.stats-icon {
+    font-size: 2em;
+}
+
 .big-font {
     font-size:2em;
 }
@@ -277,7 +281,7 @@ with class alongside one another (left to right)*/
 }
 
 .arrow-icons > form > a.selected {
-    color: #00222D;
+    color: #00181f;
 }
 
 .detail-container {
@@ -331,7 +335,11 @@ a.button {
 
 /* For Listing detail text */
 span.listing_detail > span > p > a {
-    color: #d6b0b1;
+    color: #00181f;
+}
+
+span.listing_detail {
+    background-color:  #d6b0b1;
 }
 
 button:hover, a.button:hover  {
@@ -436,7 +444,7 @@ tbody tr:nth-child(odd) > td > a {
 }
 
 tbody tr:nth-child(odd) > td > span.above-below > p.shift-end > a {
-    color: #00222D;
+    color:#00181f;
 }
 
 tbody tr:nth-child(even) {
@@ -449,10 +457,18 @@ tbody tr:nth-child(even) > td > a {
 }
 
 tbody tr:nth-child(even) > td > span.above-below > p.shift-end > a {
-    color: #393D4A;
+    /*color: #393D4A;*/
+    color: #434756;
 }
 
 tbody tr:first-child {
     background-color: #393D4A;
+    color: #BEA386;
+}
+
+button.listing-icon, a.listing-icon {
+    margin-top: 1em;
+    border: none;
+    background-color: inherit;
     color: #BEA386;
 }

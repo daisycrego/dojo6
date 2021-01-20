@@ -6,9 +6,8 @@
 {% with messages = get_flashed_messages() %}
 {% if messages %}
     <div class="padded-container error">
-    {% for message in messages %}
-    <span class="error">{{ message }}</span>
-    {% endfor %}
+    
+    <span class="error">{{ messages[0] }}</span>
     </div>
 {% endif %}
 {% endwith %}
@@ -101,14 +100,10 @@
             <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
         </form>
         {% endif %}
-
-
-
-
 </div>
 
 
-<span class="detail-container detail-items listing_detail padded-container">
+<div class="detail-container detail-items listing_detail padded-container">
     <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>
     <span><label for="mls">MLS ID:</label>&nbsp<p name="mls">{{ listing.mls }}</p></span>
     <span><label for="price">Listing Price:</label>&nbsp<p>{{ price }}</p></span>
@@ -117,7 +112,7 @@
     <span><label for="url_redfin">Redfin URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_redfin}}">{{listing.url_redfin}}</a></p></span>
     <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_cb}}">{{listing.url_cb}}</a></p></span>
     <span><label for="status">Status:</label>&nbsp<p>{{sentence_case(listing.status.name)}}</p></span>
-</span>
+</div>
 
 
 <br>
