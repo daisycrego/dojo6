@@ -671,6 +671,20 @@ def edit_listing(id=None, prev_data=None):
             return render_template('detail_listing.html', listing=listing, agents=agents, data=prev_data, editing=True, statuses=statuses)
         return render_template('detail_listing.html', listing=listing, agents=agents, editing=True, statuses=statuses)
 
+@application.route("/toggle_inactive/<type>/", methods=["POST"])
+@login_required
+def toggle_inactive(type=None):
+    if not type:
+        type = request.args.get("type")
+        print(f"toggle_inactive(): type: {type}")
+    show_inactive = request.form.get("show_inactive")
+    print(f"toggle_inactive(): Toggling inactive to {show_inactive}")
+    if type == "agent": 
+        return redirect(url_for('agents', show_inactive=show_inactive))
+    else: 
+        print(f"Type {type} not valid.")
+        return redirect(url_for('index'))
+
 ## AGENT ROUTES
 ## Agents - List  
 @application.route('/agents/')
