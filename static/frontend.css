@@ -34,7 +34,7 @@ h2, h3 {
 
 form.search {
     display: flex;
-    margin-left: -1.4em;
+    margin-left: 1em;
     align-items: center;
     margin-top: 0.05em;
     margin-bottom: 0.5em;
@@ -238,14 +238,22 @@ with class alongside one another (left to right)*/
     justify-content: center;
 }
 
+
 .alongside > a,button,table
 .alongside > form > button,a {
     margin: 5px;
 }
 
+.shift-up {
+    display: flex;
+    border: none;
+    margin-top: .7em;
+    text-align: center;
+}
+
 .header-and-icon {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     padding: 5px;
     color: #d6b0b1;
@@ -462,7 +470,7 @@ tbody tr:nth-child(even) > td > span.above-below > p.shift-end > a {
 }
 
 tbody tr:first-child {
-    background-color: #393D4A;
+    background-color: #2D2F3A;
     color: #BEA386;
 }
 
@@ -471,4 +479,35 @@ button.listing-icon, a.listing-icon {
     border: none;
     background-color: inherit;
     color: #BEA386;
+}
+
+.hide-in-header {
+    color: #2c2f3a;
+}
+
+.action-icons > a {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    font-size: 1em;
+}
+
+.action-icons > form.archive-icon > button {
+    margin-top: 0em;
+    margin-bottom: 0em;
+    padding-top:0em;
+    font-size: 1em;
+}
+
+.action-icons > form.trash-icon > button {
+    margin-top: 0em;
+    padding-top:0em;
+    margin-bottom:0em;
+    font-size: 1em;
+    padding-bottom:0em;
+}
+
+.action-icons > form.refresh-icon > button {
+    margin-top: 0em;
+    padding-top:0em;
+    font-size: .5em;
 }

@@ -83,7 +83,14 @@
                         </div>
 
                     </th>
-                    <th>MLS</th>
+                    <th>
+                        <span class="header-and-icon">
+                            <span>MLS</span>
+                            <p class="hide-in-header">
+                                <i class="glyphicon glyphicon-asterisk"></i>
+                            </p>
+                        </span>
+                    </th>
                     <th>
                         <span class="header-and-icon">
                             <p> Agent </p>
@@ -124,28 +131,7 @@
                             </span>
                         </div>    
                     </th>
-                    <th>
-
-                        <span class="header-and-icon">
-                            <p> Status </p>
-                            <a href="javascript:{}" onclick="var filters = document.getElementById('status-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
-                        </span>
-                        <span id="status-filters" style="display: none;" class="status-filter">
-                            <div>
-                                <form id="filter-status" method="post" action="/toggle_filter_state/status">
-                                {% for id, text in statuses.items() %}
-                                
-                                    <input type="checkbox" name="check" value="{{id}}" id="{{text}}" {% if filterState.statuses and id in filterState.statuses %} checked {% endif %}>
-                                        <label for="check">{{sentence_case(text)}}</label>
-                                   <br>
-                                
-                                {% endfor %}
-                                <button type="submit">Apply Filter</button>
-                                </form>
-                            </div>                       
-                        </span>
-
-                    </th>
+                    
                     <th>
                         <div class="header-and-arrow-icons">
                             <span>Latest Zillow Views</span>
@@ -205,11 +191,39 @@
                             </span>
                         </div>
                     </th>
-                    <th>Actions</th>
+                    <th>
+
+                        <span class="header-and-icon">
+                            <p> Status </p>
+                            <a href="javascript:{}" onclick="var filters = document.getElementById('status-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
+                        </span>
+                        <span id="status-filters" style="display: none;" class="status-filter">
+                            <div>
+                                <form id="filter-status" method="post" action="/toggle_filter_state/status">
+                                {% for id, text in statuses.items() %}
+                                
+                                    <input type="checkbox" name="check" value="{{id}}" id="{{text}}" {% if filterState.statuses and id in filterState.statuses %} checked {% endif %}>
+                                        <label for="check">{{sentence_case(text)}}</label>
+                                   <br>
+                                
+                                {% endfor %}
+                                <button type="submit">Apply Filter</button>
+                                </form>
+                            </div>                       
+                        </span>
+
+                    </th>
+                    <th>
+                        <span class="header-and-icon">
+                        <span>Actions</span>
+                            <p class="hide-in-header">
+                                <i class="glyphicon glyphicon-asterisk"></i>
+                            </p>
+                        </span>
+                    </th>
                 </tr>
                 {% for listing in listings %}
                     
-                    {% if (not show_inactive and listing.status) or (show_inactive and not listing.status) %}
                     {% if filterState.agents and listing.agent.id in filterState.agents %}
                     {% if filterState.statuses and listing.status.value in filterState.statuses %}
                     <tr>
@@ -217,7 +231,7 @@
                         <td class="padding"><p>{{listing.mls}}</p></td>
                         <td class="nowrap"><a title="Go to Agent Details" href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
-                        <td class="padding"><p>{% if listing.status.name == "deleted" %} Deleted {% elif listing.status.name == "archived" %} Archived {% else %} Active {% endif %}</p></td>
+                        
                         <td>
                             {% if listing %} 
                                 <span class="above-below">
@@ -281,30 +295,27 @@
                                 </span>
                             {% endif %}
                         </td>
-                        <td>
-                            <a class="listing-icon glyphicon glyphicon-stats" href="/listing/{{listing.id}}" title="Go to Listing Details and Property View Graphs"> </a>
-                            
-                            {% if listing.status.name == "active" %}
-                            <form method="get" action="/listing/{{ listing.id }}/archive">
-                                <button class="listing-icon" title="Archive Listing" type="submit" value="Archive Listing" onclick="return confirm('Archive this listing?');"> <span class="glyphicon glyphicon-folder-open"></span> </button>
-                            </form>
-                            {% endif %}
-                            {% if listing.status.name == "active" or listing.status.name == "archived" %}
-                            <form method="get" action="/listing/{{ listing.id }}/delete">
-                                <button class="listing-icon" title="Delete Listing" type="submit" value="Delete Listing" onclick="return confirm('Delete this listing?');"> <span class="glyphicon glyphicon-trash"></span> </button>
-                            </form>
-                            {% endif %}
-                            {% if listing.status.name == "deleted" or listing.status.name == "archived" %}
-                            <form method="get" action="/listing/{{ listing.id }}/recover">
-                                <button class="listing-icon" title="Reactivate Listing" type="submit" value="Recover Listing" onclick="return confirm('Reactive listing?');"> <span class="glyphicon glyphicon-refresh"></span> </button>
-                            </form>
-                            {% endif %}
+                        <td class="padding"><p>{% if listing.status.name == "deleted" %} Deleted {% elif listing.status.name == "archived" %} Archived {% else %} Active {% endif %}</p></td>
+                        <td class="action-icons">
+                                <a class="listing-icon glyphicon glyphicon-stats" href="/listing/{{listing.id}}" title="Go to Listing Details and Property View Graphs"> </a>
                                 
-        
-
+                                {% if listing.status.name == "active" %}
+                                <form class="archive-icon" method="get" action="/listing/{{ listing.id }}/archive">
+                                    <button class="listing-icon" title="Archive Listing" type="submit" value="Archive Listing" onclick="return confirm('Archive this listing?');"> <span class="glyphicon glyphicon-folder-open"></span> </button>
+                                </form>
+                                {% endif %}
+                                {% if listing.status.name == "active" or listing.status.name == "archived" %}
+                                <form class="trash-icon" method="get" action="/listing/{{ listing.id }}/delete">
+                                    <button class="listing-icon" title="Delete Listing" type="submit" value="Delete Listing" onclick="return confirm('Delete this listing?');"> <span class="glyphicon glyphicon-trash"></span> </button>
+                                </form>
+                                {% endif %}
+                                {% if listing.status.name == "deleted" or listing.status.name == "archived" %}
+                                <form class="refresh-icon" method="get" action="/listing/{{ listing.id }}/recover">
+                                    <button class="listing-icon" title="Reactivate Listing" type="submit" value="Recover Listing" onclick="return confirm('Reactive listing?');"> <span class="glyphicon glyphicon-refresh"></span> </button>
+                                </form>
+                                {% endif %}
                         </td>
                     </tr>
-                    {% endif %}
                     {% endif %}
                     {% endif %}
                 
