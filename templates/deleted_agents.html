@@ -37,10 +37,13 @@
                 </tr>
                 {% for agent in agents %}
                     
-                    <tr>
-                        <td><a href="/agent/{{agent.id}}/recover">Yes!</a></td>
-                        <td>{{agent.name}}</td>
-                        <td><p>{{ sentence_case(agent.status.name) }} </p></td>
+                    <tr class="agent-row">
+                        <td>
+                            <span class="recover-agent-icon">
+                                Recover agent<a class="glyphicon glyphicon-refresh" href="/agent/{{agent.id}}/recover"></a>
+                            </span></td>
+                        <td><span>{{agent.name}}</span></td>
+                        <td><span>{{ sentence_case(agent.status.name) }} </span></td>
                     </tr>
 
                     

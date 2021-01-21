@@ -35,10 +35,13 @@ h2, h3 {
 form.search {
     display: flex;
     margin-left: 1em;
-    align-items: center;
+    align-items: flex-start;
     margin-top: 0.05em;
     margin-bottom: 0.5em;
     align-self: flex-end;
+}
+form.search > button {
+    padding-top: 0.2em;
 }
 
 .search-button {
@@ -126,6 +129,19 @@ li.nav a.nav:hover {
 .listing-form > input {
     text-align: left; 
 }
+
+.dark-on-light {
+    background-color: #d6b0b1;
+    color: #00181f;
+}
+
+.light-on-dark {
+    color: #d6b0b1;
+    background-color: #00181f;
+}
+
+
+
 
 /* Display a label next to the value for each item in the Listing Detail View */
 .detail-items > span {
@@ -391,6 +407,13 @@ button:hover, a.button:hover  {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
+    align-self: center;
+}
+
+span.search-container > form {
+    margin-bottom: -.5em;
+    padding-bottom: 0em;
 }
 
 .table-container {
@@ -412,6 +435,7 @@ button:hover, a.button:hover  {
     text-align: center;
     font-size: 1em;
     border-radius: 25px;
+    margin-top: 1em;
 }
 
 .reset_query_container > span {
@@ -424,6 +448,12 @@ table, td, th {
     text-align: center;
     margin-left:0.5em;
     margin-right:0.5em;
+    
+}
+
+tr.agent-row > td > * {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 
 th {
@@ -510,4 +540,29 @@ button.listing-icon, a.listing-icon {
     margin-top: 0em;
     padding-top:0em;
     font-size: .5em;
+}
+
+.button-reduce {
+    background-color: #345d66;
+    color: #d6b0b1;
+    padding: 1em 1.5em;
+    text-decoration: none;
+    border: 2px solid #345d66;
+    cursor: pointer;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.main-container {
+    margin: 1em;
+}
+
+.agent-table {
+    margin-right: 50em;
+    margin-left: 50em;
+    align-self: center;
+}
+
+.recover-agent-icon > a {
+    color: #bea386;
 }
