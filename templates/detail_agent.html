@@ -30,7 +30,7 @@
         <a class="button" href="/agent/{{ agent.id }}">Cancel Edit</a>
     </div>
     <br>
-    <form class="detail-container listing-form detail-items padded-container" method="post" action="/agent/{{ agent.id }}/edit">
+    <form class="light-on-dark listing-form detail-items padded-container" method="post" action="/agent/{{ agent.id }}/edit">
         <input type="hidden" name="id" value="{{ agent.id }}"/>
     <span><label for="name">Name:</label>&nbsp<input name="name" type="text" {% if errors %} value="{{ data.name }}" {% else %} value="{{ agent.name }}" {% endif %}/> </span>
     <button type="submit">Submit</button>
@@ -57,7 +57,7 @@
     </div>
     {% endif %}
         <br>
-    <div class="detail-items detail-container padded-container">
+    <div class="detail-items light-on-dark padded-container">
         <span><label for="name">Name: </label>&nbsp<p name="name">{{ agent.name }}</p></span>
         <span><label for="name">Status: </label>&nbsp<p name="name">{{sentence_case(agent.status.name)}}</p></span>
     </div>

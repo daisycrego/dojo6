@@ -64,8 +64,8 @@ li.nav {
 }
 
 input, select {
-    color: #d6b0b1;
-    background-color: #393D4A;
+    color: #dabd85;/* straw */
+    background-color: #393d4a;
     font-size: 1.5em;
 }
 
@@ -129,18 +129,6 @@ li.nav a.nav:hover {
 .listing-form > input {
     text-align: left; 
 }
-
-.dark-on-light {
-    background-color: #d6b0b1;
-    color: #00181f;
-}
-
-.light-on-dark {
-    color: #d6b0b1;
-    background-color: #00181f;
-}
-
-
 
 
 /* Display a label next to the value for each item in the Listing Detail View */
@@ -254,10 +242,21 @@ with class alongside one another (left to right)*/
     justify-content: center;
 }
 
+.alongside-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
 
 .alongside > a,button,table
 .alongside > form > button,a {
     margin: 5px;
+}
+
+.shift-button-down {
+    margin-top: 1.5em;
 }
 
 .shift-up {
@@ -276,7 +275,7 @@ with class alongside one another (left to right)*/
 }
 
 .header-and-icon > * {
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
     margin: 0.25em;
 }
 
@@ -301,15 +300,11 @@ with class alongside one another (left to right)*/
 }
 
 .arrow-icons > form > a {
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 .arrow-icons > form > a.selected {
     color: #00181f;
-}
-
-.detail-container {
-    background-color: #393d4a;
 }
 
 /* Place any items under an element with class going from top to bottom*/
@@ -331,11 +326,11 @@ with class alongside one another (left to right)*/
 }
 
 button {
-    background-color: /*#6dda89*/#345d66;
+    background-color: /*#345d66*/#00222d;
     color: /*#BEA386*/#d6b0b1;
     padding: 1em 1.5em;
     text-decoration: none;
-    border: 2px solid #345d66;
+    border: 2px solid #4e4f5f;
     cursor: pointer;
     font-size: 1.2em;
     text-align: center;
@@ -344,27 +339,17 @@ button {
 
 /* Style a link as a button */
 a.button {
-    background-color: #345d66;
+    background-color: /*#345d66*/#00222d;
     color: #d6b0b1;
     padding: 1em 1.5em;
     text-decoration: none;
-    border: 2px solid #345d66;
+    border: 2px solid#4e4f5f;
     cursor: pointer;
     font-size: 1.2em;
     text-align: center;
     margin-bottom:2em;
 }
 
-
-
-/* For Listing detail text */
-span.listing_detail > span > p > a {
-    color: #00181f;
-}
-
-span.listing_detail {
-    background-color:  #d6b0b1;
-}
 
 button:hover, a.button:hover  {
     background-color: #d6b0b1;
@@ -474,11 +459,11 @@ th {
 
 tbody tr:nth-child(odd) {
     background-color: #393D4A;
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 tbody tr:nth-child(odd) > td > a {
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 tbody tr:nth-child(odd) > td > span.above-below > p.shift-end > a {
@@ -487,11 +472,11 @@ tbody tr:nth-child(odd) > td > span.above-below > p.shift-end > a {
 
 tbody tr:nth-child(even) {
     background-color: #00222D;
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 tbody tr:nth-child(even) > td > a {
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 tbody tr:nth-child(even) > td > span.above-below > p.shift-end > a {
@@ -501,14 +486,14 @@ tbody tr:nth-child(even) > td > span.above-below > p.shift-end > a {
 
 tbody tr:first-child {
     background-color: #2D2F3A;
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 button.listing-icon, a.listing-icon {
     margin-top: 1em;
     border: none;
     background-color: inherit;
-    color: #BEA386;
+    color: /*#BEA386*/#dabd85;/* straw */;
 }
 
 .hide-in-header {
@@ -543,15 +528,28 @@ button.listing-icon, a.listing-icon {
 }
 
 .button-reduce {
-    background-color: #345d66;
+    background-color: #00222d;
     color: #d6b0b1;
     padding: 1em 1.5em;
     text-decoration: none;
-    border: 2px solid #345d66;
+    border: 2px solid #4e4f5f;
     cursor: pointer;
     font-size: 1.2em;
     text-align: center;
 }
+
+.edit-listing-button {
+    background-color: /*#6dda89*/#00222d;
+    color: /*#BEA386*/#d6b0b1;
+    padding: 1em 1.5em;
+    text-decoration: none;
+    border: 2px solid #4e4f5f;
+    cursor: pointer;
+    font-size: 1.2em;
+    text-align: center;
+
+}
+
 
 .main-container {
     margin: 1em;
@@ -564,5 +562,25 @@ button.listing-icon, a.listing-icon {
 }
 
 .recover-agent-icon > a {
-    color: #bea386;
+    color: /*#BEA386*/#dabd85;/* straw */;
+}
+
+.dark-on-light {
+    background-color: #d6b0b1;
+    color: #00181f;
+}
+
+.light-on-dark {
+    color: #dabd85;
+    background-color: #00222d
+}
+
+.light-on-dark {
+    color: #dabd85;
+    background-color: #00222d
+}
+
+.light-on-dark > span > a {
+    color: #dabd85;
+    background-color: #00222d
 }

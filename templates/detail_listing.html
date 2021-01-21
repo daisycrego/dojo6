@@ -11,80 +11,81 @@
     </div>
 {% endif %}
 {% endwith %}
+<div class="main-container">
 
-<br>
-<div class="padded-container">
-    <a class="button" href="/">Back to All Listings</a>
-</div>
-
-<br><br>
-
-{% if listing is defined and listing %}
-
-<h2>{% block title %} Listing {{ listing.id }} {% endblock %}</h2>
-<br>
-
-{% if plot %}
-    <img src="/matplot-as-image-{{listing.id}}.png"
-        alt="Property views"
-        height="500"
-        width="700"
-    >
-{% endif %}
-
-
-
-<div class="padded-container">
-    {% if editing %}
-
-    <div class="">
-        <a class="button" href="/listing/{{ listing.id }}">Cancel Edit</a>
+    <br>
+    <div class="padded-container">
+        <a class="button" href="/">Back to All Listings</a>
     </div>
+    
+    <br><br>
+    
+    {% if listing is defined and listing %}
+    
+    <h2>{% block title %} Listing {{ listing.id }} {% endblock %}</h2>
     <br>
     
-    <form class="detail-container listing-form detail-items padded-container" method="post" action="/listing/{{ listing.id }}/edit">
-        <input type="hidden" name="id" value="{{ listing.id }}"/>
-       <span><label for="address">Address:</label>&nbsp<input name="address" type="text" {% if data is defined and data %} value={{ data.address }} {% else %} value="{{ listing.address }}" {% endif %}/> </span>
-       <span><label for="mls">MLS ID:</label>&nbsp<input name="mls" type="text" {% if data is defined and data %} value={{ data.mls }} {% else %} value="{{ listing.mls }}"{% endif %}/></span> 
-       <span><label for="price">Listing Price:</label>&nbsp<span class="alongside">$<input name="price" type="number" min="0" {% if data is defined and data %} value={{ data.price }} {% else %} value="{{ listing.price }}"{% endif %}/></span></span>
-       <span>
-        <label for="agent">Agent:</label>
-            <select name="agent">
-                {% for agent in agents %}
-                    {% if data is defined and data %}
-                    <option value={{agent.id}} {% if (agent.id|string == data.agent|string) %}selected="selected"{% endif %}>{{agent.name}}</option>
-                    {% else %}
-                    <option value={{agent.id}} {% if agent.id == listing.agent_id %} selected="selected" {% endif %}>{{agent.name}}</option>
-                    {% endif %}
-                 {% endfor %}
-            </select> 
-        </span>
-        <span>
-            <label for="status">Status:</label>
-            <select name="status">
-                {% for id, text in statuses.items() %}
+    {% if plot %}
+        <img src="/matplot-as-image-{{listing.id}}.png"
+            alt="Property views"
+            height="500"
+            width="700"
+        >
+    {% endif %}
     
-                <option value="{{id}}" {% if listing.status.value == id %} selected="selected"{% endif %}>{{ sentence_case(text) }}</option>
     
-                {% endfor %}
     
-            </select> 
-        </span>     
+    <div class="padded-container">
+        {% if editing %}
     
-       <span><label for="url_zillow">Zillow URL:</label>&nbsp<input name="url_zillow" type="text" {% if data is defined and data %} value="{{ data.url_zillow }}" {% else %}value="{{ listing.url_zillow }}"{% endif %}/></span>
-       <span><label for="url_redfin">Redfin URL:</label>&nbsp<input name="url_redfin" type="text" {% if data is defined and data %} value="{{ data.url_redfin }}" {% else %}value="{{ listing.url_redfin }}"{% endif %}/></span>
-       <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<input name="url_cb" type="text" {% if data is defined and data %} value="{{ data.url_cb }}" {% else %}value="{{ listing.url_cb }}"{% endif %}/></span>
-       <button type="submit">Submit</button>
-    </form>
-
-</div>
-
-{% else %}
-<div class="padded-container alongside">
-    <a class="button" href="{{ listing.id }}/edit">Edit Listing</a>
-    <form method="get" action="/scrape/{{ listing.id }}/">
-        <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
-    </form>
+        <div class="">
+            <a class="button" href="/listing/{{ listing.id }}">Cancel Edit</a>
+        </div>
+        <br>
+        
+        <form class="light-on-dark listing-form detail-items padded-container" method="post" action="/listing/{{ listing.id }}/edit">
+            <input type="hidden" name="id" value="{{ listing.id }}"/>
+           <span><label for="address">Address:</label>&nbsp<input name="address" type="text" {% if data is defined and data %} value={{ data.address }} {% else %} value="{{ listing.address }}" {% endif %}/> </span>
+           <span><label for="mls">MLS ID:</label>&nbsp<input name="mls" type="text" {% if data is defined and data %} value={{ data.mls }} {% else %} value="{{ listing.mls }}"{% endif %}/></span> 
+           <span><label for="price">Listing Price:</label>&nbsp<span class="alongside">$<input name="price" type="number" min="0" {% if data is defined and data %} value={{ data.price }} {% else %} value="{{ listing.price }}"{% endif %}/></span></span>
+           <span>
+            <label for="agent">Agent:</label>
+                <select name="agent">
+                    {% for agent in agents %}
+                        {% if data is defined and data %}
+                        <option value={{agent.id}} {% if (agent.id|string == data.agent|string) %}selected="selected"{% endif %}>{{agent.name}}</option>
+                        {% else %}
+                        <option value={{agent.id}} {% if agent.id == listing.agent_id %} selected="selected" {% endif %}>{{agent.name}}</option>
+                        {% endif %}
+                     {% endfor %}
+                </select> 
+            </span>
+            <span>
+                <label for="status">Status:</label>
+                <select name="status">
+                    {% for id, text in statuses.items() %}
+        
+                    <option value="{{id}}" {% if listing.status.value == id %} selected="selected"{% endif %}>{{ sentence_case(text) }}</option>
+        
+                    {% endfor %}
+        
+                </select> 
+            </span>     
+        
+           <span><label for="url_zillow">Zillow URL:</label>&nbsp<input name="url_zillow" type="text" {% if data is defined and data %} value="{{ data.url_zillow }}" {% else %}value="{{ listing.url_zillow }}"{% endif %}/></span>
+           <span><label for="url_redfin">Redfin URL:</label>&nbsp<input name="url_redfin" type="text" {% if data is defined and data %} value="{{ data.url_redfin }}" {% else %}value="{{ listing.url_redfin }}"{% endif %}/></span>
+           <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<input name="url_cb" type="text" {% if data is defined and data %} value="{{ data.url_cb }}" {% else %}value="{{ listing.url_cb }}"{% endif %}/></span>
+           <button type="submit">Submit</button>
+        </form>
+    
+    </div>
+    
+    {% else %}
+    <div class="alongside-buttons">
+        <span class="shift-button-down"><a class="edit-listing-button" href="{{ listing.id }}/edit">Edit Listing</a></span>
+        <form method="get" action="/scrape/{{ listing.id }}/">
+            <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
+        </form>
         {% if listing.status.name == "deleted" %}
         <form method="get" action="/listing/{{ listing.id }}/recover">
             <button type="submit" value="Recover Deleted Listing" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Listing </button>
@@ -100,30 +101,33 @@
             <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
         </form>
         {% endif %}
+    </div>
+    
+    
+    <div class="light-on-dark detail-items padded-container">
+        <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>
+        <span><label for="mls">MLS ID:</label>&nbsp<p name="mls">{{ listing.mls }}</p></span>
+        <span><label for="price">Listing Price:</label>&nbsp<p>{{ price }}</p></span>
+        <span><label for="agent">Agent:</label>&nbsp<p>{{ listing.agent.name }}</p></span>
+        <span><label for="url_zillow">Zillow URL:</label>&nbsp<a target="_blank" href="{{listing.url_zillow}}">{{listing.url_zillow}}</a></span>
+        <span><label for="url_redfin">Redfin URL:</label>&nbsp<a target="_blank" href="{{listing.url_redfin}}">{{listing.url_redfin}}</a></span>
+        <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<a target="_blank" href="{{listing.url_cb}}">{{listing.url_cb}}</a></span>
+        <span><label for="status">Status:</label>&nbsp<p>{{sentence_case(listing.status.name)}}</p></span>
+    </div>
+    
+    
+    <br>
+    
+    
+    
+    {% endif %}
+    
+    {% else %}
+    <p>Listing not found...</p>
+    {% endif %}
+
 </div>
 
-
-<div class="detail-container detail-items listing_detail padded-container">
-    <span><label for="address">Address: </label>&nbsp<p name="address">{{ listing.address }}</p></span>
-    <span><label for="mls">MLS ID:</label>&nbsp<p name="mls">{{ listing.mls }}</p></span>
-    <span><label for="price">Listing Price:</label>&nbsp<p>{{ price }}</p></span>
-    <span><label for="agent">Agent:</label>&nbsp<p>{{ listing.agent.name }}</p></span>
-    <span><label for="url_zillow">Zillow URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_zillow}}">{{listing.url_zillow}}</a></p></span>
-    <span><label for="url_redfin">Redfin URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_redfin}}">{{listing.url_redfin}}</a></p></span>
-    <span><label for="url_cb">Coldwell Banker URL:</label>&nbsp<p><a target="_blank" href="{{listing.url_cb}}">{{listing.url_cb}}</a></p></span>
-    <span><label for="status">Status:</label>&nbsp<p>{{sentence_case(listing.status.name)}}</p></span>
-</div>
-
-
-<br>
-
-
-
-{% endif %}
-
-{% else %}
-<p>Listing not found...</p>
-{% endif %}
 
 
 
