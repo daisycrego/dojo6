@@ -1,13 +1,4 @@
 {% extends "base.html" %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="error padded-container">
-    {% for message in messages %}
-    <span class="error">{{ message }}</span>
-    {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
 {% block title %}Page Not Found{% endblock %}
 {% block body %}
   <h2>Page Not Found</h2>

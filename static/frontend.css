@@ -356,12 +356,25 @@ button:hover, a.button:hover  {
     color: #393d4a;
 }
 
-.error {
+.alert.error {
+    background-color: #393D4A;
     color: red;
+    font-size: 1.5em;
+    opacity: 75%;
 }
 
-.success {
+.alert.success {
+    background-color: #393D4A;
     color: green;
+    font-size: 1.5em;
+    opacity: 75%;
+}
+
+.alert.warning {
+    background-color: #393D4A;
+    color: yellow;
+    font-size: 1.5em;
+    opacity: 75%;
 }
 
 .refresh-icon {
@@ -372,6 +385,16 @@ button:hover, a.button:hover  {
 .remove-icon {
     font-size: 1em;
     color: #d6b0b1;
+}
+
+.remove-error-icon {
+    font-size: 1em;
+    color: #d6b0b1;
+}
+
+.remove-error-icon:hover {
+    color: red;
+    
 }
 
 .refresh-container {

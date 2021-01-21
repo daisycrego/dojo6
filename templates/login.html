@@ -3,14 +3,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div title="{{messages[0]}}" class="padded-container error">
-            {{ messages[0] }}
-        </div>
-    {% endif %}
-    {% endwith %}
     
 <div class="padded-container login-page">
     <h2 title="Login form">{% block title %} Login {% endblock %}</h2>

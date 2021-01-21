@@ -3,14 +3,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="padded-container error">
-    
-    <span class="error">{{ messages[0] }}</span>
-    </div>
-{% endif %}
-{% endwith %}
+
 <div class="main-container">
 
     <br>
@@ -38,7 +31,7 @@
     <div class="padded-container">
         {% if editing %}
     
-        <div class="">
+        <div>
             <a class="button" href="/listing/{{ listing.id }}">Cancel Edit</a>
         </div>
         <br>

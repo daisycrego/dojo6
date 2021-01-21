@@ -23,15 +23,6 @@
    <button type="submit">Submit</button>
 </form>
 
-{% if errors is defined and errors %}
-    <div class="padded-container">
-        {% for error in errors %}
-        <span class="error">{{ error }}</span>
-        <br>
-        {% endfor %}  
-    </div> 
-{% endif %}
-
 <br>
 
 

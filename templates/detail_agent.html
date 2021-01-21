@@ -5,16 +5,6 @@
 
 <div class="main-container">
 
-        {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="padded-container error">
-        {% for message in messages %}
-        <span class="error">{{ message }}</span>
-        {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-
     <br>
     <div class="padded-container">
         <a class="button" href="/agents/">Back to All Agents</a>

@@ -357,7 +357,7 @@ def index():
         if query:
             listings = Listing.query.filter(func.lower(Listing.address).contains(query.lower())).union(Listing.query.filter(Listing.mls == query))
             if not len(listings.all()):
-                flash(f"No listings found with an address containing '{query}'")
+                flash(f"No listings found with an address containing '{query}'", 'warning')
         else: 
             listings = Listing.query; 
 
@@ -504,10 +504,10 @@ def detail_listing(id=None, errors=None):
     try:
         price = "${:,.2f}".format(listing.price)
     except (ValueError, TypeError, IndexError):
-        flash("Price not formatted correctly")
+        flash("Price not formatted correctly", 'error')
         price = str(listing.price)
     if errors:
-        flash(f"{errors[0]} For more details, please see the Logs.")
+        flash(f"{errors[0]} For more details, please see the Logs.", 'error')
     return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses)
 
 ## Listing - Create  
@@ -530,31 +530,31 @@ def create(prev_data=None):
         parsed_price = 0
         if not address:
             valid = False
-            flash("Address is required")
+            flash("Address is required", 'error')
         try:
             if price:
                 parsed_price = int(price.replace("$","").replace(",",""))
                 if parsed_price < 0:
                     valid = False
-                    flash("Listing price cannot be negative")
+                    flash("Listing price cannot be negative", 'error')
         except ValueError: 
             valid = False
-            flash(f"Price of {price} is invalid.")
+            flash(f"Price of {price} is invalid.", 'error')
         
         address_exists = len(Listing.query.filter_by(address=address).all()) > 0
         if address_exists:
             valid = False
-            flash(f"Listing already exists with this address.")
+            flash(f"Listing already exists with this address.", 'warning')
 
         if url_zillow and "zillow.com" not in url_zillow:
             valid = False
-            flash(f"Zillow URL should contain 'zillow.com'")
+            flash(f"Zillow URL should contain 'zillow.com'", 'error')
         if url_redfin and "redfin.com" not in url_redfin:
             valid = False
-            flash(f"Redfin URL should contain 'redfin.com'")
+            flash(f"Redfin URL should contain 'redfin.com'", 'error')
         if url_cb and "coldwellbankerhomes.com" not in url_cb:
             valid = False
-            flash(f"Coldwell Banker URL should contain 'coldwellbankerhomes.com'")
+            flash(f"Coldwell Banker URL should contain 'coldwellbankerhomes.com'", 'error')
 
         if valid:
             listing = Listing(address=address, price=parsed_price, agent=agent, agent_id=agent_id, mls=mls, url_zillow=url_zillow, url_redfin=url_redfin, url_cb=url_cb)
@@ -598,24 +598,24 @@ def edit_listing(id=None, prev_data=None):
         status = request.form.get("status")
         if not status:
             valid = False
-            flash("Status is required")
+            flash("Status is required", 'error')
             return redirect(url_for('detail_listing', id=id))
         
         status = Status(int(status)) # this should now be an enum
 
         if not address:
             valid = False
-            flash("Address is required")
+            flash("Address is required", 'error')
 
         try:
             if price:
                 parsed_price = int(price.replace("$","").replace(",",""))
                 if parsed_price < 0:
                     valid = False
-                    flash("Listing price cannot be negative")
+                    flash("Listing price cannot be negative", 'error')
         except ValueError: 
             valid = False
-            flash(f"Price of {price} is invalid.")
+            flash(f"Price of {price} is invalid.", 'error')
         
         listing = Listing.query.filter_by(id=id).first()
         prev_address = listing.address
@@ -623,17 +623,17 @@ def edit_listing(id=None, prev_data=None):
         address_exists = len(Listing.query.filter_by(address=address).filter(address!=prev_address).all()) > 0
         if address_exists:
             valid = False
-            flash(f"Listing already exists with this address.")
+            flash(f"Listing already exists with this address.", 'warning')
 
         if url_zillow and "zillow.com" not in url_zillow:
             valid = False
-            flash(f"Zillow URL should contain 'zillow.com'")
+            flash(f"Zillow URL should contain 'zillow.com'", 'error')
         if url_redfin and "redfin.com" not in url_redfin:
             valid = False
-            flash(f"Redfin URL should contain 'redfin.com'")
+            flash(f"Redfin URL should contain 'redfin.com'", 'error')
         if url_cb and "coldwellbankerhomes.com" not in url_cb:
             valid = False
-            flash(f"Coldwell Banker URL should contain 'redfin.com'")
+            flash(f"Coldwell Banker URL should contain 'redfin.com'", 'error')
 
         listing = Listing.query.filter_by(id=id).first()
         agents = Agent.query.all()
@@ -723,12 +723,12 @@ def create_agent(prev_data=None):
         
         if not name:
             valid = False
-            flash("Name is required")
+            flash("Name is required", 'error')
         
         agent_exists = len(Agent.query.filter_by(name=name).all()) > 0
         if agent_exists:
             valid = False
-            flash(f"Agent already exists with this name.")
+            flash(f"Agent already exists with this name.", 'error')
 
         if valid:
             agent = Agent(name=name)
@@ -751,7 +751,7 @@ def create_agent(prev_data=None):
 @login_required
 def agent_archive(id=None):
     if not id:
-        flash("Missing id. Unable to archive this agent.")
+        flash("Missing id. Unable to archive this agent.", 'error')
         return redirect(request.referrer)
     else:
         agent = Agent.query.filter_by(id=id).first()
@@ -759,25 +759,25 @@ def agent_archive(id=None):
             agent.status = Status.archived
             db.session.add(agent)
             db.session.commit()
-            flash("Agent archived.")
+            flash("Agent archived.", 'success')
         else:
-            flash("No agent found with this id. Unable to archive this agent.")
+            flash("No agent found with this id. Unable to archive this agent.", 'error')
     return redirect(request.referrer)
 
 @application.route('/listing/<id>/archive')
 @login_required
 def listing_archive(id=None):
     if not id:
-        flash("Missing id. Unable to archive this listing.")
+        flash("Missing id. Unable to archive this listing.", 'error')
     else:
         listing = Listing.query.filter_by(id=id).first()
         if listing:
             listing.status = Status.archived
             db.session.add(listing)
             db.session.commit()
-            flash("Listing archived.")
+            flash("Listing archived.", 'success')
         else:
-            flash("No listing found with this id. Unable to archive this listing.")
+            flash("No listing found with this id. Unable to archive this listing.", 'error')
     return redirect(request.referrer)
 
 ## Agent - Edit
@@ -792,7 +792,7 @@ def agent_edit(id=None, prev_data=None):
 
         if not name:
             valid = False
-            flash("Name is required")
+            flash("Name is required", 'error')
         
         agent = Agent.query.filter_by(id=id).first()
         prev_name = agent.name
@@ -800,7 +800,7 @@ def agent_edit(id=None, prev_data=None):
         name_exists = len(Agent.query.filter_by(name=name).filter(name!=prev_name).all()) > 0
         if name_exists:
             valid = False
-            flash(f"Agent already exists with this name.")
+            flash(f"Agent already exists with this name.", 'error')
 
         if valid:
             agent.name = name
@@ -824,64 +824,64 @@ def agent_edit(id=None, prev_data=None):
 @login_required
 def delete_agent(id=None):
     if not id:
-        flash("Cannot delete. No id provided.")
+        flash("Cannot delete. No id provided.", 'error')
         return redirect(request.referrer)
     agent = Agent.query.filter_by(id=id).first()
     if agent:
             agent.status = Status.deleted
             db.session.add(agent)
             db.session.commit()
-            flash("Agent deleted successfully.")
+            flash("Agent deleted successfully.", 'success')
     else:
-        flash(f"Agent not found with id: {id}. Unable to delete this agent.")
+        flash(f"Agent not found with id: {id}. Unable to delete this agent.", 'error')
     return redirect(request.referrer)
 
 @application.route('/agent/<id>/recover')
 @login_required
 def recover_agent(id=None):
     if not id:
-        flash("Cannot recover. No id provided.")
+        flash("Cannot recover agent. No id provided.", 'error')
         return redirect(request.referrer)
     agent = Agent.query.filter_by(id=id).first()
     if agent:
             agent.status = Status.active
             db.session.add(agent)
             db.session.commit()
-            flash("Agent recovered successfully.")
+            flash("Agent recovered successfully.", 'success')
     else:
-        flash(f"Agent not found with id: {id}. Unable to recover this agent.")
+        flash(f"Agent not found with id: {id}. Unable to recover this agent.", 'error')
     return redirect(request.referrer)
 
 @application.route('/listing/<id>/delete')
 @login_required
 def delete_listing(id=None):
     if not id:
-        flash("Cannot delete. No id provided.")
+        flash("Cannot delete. No id provided.", 'error')
         return redirect(request.referrer)
     listing = Listing.query.filter_by(id=id).first()
     if listing:
             listing.status = Status.deleted
             db.session.add(listing)
             db.session.commit()
-            flash("Listing deleted successfully.")
+            flash("Listing deleted successfully.", 'success')
     else:
-        flash(f"Listing not found with id: {id}. Unable to delete this listing.")
+        flash(f"Listing not found with id: {id}. Unable to delete this listing.", 'error')
     return redirect(request.referrer)
 
 @application.route('/listing/<id>/recover')
 @login_required
 def recover_listing(id=None):
     if not id:
-        flash("Cannot recover. No id provided.")
+        flash("Cannot recover. No id provided.", 'error')
         return redirect(request.referrer)
     listing = Listing.query.filter_by(id=id).first()
     if listing:
             listing.status = Status.active
             db.session.add(listing)
             db.session.commit()
-            flash("Listing recovered successfully.")
+            flash("Listing recovered successfully.", 'success')
     else:
-        flash(f"Listing not found with id: {id}. Unable to recover this listing.")
+        flash(f"Listing not found with id: {id}. Unable to recover this listing.", 'error')
     return redirect(request.referrer)
 
 ## Logs - List View
@@ -1006,9 +1006,9 @@ def scraper(id=None):
     # Add web scraper run to the DataCollection log
     log_data_collection(CollectionType.one_time, [listing], status=status, errors=errors)
     if len(errors):
-        flash(errors[0])
+        flash(errors[0], 'error')
     else:
-        flash(f"Scraped listing views for {listing.address}")
+        flash(f"Scraped listing views for {listing.address}", 'success')
     return redirect(url_for('detail_listing', id=id, errors=errors))
 
 ## Scrapes listing views for today for all Listings. Updates the db as the results are found. 
@@ -1027,9 +1027,9 @@ def scrapeAll(id=None):
     
     # Redirect to the home page (Listings - List View)
     if len(errors):
-        flash(errors[0])
+        flash(errors[0], 'error')
     else:
-        flash("Scraped all listing views.")
+        flash("Scraped all listing views.", 'success')
     return redirect(request.referrer)
 
 @application.errorhandler(404)
@@ -1081,16 +1081,16 @@ def log_data_collection(collection_type=None, listings=[], status=True, errors=[
 @login_required
 def invite_user():
     if not current_user.is_admin:
-        flash("You don't have the privileges to perform this task.")
+        flash("You don't have the privileges to perform this task.", 'error')
         return redirect(url_for("settings"))
     email = request.form.get("email")
     if not email:
-        flash("Please provide an email for the invitation.")
+        flash("Please provide an email for the invitation.", 'error')
         return redirect(url_for("settings"))
 
     user_exists = User.query.filter_by(email=email).first()
     if user_exists:
-        flash("A user with this email already exists.")
+        flash("A user with this email already exists.", 'error')
         return redirect(url_for("settings"))
 
     title = "JBG Listings - Create My Account"
@@ -1110,9 +1110,9 @@ def invite_user():
     sent = send_email([email], title, body)
 
     if sent: 
-        flash(f"An invitation was emailed to {email}")
+        flash(f"An invitation was emailed to {email}", 'success')
     else:
-        flash(f"An invitation was NOT emailed to {email} due to email server issues. Please contact your system administrator.")
+        flash(f"An invitation was NOT emailed to {email} due to email server issues. Please contact your system administrator.", 'warning')
     return redirect(url_for("settings"))
 
 ## Settings
@@ -1130,16 +1130,16 @@ def settings_edit(prev_data=None):
         name = request.form.get("name")
         email = request.form.get("email")
         if not name and not email:
-            flash("No changes detected.")
+            flash("No changes detected.", 'error')
             valid = False
         elif name == current_user.name and email == current_user.email:
-            flash("No changes detected.")
+            flash("No changes detected.", 'error')
             valid = False
 
         # check if email is taken
         user_exists = User.query.filter_by(email=email).filter(email!=current_user.email).first()
         if user_exists: 
-            flash("Email already taken.")
+            flash("Email already taken.", 'error')
             valid = False
 
         if valid: 
@@ -1149,7 +1149,7 @@ def settings_edit(prev_data=None):
                 current_user.email = email
             db.session.add(current_user)
             db.session.commit()
-            flash("Profile updated.")
+            flash("Profile updated.", 'success')
             return redirect(url_for("settings"))
         else: 
             if prev_data:
@@ -1175,7 +1175,7 @@ def login(data=None):
         user = User.query.filter_by(email=email).first()
 
         if not user or not check_password_hash(user.password, password):
-            flash("Invalid email and/or password.")
+            flash("Invalid email and/or password.", 'error')
             return redirect(url_for("login", data=dict(request.form)))
 
         login_user(user, remember=remember)
@@ -1206,7 +1206,7 @@ def register(data=None):
         ## validate access token
         token = request.form.get("token")
         if not token:
-            flash("Invitation required to create an account. Please contact your system administrator.")
+            flash("Invitation required to create an account. Please contact your system administrator.", 'error')
             return redirect(url_for('login'))
 
         email = request.form.get('email')
@@ -1217,31 +1217,31 @@ def register(data=None):
         one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
         active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
         if not active_token:
-            flash("Invalid access token, please contact your system administrator")
+            flash("Invalid access token, please contact your system administrator", 'error')
             return redirect(url_for('register', data=dict(request.form)))
 
         if not password:
             valid = False
-            flash("Password missing")
+            flash("Password missing", 'error')
             return redirect(url_for("register", data=dict(request.form)))
         elif not password_confirm:
             valid = False
             #errors.append("Retype password")
-            flash("Retype password")
+            flash("Retype password", 'error')
             return redirect(url_for("register", data=dict(request.form)))
         elif password != password_confirm:
             valid = False
             #errors.append("Passwords must match")
-            flash("Passwords must match")
+            flash("Passwords must match", 'error')
             return redirect(url_for("register", data=dict(request.form)))
         elif len(password) < 8:
-            flash("Password must be at least 8 characters long.")
+            flash("Password must be at least 8 characters long.", 'error')
             return redirect(url_for("register", data=dict(request.form)))
 
         user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
         if user: # if a user is found, we want to redirect back to signup page so user can try again
-            flash('Email address already in use')
+            flash('Email address already in use', 'warning')
             return redirect(url_for('register', data=dict(request.form)))
 
         # delete the tokens associated with this email, ensure one time use
@@ -1262,11 +1262,11 @@ def register(data=None):
     else:
         token = request.args.get("token")
         if not token: 
-            flash("Please check your email for a registration link. Contact your system administrator if you don't receive an email. Make sure to check your spam folder.")
+            flash("Please check your email for a registration link. Contact your system administrator if you don't receive an email. Make sure to check your spam folder.", 'warning')
         one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
         active_token = Token.query.filter_by(token=token).filter(Token.created_time > one_hour_ago).first()
         if not active_token:
-            flash("Your registration link is expired. Please contact your system administrator for a new invitation.")
+            flash("Your registration link is expired. Please contact your system administrator for a new invitation.", 'error')
             return redirect(url_for("login"))
         
         if request.args.get("data"):
@@ -1313,23 +1313,23 @@ def reset_password():
             one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
             active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
             if not user or not active_token:
-                flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!")
+                flash("Invalid access token and/or email, please check your email for instructions on resetting your password. Make sure to check your spam folder!", 'error')
                 return(redirect(url_for("login")))
             
             password = request.form.get("password")
             confirm_password = request.form.get("password-confirm")
             
             if not password:
-                flash("Password missing")
+                flash("Password missing", 'error')
                 return render_template("reset_password.html", resetting=True, token=token, email=email)
             elif not confirm_password:
-                flash("Retype password")
+                flash("Retype password", 'error')
                 return render_template("reset_password.html", resetting=True, token=token, email=email)
             elif password != confirm_password:
-                flash("Passwords must match")
+                flash("Passwords must match", 'error')
                 return render_template("reset_password.html", resetting=True, token=token, email=email)
             elif len(password) < 8:
-                flash("Password must be at least 8 characters long.")
+                flash("Password must be at least 8 characters long.", 'error')
                 return render_template("reset_password.html", resetting=True, token=token, email=email)
 
             # delete all the tokens for this email, ensure one time use
@@ -1343,7 +1343,7 @@ def reset_password():
             # save the changes in the db 
             db.session.add(user)
             db.session.commit()
-            flash("Password successfully reset.")
+            flash("Password successfully reset.", 'success')
             return redirect(url_for("login"))
         elif email:
             # handle POST - new password reset access token, url, and email
@@ -1365,14 +1365,14 @@ def reset_password():
                 body = f"Please follow this link to reset your password: {request.base_url}?token={new_token}&email={email}"
                 sent = send_email([email], title, body)
             if sent:
-                flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!")
+                flash(f"An email has been sent to {email} with instructions to reset your password. Make sure to check your spam folder!", 'success')
             else:
-                flash("Unable to send to email with reset instructions. Please contact your system administrator.")
+                flash("Unable to send to email with reset instructions. Please contact your system administrator.", 'warning')
             return redirect(url_for("reset_password"))
             
                     
         else:
-            flash("Please provide an email to get instructions for resetting your password.")
+            flash("Please provide an email to get instructions for resetting your password.", 'warning')
             return redirect(url_for("reset_password"))
     # GET
     else:
@@ -1382,18 +1382,18 @@ def reset_password():
             return render_template("reset_password.html", resetting=False)
         else:
             if not email:
-                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+                flash("Invalid reset link, please check your email or request another password reset link.", "error")
             
             # Check token and email before showing password reset form
             user = User.query.filter_by(email=email).first()
             
             if not user or not token:
-                flash("Invalid reset link, please check your email for instructions on resetting your password.")
+                flash("Invalid reset link, please check your email for instructions on resetting your password.", 'error')
             else:
                 one_hour_ago = datetime.datetime.now() - timedelta(hours=1)
                 active_token = Token.query.filter_by(token=token).filter_by(email=email).filter(Token.created_time > one_hour_ago).first()
                 if not active_token:
-                    flash("Reset link is expired. Please provide your email and request a new reset password link.")
+                    flash("Reset link is expired. Please provide your email and request a new reset password link.", 'warning')
                     return(redirect(url_for("reset_password"))) 
             return render_template("reset_password.html", resetting=True, token=token, email=email)
 

@@ -35,6 +35,21 @@
                 href="{{ href|e }}">{{ caption|e }}</a></li>
             {% endfor %}
             </ul>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div id="error-messages">
+                {% if messages|length > 4 %}
+                <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ messages[0] }} </div>
+                {% else %}
+                {% for category, message in messages %}
+                <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ message }} </div>
+                {% endfor %}
+                {% endif %}
+                
+            </div>
+            {% endif %}
+            {% endwith %}
         {% block content %}{% endblock %}
     </body>
     <footer>

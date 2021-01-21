@@ -40,7 +40,7 @@
         <select name="agent">
         {% for agent in agents %}
        
-            {% if errors and data is defined %}
+            {% if data is defined %}
                 <option value={{agent.id}} {% if (agent.id|string == data.agent|string) or (not data.agent and agent.id == default_agent.id) %}selected="selected"{% endif %}>{{agent.name}}</option>
             {% else %}
                 <option value={{agent.id}} {% if agent.id == default_agent.id %} selected="selected" {% endif %}>{{agent.name}}</option>
@@ -65,14 +65,6 @@
     </span>
    <button type="submit">Submit</button>
 </form>
-
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="padded-container error">
-        {{ messages[0] }}
-    </div>
-{% endif %}
-{% endwith %}
 
 <br>
 
