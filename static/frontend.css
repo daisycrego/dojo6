@@ -467,7 +467,8 @@ table, td, th {
 table.scroll {
     float: right;
     display: block;
-    height: min(700px, min-content);
+    height: 600px;
+    /*height: min(700px, min-content);*/
     overflow-y: scroll;
     width: fit-content;
     scrollbar-color: dark;
