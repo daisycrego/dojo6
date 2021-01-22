@@ -1,7 +1,7 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, flash, current_app
 from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import func, desc
+#from sqlalchemy.sql import func, desc
 import os
 from base64 import b64encode
 import io
@@ -13,7 +13,7 @@ import pandas as pd
 import datetime
 from datetime import date, timedelta, time
 import enum
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, func, desc, and_
 import requests
 import ast
 import atexit
@@ -408,7 +408,26 @@ def index():
         
 
         # list of the most recent ListingViews object for each id
-        latest_listing_views = [ ListingViews.query.filter_by(id=listing.id).order_by(desc(ListingViews.date)).first() for listing in listings]
+        #latest_listing_views = [ ListingViews.query(ListingViews.id, func.max(ListingViews.date).label("recent_date")).filter_by(listing_id=listing.id).filter_by(date=recent_date).first() for listing in listings]
+
+        # Get the most recent ListingViews object for each distinct listing_id
+        # https://stackoverflow.com/questions/45775724/sqlalchemy-group-by-and-return-max-date        
+        views_subq = db.session.query(
+            ListingViews.listing_id,
+            func.max(ListingViews.date).label('maxdate')
+        ).group_by(ListingViews.listing_id).subquery('t2')
+
+        views_query = db.session.query(ListingViews).join(
+            subq,
+            and_(
+                ListingViews.listing_id == subq.c.listing_id,
+                ListingViews.date == subq.c.maxdate
+            )
+        )
+
+        # Do a final filter to get only the listings we want
+        listing_ids = [listing.id for listing in listings]
+        latest_listing_views = views_query.filter(ListingViews.listing_id.in_(listing_ids)).all()
 
         dict_views = dict()
         if len(latest_listing_views): 
