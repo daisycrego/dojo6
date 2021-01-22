@@ -303,7 +303,7 @@
                         </td>
                         <td>
                             {% if listing %} 
-                                <p>{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].date.strftime('%m-%d-%Y') }}{% else %} - {% endif %}{% endif %} </p>
+                                <p>{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].date.strftime('%m-%d-%Y') }}{% else %} n/a {% endif %}{% endif %} </p>
                             {% else %} 
                                 <span class="above-below">
                                     <p class="big-font">-</p>
