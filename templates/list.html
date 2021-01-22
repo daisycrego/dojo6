@@ -51,7 +51,7 @@
         <div class="table-container">            
             <table class="scroll">
                 <tr>
-                    <th>
+                    <th class="address-col">
                         
                         <div class="header-and-arrow-icons">
                             <span>Listing Address</span>
@@ -91,8 +91,8 @@
                             <div>
                                 <form class="agents-check" id="filter-agent" method="post" action="/toggle_filter_state/agent">
                                     <div class="alongside">
-                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=false; } "><span class="agents-reset-icon glyphicon glyphicon-unchecked"></span></a>
-                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=true; } "><span class="agents-reset-icon glyphicon glyphicon-check"></span></a>
+                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=false; } "><span title="De-select all" class="agents-reset-icon glyphicon glyphicon-unchecked"></span></a>
+                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=true; } "><span title="Select all" class="agents-reset-icon glyphicon glyphicon-check"></span></a>
                                     </div>
                                     
                                 {% for agent in agents %}
@@ -128,18 +128,11 @@
                         </div>    
                     </th>
 
-                    <th>
-                        <span class="header-and-icon">
-                            <span>Latest Collection Date</span>
-                            <p class="hide-in-header">
-                                <i class="glyphicon glyphicon-asterisk"></i>
-                            </p>
-                        </span>
-                    </th>
+                    
                     
                     <th>
                         <div class="header-and-arrow-icons">
-                            <span>Latest Zillow Views</span>
+                            <span>Latest <br> Zillow Views</span>
                             <span class="arrow-icons">
                                 <form id="filter_views_zillow_asc" method="post" action="/toggle_filter_state/views_zillow/">
                                     <input type="hidden" value="asc" name="views_zillow"/>
@@ -159,7 +152,7 @@
                     </th>
                     <th>
                         <div class="header-and-arrow-icons">
-                            <span>Latest Redfin Views</span>
+                            <span>Latest <br> Redfin Views</span>
                             <span class="arrow-icons">
                                 <form id="filter_views_redfin_asc" method="post" action="/toggle_filter_state/views_redfin/">
                                     <input type="hidden" value="asc" name="views_redfin"/>
@@ -178,7 +171,7 @@
                     </th>
                     <th>
                         <div class="header-and-arrow-icons">
-                            <span>Latest Coldwell Banker Views</span>
+                            <span>Latest <br> CB Views</span>
                             <span class="arrow-icons">
                                 <form id="filter_views_cb_asc" method="post" action="/toggle_filter_state/views_cb/">
                                     <input type="hidden" value="asc" name="views_cb"/>
@@ -195,6 +188,14 @@
                                 </form>
                             </span>
                         </div>
+                    </th>
+                    <th>
+                        <span class="header-and-icon">
+                            <span>Collected</span>
+                            <p class="hide-in-header">
+                                <i class="glyphicon glyphicon-asterisk"></i>
+                            </p>
+                        </span>
                     </th>
                     <th>
 
@@ -232,24 +233,11 @@
                     {% if filterState.agents and listing.agent.id in filterState.agents %}
                     {% if filterState.statuses and listing.status.value in filterState.statuses %}
                     <tr>
-                        <td class="nowrap"> <a title="Go to Listing Details and Property View Graphs" href="/listing/{{listing.id}}">{{listing.address}}</a> </td>
+                        <td class="nowrap address-col"> <a title="Go to Listing Details and Property View Graphs" href="/listing/{{listing.id}}">{{listing.address}}</a> </td>
                         <td class="padding"><p>{{listing.mls}}</p></td>
-                        <td class="nowrap"><a title="Go to Agent Details" href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
+                        <td ><a title="Go to Agent Details" href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
-                        <td>
-                            {% if listing %} 
-                                <p>{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].date.strftime('%m-%d-%Y') }}{% endif %} </p>
-                            {% else %} 
-                                <span class="above-below">
-                                    <p class="big-font">-</p>
-                                    <p class="shift-end">
-                                        <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
-                                            <span class="glyphicon glyphicon-share"></span>
-                                        </a>
-                                    </p>
-                                </span>
-                            {% endif %}
-                        </td>
+                        
                         <td>
                             {% if listing %} 
                                 <span class="above-below">
@@ -313,6 +301,20 @@
                                 </span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if listing %} 
+                                <p>{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].date.strftime('%m-%d-%Y') }}{% endif %} </p>
+                            {% else %} 
+                                <span class="above-below">
+                                    <p class="big-font">-</p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span>
+                            {% endif %}
+                        </td>
                         <td class="padding"><p>{% if listing.status.name == "deleted" %} Deleted {% elif listing.status.name == "archived" %} Archived {% else %} Active {% endif %}</p></td>
                         <td class="action-icons">
                                 <a class="listing-icon glyphicon glyphicon-stats" href="/listing/{{listing.id}}" title="Go to Listing Details and Property View Graphs"> </a>
@@ -349,8 +351,8 @@
                 <a  title="Go to Listing Details" href="/listing/{{listing.id}}">
                 <img src="/matplot-as-image-{{listing.id}}.png"
                     alt="Property views"
-                    height="400"
-                    width="600"
+                    height="300"
+                    width="400"
                     name="img-{{listing.id}}"
                 >
                 </a>

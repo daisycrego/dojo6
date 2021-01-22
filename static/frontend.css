@@ -426,10 +426,11 @@ span.search-container > form {
 
 .table-container {
     display: grid;
-    justify-content: center;
+    justify-content: space-between;
+    padding-left: 0px;
     align-items: center;
     overflow-x: auto;
-    margin-right: 0px;
+    margin-right: 60px;
     margin-left: 0px;
 }
 
@@ -661,3 +662,8 @@ html {
   ::-webkit-scrollbar-thumb { height: 50px; background-color: #2c2f3a; border-radius: 3px;}
   ::-webkit-scrollbar-corner { background-color: #2c2f3a;}
   ::-webkit-resizer { background-color: #2c2f3a;}
+
+.address-col{
+    padding-left: 0em;
+    padding-right: 0em;
+}
