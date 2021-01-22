@@ -345,13 +345,15 @@
             <div class="img-grid">
             {% for listing in listings %}
             <div class="img-container">
-                <label for="img-{{listing.id}}">{{listing.address}}</label>
+                <a  title="Go to Listing Details" href="/listing/{{listing.id}}"><label for="img-{{listing.id}}"></label>{{listing.address}}</label></a>
+                <a  title="Go to Listing Details" href="/listing/{{listing.id}}">
                 <img src="/matplot-as-image-{{listing.id}}.png"
                     alt="Property views"
                     height="400"
                     width="600"
                     name="img-{{listing.id}}"
                 >
+                </a>
             </div>
             
     
