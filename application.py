@@ -363,53 +363,68 @@ def index():
 
         if filterState.sort_category:
             if filterState.sort_category == SortCategory.address: 
-                listings = listings.order_by(asc(Listing.address) if filterState.sort_order == SortOptions.asc else desc(Listing.address)).all()
+                listings = listings.order_by(asc(Listing.address) if filterState.sort_order == SortOptions.asc else desc(Listing.address))
             elif filterState.sort_category == SortCategory.price: 
-                listings = listings.order_by(asc(Listing.price) if filterState.sort_order == SortOptions.asc else desc(Listing.price)).all()
+                listings = listings.order_by(asc(Listing.price) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
             elif filterState.sort_category == SortCategory.views_zillow:
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
                     ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
             elif filterState.sort_category == SortCategory.views_redfin: 
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
                     ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
             elif filterState.sort_category == SortCategory.views_cb: 
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
                     ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-                    ).all()
+                    )
         else: 
             if query: 
                 listings = listings.order_by(desc(Listing.price)
                 ).filter(Listing.id.in_([listing.id for listing in listings.all()])
-                ).all()
+                )
             else: 
                 listings = listings.order_by(desc(Listing.price)
-                ).all()
+                )
 
+        # Further filter the listings by status and agent
+        statuses = dict()
+        for category in Status:
+            if category.value in filterState.statuses:
+                statuses.update({category.value: category.name})
+
+        agents_dict = dict()
+        agents = [agent for agent in Agent.query.all()]
+        for agent in agents:
+            if agent.id in filterState.agents:
+                agents_dict.update({agent.id: agent.id})
+
+        if filterState.statuses and len(filterState.statuses):
+            listings = listings.filter(Listing.status.in_(statuses.values()))
+        if filterState.agents and len(filterState.agents):
+            listings = listings.filter(Listing.agent_id.in_(agents_dict.values()))
+
+        # Collect (runs the query, generates a list of Listing objects) 
+        listings = listings.all()
         
-
-        # list of the most recent ListingViews object for each id
-        #latest_listing_views = [ ListingViews.query(ListingViews.id, func.max(ListingViews.date).label("recent_date")).filter_by(listing_id=listing.id).filter_by(date=recent_date).first() for listing in listings]
-
         # Get the most recent ListingViews object for each distinct listing_id
         # https://stackoverflow.com/questions/45775724/sqlalchemy-group-by-and-return-max-date        
         views_subq = db.session.query(

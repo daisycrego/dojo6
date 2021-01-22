@@ -230,8 +230,7 @@
                 </tr>
                 {% for listing in listings %}
                     
-                    {% if filterState.agents and listing.agent.id in filterState.agents %}
-                    {% if filterState.statuses and listing.status.value in filterState.statuses %}
+                    
                     <tr>
                         <td class="nowrap address-col"> <a title="Go to Listing Details and Property View Graphs" href="/listing/{{listing.id}}">{{listing.address}}</a> </td>
                         <td class="padding"><p>{{listing.mls}}</p></td>
@@ -336,8 +335,6 @@
                                 {% endif %}
                         </td>
                     </tr>
-                    {% endif %}
-                    {% endif %}
                 
                 {% endfor %}
             <table>
