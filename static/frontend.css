@@ -433,6 +433,7 @@ span.search-container > form {
     display: grid;
     justify-content: space-between;
     padding-left: 0px;
+    justify-content: center;
     align-items: center;
     overflow-x: auto;
     margin-right: 60px;
