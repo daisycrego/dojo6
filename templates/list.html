@@ -241,7 +241,7 @@
                         <td>
                             {% if listing %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_zillow }}{% endif %} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_zillow }}{% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
                                             <span class="glyphicon glyphicon-share"></span>
@@ -262,7 +262,7 @@
                         <td>
                             {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% endif %} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
                                             <span class="glyphicon glyphicon-share"></span>
@@ -283,7 +283,7 @@
                         <td>
                             {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].views_cb }}{% endif %} </p>
+                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_cb }}{% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
                                             <span class="glyphicon glyphicon-share"></span>
