@@ -519,12 +519,6 @@ def toggle_filter_state(filter_type):
     db.session.commit()
     return redirect(request.referrer)
 
-@application.route('/listings/deleted')
-@login_required
-def deleted_listings():
-    listings = Listing.query.filter_by(status=Status.deleted).all()
-    return render_template('deleted_listings.html', listings=listings)
-
 ## Listing - Detail View
 @application.route('/listing/')
 @application.route('/listing/<id>')
