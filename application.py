@@ -527,7 +527,8 @@ def detail_listing(id=None, errors=None):
         price = str(listing.price)
     if errors:
         flash(f"{errors[0]} For more details, please see the Logs.", 'error')
-    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses)
+    listing_views = ListingViews.query.filter_by(listing_id=id).order_by(desc(ListingViews.date)).all()
+    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses, listing_views=listing_views)
 
 ## Listing - Create  
 @application.route('/listing/create/', methods=["GET", "POST"])
