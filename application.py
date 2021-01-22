@@ -418,10 +418,10 @@ def index():
         ).group_by(ListingViews.listing_id).subquery('t2')
 
         views_query = db.session.query(ListingViews).join(
-            subq,
+            views_subq,
             and_(
-                ListingViews.listing_id == subq.c.listing_id,
-                ListingViews.date == subq.c.maxdate
+                ListingViews.listing_id == views_subq.c.listing_id,
+                ListingViews.date == views_subq.c.maxdate
             )
         )
 
