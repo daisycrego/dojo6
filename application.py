@@ -1430,7 +1430,7 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     # Every Friday at 5:30 pm 
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=11, minute=33)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=11, minute=40)
     
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
