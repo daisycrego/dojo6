@@ -456,7 +456,15 @@ table, td, th {
     text-align: center;
     margin-left:0.5em;
     margin-right:0.5em;
-    
+}
+
+table.scroll {
+    float: right;
+    display: block;
+    height: 700px;
+    overflow-y: scroll;
+    width: fit-content;
+    scrollbar-color: dark;
 }
 
 tr.agent-row > td > * {
@@ -607,3 +615,49 @@ button.listing-icon, a.listing-icon {
     color: #dabd85;
     background-color: #00222d
 }
+
+.img-container {
+    display: flex; 
+    flex-direction: column;
+    align-items: center;
+    
+    background-color: #00181f;
+}
+
+.img-container > a {
+    color: #d6b0b1;
+}
+
+.img-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    /*grid-auto-rows: minmax(100px, auto);*/
+}
+
+.agents-reset-icon {
+    color: #dabd85;
+}
+
+.agent-filter {
+    background-color: #393d4a;
+}
+
+html {
+    scrollbar-face-color: #2c2f3a;
+    scrollbar-base-color:#2c2f3a;
+    scrollbar-3dlight-color: #2c2f3a;
+    scrollbar-highlight-color: #2c2f3a;
+    scrollbar-track-color: #000;
+    scrollbar-arrow-color: #000;
+    scrollbar-shadow-color: #2c2f3a;
+    scrollbar-dark-shadow-color: #2c2f3a;
+  }
+  
+  ::-webkit-scrollbar { width: 8px; height: 3px;}
+  ::-webkit-scrollbar-button {  background-color: #2c2f3a; }
+  ::-webkit-scrollbar-track {  background-color: #2c2f3a;}
+  ::-webkit-scrollbar-track-piece { background-color: #000;}
+  ::-webkit-scrollbar-thumb { height: 50px; background-color: #2c2f3a; border-radius: 3px;}
+  ::-webkit-scrollbar-corner { background-color: #2c2f3a;}
+  ::-webkit-resizer { background-color: #2c2f3a;}

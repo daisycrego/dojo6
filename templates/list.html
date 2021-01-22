@@ -49,7 +49,7 @@
         {% if listings %}
 
         <div class="table-container">            
-            <table>
+            <table class="scroll">
                 <tr>
                     <th>
                         
@@ -85,10 +85,16 @@
                         <span class="header-and-icon">
                             <p> Agent </p>
                             <a title="Filter by agent name" href="javascript:{}" onclick="var filters = document.getElementById('agent-filters'); console.log(filters); if (filters.style.display === 'none') {filters.style.display='block'} else {filters.style.display='none'} "><span class="glyphicon glyphicon-filter"></span></a>
+                                                    
                         </span>
                         <span id="agent-filters" style="display: none;" class="agent-filter">
                             <div>
-                                <form id="filter-agent" method="post" action="/toggle_filter_state/agent">
+                                <form class="agents-check" id="filter-agent" method="post" action="/toggle_filter_state/agent">
+                                    <div class="alongside">
+                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=false; } "><span class="agents-reset-icon glyphicon glyphicon-unchecked"></span></a>
+                                        <a href="javascript:{}" onclick="for (var node in document.getElementsByName('check')) {  document.getElementsByName('check')[node].checked=true; } "><span class="agents-reset-icon glyphicon glyphicon-check"></span></a>
+                                    </div>
+                                    
                                 {% for agent in agents %}
                                 
                                     <input type="checkbox" name="check" value="{{agent.id}}" id="{{agent.name}}" {% if filterState.agents and agent.id in filterState.agents %} checked {% endif %}>
@@ -120,6 +126,15 @@
                                 </form>
                             </span>
                         </div>    
+                    </th>
+
+                    <th>
+                        <span class="header-and-icon">
+                            <span>Latest Collection Date</span>
+                            <p class="hide-in-header">
+                                <i class="glyphicon glyphicon-asterisk"></i>
+                            </p>
+                        </span>
                     </th>
                     
                     <th>
@@ -221,7 +236,20 @@
                         <td class="padding"><p>{{listing.mls}}</p></td>
                         <td class="nowrap"><a title="Go to Agent Details" href="/agent/{{listing.agent.id}}">{{listing.agent.name}}</a></td>
                         <td class="padding"><p>{{ "${:,}".format(listing.price) }}</p></td>
-                        
+                        <td>
+                            {% if listing %} 
+                                <p>{% if latest_listing_views is defined and latest_listing_views %}{{ latest_listing_views[listing.id].date.strftime('%m-%d-%Y') }}{% endif %} </p>
+                            {% else %} 
+                                <span class="above-below">
+                                    <p class="big-font">-</p>
+                                    <p class="shift-end">
+                                        <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
+                                            <span class="glyphicon glyphicon-share"></span>
+                                        </a>
+                                    </p>
+                                </span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if listing %} 
                                 <span class="above-below">
@@ -312,6 +340,25 @@
                 {% endfor %}
             <table>
                      
+            <br>
+            
+            <div class="img-grid">
+            {% for listing in listings %}
+            <div class="img-container">
+                <label for="img-{{listing.id}}">{{listing.address}}</label>
+                <img src="/matplot-as-image-{{listing.id}}.png"
+                    alt="Property views"
+                    height="400"
+                    width="600"
+                    name="img-{{listing.id}}"
+                >
+            </div>
+            
+    
+            {% endfor %}
+            </div>
+        
+            
         </div>
         {% else %}
         <H2>No listings.</H2>

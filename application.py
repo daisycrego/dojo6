@@ -709,7 +709,8 @@ def deleted_agents():
 @login_required
 def detail_agent(id=None):
     agent = Agent.query.filter_by(id=id).first()
-    return render_template('detail_agent.html', agent=agent)
+    listings = Listing.query.filter_by(agent_id=agent.id).filter_by(status=Status.active).all()
+    return render_template('detail_agent.html', agent=agent, listings=listings)
 
 ## Agent - Create
 @application.route('/agent/create/', methods=["GET", "POST"])
