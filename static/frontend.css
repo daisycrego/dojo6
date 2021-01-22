@@ -482,7 +482,8 @@ table.scroll {
 
 table.views-table, table.agents-table {
     display: block;
-    height: min(700px, min-content);
+    height: 600px;
+    /*height: min(700px, min-content);*/
     overflow-y: scroll;
     width: fit-content;
     scrollbar-color: dark;
