@@ -13,7 +13,7 @@
 
 <span class="detail-items">
     <span><label for="collection-type">Collection Type: </label>&nbsp<p name="collection-type">{% if log.collection_type.name == "one_time" %} one time {% else %} weekly {% endif%}</p></span>
-    <span><label for="date">Date:</label>&nbsp<p name="date">{{ log.date }}</p></span>
+    <span><label for="date">Date:</label>&nbsp<p name="date">{{ log.date.strftime('%m-%d-%Y %H:%M:%S') }}</p></span>
     <span><label for="status">Job Status:</label>&nbsp<p name="status">{% if log.status %} Passed {% else %} Failed {% endif %}</p></span>
     <label for="listings-collected">Listings Collected:</label>
     <span name="listings-collected">

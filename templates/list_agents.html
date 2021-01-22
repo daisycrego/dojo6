@@ -27,7 +27,8 @@
                     {% endif %}
                 {% endfor %}
                 {% if not show_inactive or (show_inactive and ns.inactive_found) %}
-                    <table class="agent-table">
+            <div class="centered-flex">
+                <table class="agents-table">
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
@@ -44,9 +45,13 @@
                             {% endif %}
                         {% endfor %}
                     <table>
-                {% else %}
-                    <h2>No archived agents.</h2>
-                {% endif %}
+                        
+            </div>
+            <br>
+            {% else %}
+            <h2>No archived agents.</h2>
+            <br>
+            {% endif %}
 
                 <br>
                 {% if listings %}
