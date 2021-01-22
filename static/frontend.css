@@ -8,13 +8,18 @@ body {
     flex-direction: column;
 }
 
+.page-container {
+    position: relative;
+    min-height: 100vh;
+  }
+  
+
 footer {
-    padding: 1.5em;
-    flex-shrink: 0;
-    align-self: center;
-    justify-self: center;
-    text-align: center;
-}
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2.5rem;            /* Footer height */
+  }
 
 .stats-icon {
     font-size: 2em;
@@ -462,10 +467,25 @@ table, td, th {
 table.scroll {
     float: right;
     display: block;
-    height: 700px;
+    height: min(700px, min-content);
     overflow-y: scroll;
     width: fit-content;
     scrollbar-color: dark;
+}
+
+.centered-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+table.views-table, table.agents-table {
+    display: block;
+    height: min(700px, min-content);
+    overflow-y: scroll;
+    width: fit-content;
+    scrollbar-color: dark;
+
 }
 
 tr.agent-row > td > * {
@@ -667,3 +687,4 @@ html {
     padding-left: 0em;
     padding-right: 0em;
 }
+

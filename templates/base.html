@@ -24,35 +24,43 @@
     </head>
     
     <body>
+        <div class="page-container">
+
+            <footer>
+                <p title="Copyrighted 2021 by Jill Biggs, Incorporated.">&copy; 2021 Jill Biggs, Inc.</p>
+            </footer>
+
+
         <ul class="nav" id="navigation">
             {% for href, id, caption in navigation_bar %}
-              <li class="nav"
+                <li class="nav"
                 {% if id=="login" or id=="settings" or id=="logout" or id=="register" %}
                     style="float:right"
                 {% endif %}>
-              <a title="Go to {{ id }} page"      
+                <a title="Go to {{ id }} page"      
                 class="{% if (not current_user.is_authenticated and (id =='logout' or id == 'settings')) or (current_user.is_authenticated and (id=='register' or id=='login')) %} hidden {% endif %}{% if id == active_page %}active-nav {% endif %}"
                 href="{{ href|e }}">{{ caption|e }}</a></li>
             {% endfor %}
-            </ul>
+        </ul>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div id="error-messages">
-                {% if messages|length > 4 %}
-                <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ messages[0] }} </div>
-                {% else %}
-                {% for category, message in messages %}
-                <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ message }} </div>
-                {% endfor %}
-                {% endif %}
-                
-            </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div id="error-messages">
+            {% if messages|length > 4 %}
+            <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ messages[0] }} </div>
+            {% else %}
+            {% for category, message in messages %}
+            <div class="alert {{ category }}"><a class="remove-error-icon glyphicon glyphicon-remove" href="javascript:{}" onclick="document.getElementById('error-messages').style.display = 'none';"></a> {{ message }} </div>
+            {% endfor %}
             {% endif %}
-            {% endwith %}
+            
+        </div>
+        {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
+        
+        </div>
+        
     </body>
-    <footer>
-        <p title="Copyrighted 2021 by Jill Biggs, Incorporated.">&copy; 2021 Jill Biggs, Inc.<p></p>
-    </footer>
+    
 </html>
