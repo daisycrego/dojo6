@@ -51,11 +51,14 @@ application.secret_key = os.environ.get("SECRET_KEY")
 
 admin_email = os.environ.get("ADMIN_EMAIL")
 
-application.config['MAIL_SERVER']='smtp.gmail.com'
-application.config['MAIL_PORT'] = 465
-application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAIL_DEFAULT_SENDER")
-application.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
-application.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
+# Set up mail gun server if one is attached to the app. (env vars set)
+# Otherwise use gmail server
+# Backup server is gmail server either way
+application.config['MAIL_SERVER']= os.environ.get("MAILGUN_SMTP_SERVER") if os.environ.get("MAILGUN_SMTP_SERVER") else 'smtp.gmail.com'
+application.config['MAIL_PORT'] = os.environ.get("MAILGUN_SMTP_PORT") if os.environ.get("MAILGUN_SMTP_PORT") else 465
+application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_DEFAULT_SENDER")
+application.config["MAIL_USERNAME"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_USERNAME")
+application.config["MAIL_PASSWORD"] = os.environ.get("MAILGUN_SMTP_PASSWORD") if os.environ.get("MAILGUN_SMTP_PASSWORD") else os.environ.get("MAIL_PASSWORD")
 application.config['MAIL_USE_TLS'] = False
 application.config['MAIL_USE_SSL'] = True
 
@@ -1445,7 +1448,7 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
         
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=18, minute=50)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=19, minute=00)
     # Check which jobs are scheduled
     # scheduler.print_jobs()
 
