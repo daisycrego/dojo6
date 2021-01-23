@@ -1445,6 +1445,7 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
         
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=18, minute=50)
     # Check which jobs are scheduled
     # scheduler.print_jobs()
 
