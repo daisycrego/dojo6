@@ -59,8 +59,8 @@ application.config['MAIL_PORT'] = os.environ.get("MAILGUN_SMTP_PORT") if os.envi
 application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_DEFAULT_SENDER")
 application.config["MAIL_USERNAME"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_USERNAME")
 application.config["MAIL_PASSWORD"] = os.environ.get("MAILGUN_SMTP_PASSWORD") if os.environ.get("MAILGUN_SMTP_PASSWORD") else os.environ.get("MAIL_PASSWORD")
-application.config['MAIL_USE_TLS'] = False
-application.config['MAIL_USE_SSL'] = True
+application.config['MAIL_USE_TLS'] = True if os.environ.get("MAILFUN_SMTP_SERVER") else False 
+application.config['MAIL_USE_SSL'] = False if os.environ.get("MAILFUN_SMTP_SERVER") else True
 
 mail = Mail(application)
 
