@@ -30,6 +30,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
+import ssl
 load_dotenv() # load the env vars from local .env
 
 
@@ -54,13 +55,13 @@ admin_email = os.environ.get("ADMIN_EMAIL")
 # Set up mail gun server if one is attached to the app. (env vars set)
 # Otherwise use gmail server
 # Backup server is gmail server either way
-application.config['MAIL_SERVER']= os.environ.get("MAILGUN_SMTP_SERVER") if os.environ.get("MAILGUN_SMTP_SERVER") else 'smtp.gmail.com'
-application.config['MAIL_PORT'] = os.environ.get("MAILGUN_SMTP_PORT") if os.environ.get("MAILGUN_SMTP_PORT") else 465
-application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_DEFAULT_SENDER")
-application.config["MAIL_USERNAME"] = os.environ.get("MAILGUN_SMTP_LOGIN") if os.environ.get("MAILGUN_SMTP_LOGIN") else os.environ.get("MAIL_USERNAME")
-application.config["MAIL_PASSWORD"] = os.environ.get("MAILGUN_SMTP_PASSWORD") if os.environ.get("MAILGUN_SMTP_PASSWORD") else os.environ.get("MAIL_PASSWORD")
-application.config['MAIL_USE_TLS'] = True if os.environ.get("MAILFUN_SMTP_SERVER") else False 
-application.config['MAIL_USE_SSL'] = False if os.environ.get("MAILFUN_SMTP_SERVER") else True
+application.config['MAIL_SERVER']= os.environ.get("PRIMARY_EMAIL_SERVER")
+application.config['MAIL_PORT'] = os.environ.get("PRIMARY_EMAIL_PORT")
+application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("PRIMARY_EMAIL_LOGIN") 
+application.config["MAIL_USERNAME"] = os.environ.get("PRIMARY_EMAIL_LOGIN") 
+application.config["MAIL_PASSWORD"] = os.environ.get("PRIMARY_EMAIL_PASSWORD") 
+application.config['MAIL_USE_TLS'] = False 
+application.config['MAIL_USE_SSL'] = True
 
 mail = Mail(application)
 
@@ -1316,10 +1317,16 @@ def send_email(recipients, title, body):
             current_app.extensions['mail'].send(msg)
             return True
         except SMTPDataError: 
-            print("Daily limits exceeded for primary Gmail SMTP server, switching to backup SMTP server.")
-            current_app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("BACKUP_EMAIL")
-            current_app.config["MAIL_USERNAME"] = os.environ.get("BACKUP_EMAIL")
+            print("Daily limits exceeded for primary Gmail SMTP server, switching to backup server.")
+            current_app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("BACKUP_EMAIL_LOGIN")
+            current_app.config["MAIL_USERNAME"] = os.environ.get("BACKUP_EMAIL_LOGIN")
+            current_app.config["MAIL_PASSWORD"] = os.environ.get("BACKUP_EMAIL_PASSWORD")
+            current_app.config["MAIL_PORT"] = os.environ.get("BACKUP_EMAIL_PORT")
+            current_app.config["MAIL_SERVER"] = os.environ.get("BACKUP_EMAIL_SERVER")
+        
+            # Reload mail service
             current_app.extensions['mail'] = Mail(current_app)
+            
             try: 
                 current_app.extensions['mail'].send(msg)
                 return True
