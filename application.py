@@ -26,6 +26,8 @@ import lxml.html
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
 
 load_dotenv() # load the env vars from local .env
 
@@ -164,9 +166,14 @@ class WebScraper:
                 url_cb = listing.url_cb
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
-                options = Options()
-                options.headless = True
-                driver = webdriver.Firefox(options=options)
+                
+                if os.environ.get("FIREFOX_BINARY_PATH") and os.environ.get("GECKODRIVER_PATH"):
+                    binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
+                    driver = webdriver.Firefox(firefox_binary=binary, executable_path=os.environ.get("GECKODRIVER_PATH"))
+                else:
+                    options = Options()
+                    options.headless = True
+                    driver = webdriver.Firefox(options=options)
                 #driver = webdriver.Firefox()
                 #driver.set_page_load_timeout(30)
                 driver.implicitly_wait(30)
