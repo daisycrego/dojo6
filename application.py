@@ -36,7 +36,7 @@ application.url_map.strict_slashes = False
 # instead of actually scraping the URLs.
 #TESTING = True
 #TESTING = False
-TESTING = os.environ.get("TESTING") if os.environ.get("TESTING") else True
+TESTING = False if os.environ.get("TESTING") and os.environ.get("TESTING") == "False" else True
 
 # Set up database based on environment's postgres URL
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
