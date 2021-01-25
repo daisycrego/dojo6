@@ -167,9 +167,11 @@ class WebScraper:
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
                 
-                if os.environ.get("FIREFOX_BINARY_PATH") and os.environ.get("GECKODRIVER_PATH"):
-                    binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    driver = webdriver.Firefox(firefox_binary=binary, geckodriver_path=os.environ.get("GECKODRIVER_PATH"))
+                print("FIREFOX_BIN")
+                print(os.environ.get("FIREFOX_BIN"))
+                if os.environ.get("FIREFOX_BIN"):
+                    binary = FirefoxBinary(os.environ.get("FIREFOX_BIN"))
+                    driver = webdriver.Firefox(firefox_binary=binary)
                 else:
                     options = Options()
                     options.headless = True
