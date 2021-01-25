@@ -14,9 +14,9 @@
                     <label class="big" for="search"> Search: </label>&nbsp<input placeholder="address, mls #" name="search"></input>
                     <button class="search-button glyphicon glyphicon-search" type="submit"></button>
                 </form>
-                {% if filterState.query_string %}
+                {% if filter_state.query_string %}
                     <span class="reset_query_container">
-                        <span>{{ filterState.query_string}}</span>
+                        <span>{{ filter_state.query_string}}</span>
                         <form id="reset_query_form" method="post" action="/toggle_filter_state/reset_query/">   
                             <a href="javascript:{}" onclick="document.getElementById('reset_query_form').submit();">
                                 <span class="remove-icon glyphicon glyphicon-remove"></span>
@@ -56,14 +56,14 @@
                             <span class="arrow-icons">
                                 <form id="filter_address_asc" method="post" action="/toggle_filter_state/address/">
                                     <input type="hidden" value="asc" name="address"/>
-                                    <a {% if filterState.sort_category.name == "address" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_asc').submit();">
+                                    <a {% if filter_state.sort_category.name == "address" and filter_state.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_asc').submit();">
                                         
                                         <span class="glyphicon glyphicon-chevron-up"></span>
                                     </a>
                                 </form>
                                 <form id="filter_address_desc" method="post" action="/toggle_filter_state/address/">
                                     <input type="hidden" value="desc" name="address"/>
-                                    <a {% if filterState.sort_category.name == "address" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_desc').submit();">
+                                    <a {% if filter_state.sort_category.name == "address" and filter_state.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_address_desc').submit();">
                                         <span class="glyphicon glyphicon-chevron-down"></span>
                                     </a>
                                 </form>
@@ -95,7 +95,7 @@
                                     
                                 {% for agent in agents %}
                                 
-                                    <input type="checkbox" name="check" value="{{agent.id}}" id="{{agent.name}}" {% if filterState.agents and agent.id in filterState.agents %} checked {% endif %}>
+                                    <input type="checkbox" name="check" value="{{agent.id}}" id="{{agent.name}}" {% if filter_state.agents and agent.id in filter_state.agents %} checked {% endif %}>
                                         <label for="check">{{agent.name}}</label>
                                    <br>
                                 
@@ -112,13 +112,13 @@
                             <span class="arrow-icons">
                                 <form id="filter_price_asc" method="post" action="/toggle_filter_state/price/">
                                     <input type="hidden" value="asc" name="price"/>
-                                    <a {% if filterState.sort_category.name == "price" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_asc').submit();">
+                                    <a {% if filter_state.sort_category.name == "price" and filter_state.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_asc').submit();">
                                         <span class="glyphicon glyphicon-chevron-up"></span>
                                     </a>
                                 </form>
                                 <form id="filter_price_desc" method="post" action="/toggle_filter_state/price/">
                                     <input type="hidden" value="desc" name="price"/>
-                                    <a {% if (filterState.sort_category.name == "default" or filterState.sort_category.name=="default") or (filterState.sort_category.name == 'price' and filterState.sort_order.name == "desc") %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_desc').submit();">
+                                    <a {% if (filter_state.sort_category.name == "default" or filter_state.sort_category.name=="default") or (filter_state.sort_category.name == 'price' and filter_state.sort_order.name == "desc") %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_price_desc').submit();">
                                         <span class="glyphicon glyphicon-chevron-down"></span>
                                     </a>
                                 </form>
@@ -134,14 +134,14 @@
                             <span class="arrow-icons">
                                 <form id="filter_views_zillow_asc" method="post" action="/toggle_filter_state/views_zillow/">
                                     <input type="hidden" value="asc" name="views_zillow"/>
-                                    <a {% if filterState.sort_category.name == "views_zillow" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_asc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_zillow" and filter_state.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_asc').submit();">
                                         
                                         <span class="glyphicon glyphicon-chevron-up"></span>
                                     </a>
                                 </form>
                                 <form id="filter_views_zillow_desc" method="post" action="/toggle_filter_state/views_zillow/">
                                     <input type="hidden" value="desc" name="views_zillow"/>
-                                    <a {% if filterState.sort_category.name == "views_zillow" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_desc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_zillow" and filter_state.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_zillow_desc').submit();">
                                         <span class="glyphicon glyphicon-chevron-down"></span>
                                     </a>
                                 </form>
@@ -154,13 +154,13 @@
                             <span class="arrow-icons">
                                 <form id="filter_views_redfin_asc" method="post" action="/toggle_filter_state/views_redfin/">
                                     <input type="hidden" value="asc" name="views_redfin"/>
-                                    <a {% if filterState.sort_category.name == "views_redfin" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_asc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_redfin" and filter_state.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_asc').submit();">
                                         <span class="glyphicon glyphicon-chevron-up"></span>
                                     </a>
                                 </form>
                                 <form id="filter_views_redfin_desc" method="post" action="/toggle_filter_state/views_redfin/">
                                     <input type="hidden" value="desc" name="views_redfin"/>
-                                    <a {% if filterState.sort_category.name == "views_redfin" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_desc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_redfin" and filter_state.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_redfin_desc').submit();">
                                         <span class="glyphicon glyphicon-chevron-down"></span>
                                     </a>
                                 </form>
@@ -173,14 +173,14 @@
                             <span class="arrow-icons">
                                 <form id="filter_views_cb_asc" method="post" action="/toggle_filter_state/views_cb/">
                                     <input type="hidden" value="asc" name="views_cb"/>
-                                    <a {% if filterState.sort_category.name == "views_cb" and filterState.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_asc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_cb" and filter_state.sort_order.name == "asc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_asc').submit();">
                                         
                                         <span class="glyphicon glyphicon-chevron-up"></span>
                                     </a>
                                 </form>
                                 <form id="filter_views_cb_desc" method="post" action="/toggle_filter_state/views_cb/">
                                     <input type="hidden" value="desc" name="views_cb"/>
-                                    <a {% if filterState.sort_category.name == "views_cb" and filterState.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_desc').submit();">
+                                    <a {% if filter_state.sort_category.name == "views_cb" and filter_state.sort_order.name == "desc" %} class="selected" {% endif %} href="javascript:{}" onclick="document.getElementById('filter_views_cb_desc').submit();">
                                         <span class="glyphicon glyphicon-chevron-down"></span>
                                     </a>
                                 </form>
@@ -206,7 +206,7 @@
                                 <form id="filter-status" method="post" action="/toggle_filter_state/status">
                                 {% for id, text in statuses.items() %}
                                 
-                                    <input type="checkbox" name="check" value="{{id}}" id="{{text}}" {% if filterState.statuses and id in filterState.statuses %} checked {% endif %}>
+                                    <input type="checkbox" name="check" value="{{id}}" id="{{text}}" {% if filter_state.statuses and id in filter_state.statuses %} checked {% endif %}>
                                         <label for="check">{{sentence_case(text)}}</label>
                                    <br>
                                 

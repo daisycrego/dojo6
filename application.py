@@ -1,69 +1,57 @@
-from flask import Flask, render_template, Response, request, redirect, url_for, flash, current_app
-from flask_login import UserMixin, LoginManager, login_user, \
-login_required, current_user, logout_user
-from flask_sqlalchemy import SQLAlchemy
 import os
-from base64 import b64encode
 import io
-import matplotlib
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-import pandas as pd
+from base64 import b64encode
 import datetime
 from datetime import date, timedelta, time
 import enum
-from sqlalchemy import asc, func, desc, and_
-import requests
 import ast
 import atexit
+import random, string
+import requests
+from flask import Flask, render_template, Response, request, redirect, url_for, flash, current_app
+from flask_login import UserMixin, LoginManager, login_user, \
+login_required, current_user, logout_user
+from sqlalchemy import asc, func, desc, and_
+from flask_sqlalchemy import SQLAlchemy
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
-import random, string
 from smtplib import SMTPDataError
 from dotenv import load_dotenv # for working locally, to access the .env file
 import lxml.etree
 import lxml.html
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
+
 load_dotenv() # load the env vars from local .env
 
-
-# EB looks for an 'application' callable by default.
 application = Flask(__name__)
 application.url_map.strict_slashes = False
 
-# Keep the code in TESTING=True mode to avoid running the web scraper excessively
+# When TESTING=True, the WebScraper will generate RANDOM values between 0-10 \
+# instead of actually scraping the URLs.
 TESTING = True
 #TESTING = False
-# Use the test db by default, avoid corrupting the actual db
-#application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///dojo_test'
 
+# Set up database based on environment's postgres URL
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-# Run this to setup the postgres db for the production db
-# export DATABASE_URL="postgresql:///dojo_listings"
 
+# Set secret key for use with Flask-Login for password hashing
 application.secret_key = os.environ.get("SECRET_KEY")
 
-admin_email = os.environ.get("ADMIN_EMAIL")
-
-# Set up mail gun server if one is attached to the app. (env vars set)
-# Otherwise use gmail server
-# Backup server is gmail server either way
+# Set up flask mail server and backup config
 application.config['MAIL_SERVER']= os.environ.get("PRIMARY_EMAIL_SERVER")
 application.config['MAIL_PORT'] = os.environ.get("PRIMARY_EMAIL_PORT")
-application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("PRIMARY_EMAIL_LOGIN") 
-application.config["MAIL_USERNAME"] = os.environ.get("PRIMARY_EMAIL_LOGIN") 
-application.config["MAIL_PASSWORD"] = os.environ.get("PRIMARY_EMAIL_PASSWORD") 
-application.config['MAIL_USE_TLS'] = False 
+application.config["MAIL_DEFAULT_SENDER"] = os.environ.get("PRIMARY_EMAIL_LOGIN")
+application.config["MAIL_USERNAME"] = os.environ.get("PRIMARY_EMAIL_LOGIN")
+application.config["MAIL_PASSWORD"] = os.environ.get("PRIMARY_EMAIL_PASSWORD")
+application.config['MAIL_USE_TLS'] = False
 application.config['MAIL_USE_SSL'] = True
-
 mail = Mail(application)
-
-TOKEN = os.environ.get("ACCESS_TOKEN")
 
 db = SQLAlchemy(application)
 
@@ -76,10 +64,6 @@ application.debug = False
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-from sqlalchemy.sql import func
-import enum
-from flask_login import UserMixin
 
 # WEB SCRAPER
 class WebScraper:
@@ -337,66 +321,81 @@ class FilterState(db.Model):
 @login_required
 def index():    
     if request.method == "POST":
+        # Retrieve search terms
         query = request.form.get("search")
-        filterState = FilterState.query.filter_by(user=current_user).first()
-        if not filterState: 
-            filterState = FilterState(user_id=current_user.id, user=current_user, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
-        # If this was a POST from a search form submission, there will be a query, so we either update the existing FilterState or create a new one, then redirect to the GET
-        # The GET query can handle the actual searching, we don't need to do it here at all. 
+        
+        # Find FilterState for this user - (state of all the filters on the Home Page (Listings View))
+        filter_state = FilterState.query.filter_by(user=current_user).first()
+        
+        # Create FilterState for this user if one doesn't exist
+        if not filter_state: 
+            # Initial filter state is: all agents, active listings only)
+            agents = [agent.id for agent in Agent.query.all()]
+            statuses = [Status.active.value]
+            filter_state = FilterState(user_id=current_user.id, user=current_user, agents=agents, statuses=statuses)
+        
+        # If this POST was from a search, there will be a query
         if query:
-            filterState.query_string = query if query else filterState.query_string
-        db.session.add(filterState)
+            filter_state.query_string = query if query else filter_state.query_string
+        
+        # Save the current FilterState and redirect to the GET route
+        db.session.add(filter_state)
         db.session.commit()
         return redirect(url_for('index'))
     else:
-        filterState = FilterState.query.filter_by(user=current_user).first()
+        # Find FilterState for this user
+        filter_state = FilterState.query.filter_by(user=current_user).first()
 
-        if not filterState: 
-            filterState = FilterState(user_id=current_user.id, user=current_user, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
+        # Create FilterState for this user if one doesn't exist
+        if not filter_state: 
+            # Initial filter state is: all agents, active listings only)
+            agents = [agent.id for agent in Agent.query.all()]
+            statuses = [Status.active.value]
+            filter_state = FilterState(user_id=current_user.id, user=current_user, agents=agents, statuses=statuses)
 
-        # perform query filtering if needed
-        query = filterState.query_string
+        # Perform query if FilterState has a query_string
+        query = filter_state.query_string
         if query:
             listings = Listing.query.filter(func.lower(Listing.address).contains(query.lower())).union(Listing.query.filter(Listing.mls == query))
             if not len(listings.all()):
-                flash(f"No listings found with an address containing '{query}'", 'warning')
+                flash(f"No listings found with an address or MLS # containing '{query}'", 'warning')
         else: 
             listings = Listing.query; 
 
-        if filterState.sort_category:
-            if filterState.sort_category == SortCategory.address: 
-                listings = listings.order_by(asc(Listing.address) if filterState.sort_order == SortOptions.asc else desc(Listing.address))
-            elif filterState.sort_category == SortCategory.price: 
-                listings = listings.order_by(asc(Listing.price) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
-            elif filterState.sort_category == SortCategory.views_zillow:
+        if filter_state.sort_category:
+            if filter_state.sort_category == SortCategory.address: 
+                listings = listings.order_by(asc(Listing.address) if filter_state.sort_order == SortOptions.asc else desc(Listing.address))
+            elif filter_state.sort_category == SortCategory.price: 
+                listings = listings.order_by(asc(Listing.price) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
+            elif filter_state.sort_category == SortCategory.views_zillow:
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
-                    ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_zillow) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
-                    ).order_by(desc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_zillow) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_zillow) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
-            elif filterState.sort_category == SortCategory.views_redfin: 
+            elif filter_state.sort_category == SortCategory.views_redfin: 
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
-                    ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_redfin) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
-                    ).order_by(desc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_redfin) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_redfin) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
-            elif filterState.sort_category == SortCategory.views_cb: 
+            elif filter_state.sort_category == SortCategory.views_cb: 
                 if query: 
                     listings = db.session.query(Listing).join(ListingViews
                     ).filter(Listing.id.in_([listing.id for listing in listings.all()])
-                    ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_cb) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
                 else: 
                     listings = db.session.query(Listing).join(ListingViews
-                    ).order_by(desc(ListingViews.views_cb) if filterState.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filterState.sort_order == SortOptions.asc else desc(Listing.price))
+                    ).order_by(desc(ListingViews.views_cb) if filter_state.sort_order == SortOptions.desc else (asc(ListingViews.views_cb) if filter_state.sort_order == SortOptions.asc else desc(Listing.price))
                     )
         else: 
             if query: 
@@ -410,18 +409,18 @@ def index():
         # Further filter the listings by status and agent
         statuses = dict()
         for category in Status:
-            if category.value in filterState.statuses:
+            if category.value in filter_state.statuses:
                 statuses.update({category.value: category.name})
 
         agents_dict = dict()
         agents = [agent for agent in Agent.query.all()]
         for agent in agents:
-            if agent.id in filterState.agents:
+            if agent.id in filter_state.agents:
                 agents_dict.update({agent.id: agent.id})
 
-        if filterState.statuses and len(filterState.statuses):
+        if filter_state.statuses and len(filter_state.statuses):
             listings = listings.filter(Listing.status.in_(statuses.values()))
-        if filterState.agents and len(filterState.agents):
+        if filter_state.agents and len(filter_state.agents):
             listings = listings.filter(Listing.agent_id.in_(agents_dict.values()))
 
         # Collect (runs the query, generates a list of Listing objects) 
@@ -459,65 +458,65 @@ def index():
             statuses.update({category.value: category.name})
         agents = Agent.query.all()
 
-        return render_template('list.html', listings=listings, agents=agents, filterState=filterState, latest_listing_views=dict_views, statuses=statuses)
+        return render_template('list.html', listings=listings, agents=agents, filter_state=filter_state, latest_listing_views=dict_views, statuses=statuses)
 
 @application.route('/toggle_filter_state/<filter_type>/', methods=["POST"])
 @login_required
 def toggle_filter_state(filter_type):
     state = request.form.get(filter_type)
-    filterState = FilterState.query.filter_by(user=current_user).first()
-    if not filterState:
-        filterState = FilterState(user=current_user, user_id=current_user.id, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
+    filter_state = FilterState.query.filter_by(user=current_user).first()
+    if not filter_state:
+        filter_state = FilterState(user=current_user, user_id=current_user.id, agents=[agent.id for agent in Agent.query.all()], statuses=[Status.active.value])
     if filter_type == "address":
         if state == "asc":
-            filterState.sort_category = SortCategory.address
-            filterState.sort_order = SortOptions.asc
+            filter_state.sort_category = SortCategory.address
+            filter_state.sort_order = SortOptions.asc
         elif state == "desc":
-            filterState.sort_category = SortCategory.address
-            filterState.sort_order = SortOptions.desc
+            filter_state.sort_category = SortCategory.address
+            filter_state.sort_order = SortOptions.desc
     elif filter_type == "agent":
         agents = [int(item) for item in request.form.getlist('check') ]
-        filterState.agents = agents
+        filter_state.agents = agents
     elif filter_type == "price":
         if state == "asc":
-            filterState.sort_category = SortCategory.price
-            filterState.sort_order = SortOptions.asc
+            filter_state.sort_category = SortCategory.price
+            filter_state.sort_order = SortOptions.asc
         else:
-            filterState.sort_category = SortCategory.price
-            filterState.sort_order = SortOptions.desc     
+            filter_state.sort_category = SortCategory.price
+            filter_state.sort_order = SortOptions.desc     
     elif filter_type == "status":
         statuses = [int(item) for item in request.form.getlist('check') ]
-        filterState.statuses = statuses
+        filter_state.statuses = statuses
     elif filter_type == "views_zillow":
         if state == "asc":
-            filterState.sort_category = SortCategory.views_zillow
-            filterState.sort_order = SortOptions.asc
+            filter_state.sort_category = SortCategory.views_zillow
+            filter_state.sort_order = SortOptions.asc
         elif state == "desc":
-            filterState.sort_category = SortCategory.views_zillow
-            filterState.sort_order = SortOptions.desc
+            filter_state.sort_category = SortCategory.views_zillow
+            filter_state.sort_order = SortOptions.desc
     elif filter_type == "views_redfin":
         if state == "asc":
-            filterState.sort_category = SortCategory.views_redfin
-            filterState.sort_order = SortOptions.asc
+            filter_state.sort_category = SortCategory.views_redfin
+            filter_state.sort_order = SortOptions.asc
         elif state == "desc":
-            filterState.sort_category = SortCategory.views_redfin
-            filterState.sort_order = SortOptions.desc
+            filter_state.sort_category = SortCategory.views_redfin
+            filter_state.sort_order = SortOptions.desc
     elif filter_type == "views_cb":
         if state == "asc":
-            filterState.sort_category = SortCategory.views_cb
-            filterState.sort_order = SortOptions.asc
+            filter_state.sort_category = SortCategory.views_cb
+            filter_state.sort_order = SortOptions.asc
         elif state == "desc":
-            filterState.sort_category = SortCategory.views_cb
-            filterState.sort_order = SortOptions.desc
+            filter_state.sort_category = SortCategory.views_cb
+            filter_state.sort_order = SortOptions.desc
     elif filter_type == "reset":
-        filterState.sort_category = SortCategory.price
-        filterState.sort_order = SortOptions.desc
-        filterState.agents = [agent.id for agent in Agent.query.all()]
-        filterState.statuses = [Status.active.value]
-        filterState.query_string = None
+        filter_state.sort_category = SortCategory.price
+        filter_state.sort_order = SortOptions.desc
+        filter_state.agents = [agent.id for agent in Agent.query.all()]
+        filter_state.statuses = [Status.active.value]
+        filter_state.query_string = None
     elif filter_type == "reset_query":
-        filterState.query_string = None
-    db.session.add(filterState)
+        filter_state.query_string = None
+    db.session.add(filter_state)
     db.session.commit()
     return redirect(request.referrer)
 
@@ -860,10 +859,10 @@ def delete_agent(id=None):
         return redirect(request.referrer)
     agent = Agent.query.filter_by(id=id).first()
     if agent:
-            agent.status = Status.deleted
-            db.session.add(agent)
-            db.session.commit()
-            flash("Agent deleted successfully.", 'success')
+        agent.status = Status.deleted
+        db.session.add(agent)
+        db.session.commit()
+        flash("Agent deleted successfully.", 'success')
     else:
         flash(f"Agent not found with id: {id}. Unable to delete this agent.", 'error')
     return redirect(request.referrer)
@@ -1092,11 +1091,12 @@ def scrape_listings_weekly():
         # Log scraping event
         log_data_collection(CollectionType.weekly, listings, status=True, errors=errors)
 
-        # Email admin to notify about scraping run.
-        admin_email = os.environ.get("ADMIN_EMAIL")
-        if admin_email:
+        # Email admins to notify about scraping run.
+        admins = User.query.filter_by(is_admin=True).all()
+        if admins:
             body = f"Property views were scraped for this week.\nJob Status: {'Passed' if scraped else 'Failed'}\n"
-            send_email([admin_email], "JBG Listings - Weekly Listings Report", body)
+            emails = [admin.email for admin in admins]
+            send_email(emails, "JBG Listings - Weekly Listings Report", body)
     else:
         log_data_collection(CollectionType.weekly, listings, status=False, errors=errors)
 
@@ -1303,7 +1303,8 @@ def register(data=None):
         
         if request.args.get("data"):
             data = ast.literal_eval(request.args.get("data").rstrip('/'))
-        return render_template('register.html', admin_email=admin_email, data=data, token=token)
+        
+        return render_template('register.html', data=data, token=token)
 
 def send_email(recipients, title, body):
     with application.app_context():
@@ -1452,10 +1453,9 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
-        
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=19, minute=00)
-    # Check which jobs are scheduled
-    # scheduler.print_jobs()
+    
+    # Test Job
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon", hour=11, minute=32)
 
     scheduler.start()
 
