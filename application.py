@@ -166,7 +166,7 @@ class WebScraper:
                 root = lxml.html.fromstring(cb_request.content)
                 options = Options()
                 options.headless = True
-                driver = webdriver.Firefox(options=options, executable_path="geckodriver")
+                driver = webdriver.Firefox(options=options, executable_path="/usr/local/bin/geckodriver")
                 driver.set_page_load_timeout(30)
                 #driver.implicitly_wait(30)
                 driver.get(url_cb) 
