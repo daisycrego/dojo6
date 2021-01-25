@@ -34,8 +34,9 @@ application.url_map.strict_slashes = False
 
 # When TESTING=True, the WebScraper will generate RANDOM values between 0-10 \
 # instead of actually scraping the URLs.
-TESTING = True
+#TESTING = True
 #TESTING = False
+TESTING = os.environ.get("TESTING") if os.environ.get("TESTING") else True
 
 # Set up database based on environment's postgres URL
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']

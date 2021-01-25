@@ -25,8 +25,8 @@ class CSVLoader:
                 else:
                     agent = Agent.query.filter_by(name=agent_name).first()
 
-                price = int(row["LP"].replace("$", "").replace("","").replace(",",""))
-                new_listing = Listing(address=row["Address"], url_zillow=row["Zillow URL"], url_redfin=row["Redfin URL"], url_cb=row["Coldwell Banker URL"], agent=agent, agent_id=agent.id, price=price, mls=row["MLS"])
+                price = int(row["Listing Price"].replace("$", "").replace("","").replace(",",""))
+                new_listing = Listing(address=row["Address"], url_zillow=row["Zillow URL"], url_redfin=row["Redfin URL"], url_cb=row["Coldwell Banker URL"], agent=agent, agent_id=agent.id, price=price)
                 
                 db.session.add(new_listing)
                 db.session.commit()

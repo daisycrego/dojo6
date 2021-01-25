@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv # for working locally, to access the .env file
 load_dotenv() # load the env vars from local .env
 
-CSVLoader.readListingCSV("listings.csv") # load all the data
+CSVLoader.readListingCSV("listings_latest.csv") # load all the data
 
 # create an admin user 
 new_user = User(email=os.environ.get("ADMIN_EMAIL"), name="Root User", password=generate_password_hash(os.environ.get("ADMIN_PASS"), method='sha256'), is_admin=True)
