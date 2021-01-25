@@ -169,7 +169,7 @@ class WebScraper:
                 
                 if os.environ.get("FIREFOX_BINARY_PATH") and os.environ.get("GECKODRIVER_PATH"):
                     binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    driver = webdriver.Firefox(firefox_binary=binary, executable_path=os.environ.get("GECKODRIVER_PATH"))
+                    driver = webdriver.Firefox(firefox_binary=binary, geckodriver_path=os.environ.get("GECKODRIVER_PATH"))
                 else:
                     options = Options()
                     options.headless = True
