@@ -1,14 +1,13 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, flash, current_app
-from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
+from flask_login import UserMixin, LoginManager, login_user, \
+login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-#from sqlalchemy.sql import func, desc
 import os
 from base64 import b64encode
 import io
-import matplotlib 
+import matplotlib
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-import numpy as np
 import pandas as pd
 import datetime
 from datetime import date, timedelta, time
@@ -30,7 +29,6 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.options import Options
-import ssl
 load_dotenv() # load the env vars from local .env
 
 
