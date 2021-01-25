@@ -66,6 +66,9 @@ application.debug = False
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+binary = FirefoxBinary('geckodriver/geckodriver')
+
 # WEB SCRAPER
 class WebScraper:
     zillow_headers = {
@@ -166,7 +169,7 @@ class WebScraper:
                 root = lxml.html.fromstring(cb_request.content)
                 options = Options()
                 options.headless = True
-                driver = webdriver.Firefox(options=options, executable_path="geckodriver")
+                driver = webdriver.Firefox(firefox_binary=binary)
                 driver.set_page_load_timeout(30)
                 #driver.implicitly_wait(30)
                 driver.get(url_cb) 
