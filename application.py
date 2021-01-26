@@ -145,46 +145,46 @@ class WebScraper:
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
                 
-                print("FIREFOX_BINARY_PATH")
-                print(os.environ.get("FIREFOX_BINARY_PATH"))
-                if False:
+                #print("FIREFOX_BINARY_PATH")
+                #print(os.environ.get("FIREFOX_BINARY_PATH"))
+                #if False:
                     #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
                     #driver = webdriver.Firefox(firefox_binary=binary)
-                else:
+                #else:
                     #options = Options()
                     #options.headless = True
-                    try:
-                        driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
-                        #driver = webdriver.Firefox(options=options)
+                try:
+                    driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
+                    #driver = webdriver.Firefox(options=options)
 
-                        #driver = webdriver.Firefox()
-                        #driver.set_page_load_timeout(30)
-                        driver.implicitly_wait(30)
-                        driver.get(url_cb) 
+                    #driver = webdriver.Firefox()
+                    #driver.set_page_load_timeout(30)
+                    driver.implicitly_wait(30)
+                    driver.get(url_cb) 
 
-                        attempts = 0
-                        while attempts < 100: 
-                            try: 
-                                #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
-                                elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                                views = elem_parent.get_attribute('innerText').split(" ")[1]
-                                cb_views = int(views.replace(',',''))
-                                final_results["cb"] = cb_views
-                                break
-                            except NoSuchElementException:
-                                attempts += 1
-                                if attempts > 100: 
-                                    error_filename = f"{i}_url_err.log"
-                                    error_file = open(error_filename, 'w+')
-                                    error_file.write(driver.page_source)
-                                else:
-                                    continue
-                        
-                        driver.quit()
-                    except WebDriverException as e:
-                        flash(f"Error while scraping CB values: {e}\n Aborting the scraping run.")
-                        final_results["cb"] = None
-                        return redirect(request.referrer)
+                    attempts = 0
+                    while attempts < 100: 
+                        try: 
+                            #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
+                            elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
+                            views = elem_parent.get_attribute('innerText').split(" ")[1]
+                            cb_views = int(views.replace(',',''))
+                            final_results["cb"] = cb_views
+                            break
+                        except NoSuchElementException:
+                            attempts += 1
+                            if attempts > 100: 
+                                error_filename = f"{i}_url_err.log"
+                                error_file = open(error_filename, 'w+')
+                                error_file.write(driver.page_source)
+                            else:
+                                continue
+                    
+                    driver.quit()
+                except (WebDriverException, FileNotFoundError) as e:
+                    flash(f"Error while scraping CB values: {e}\n Aborting the scraping run.")
+                    final_results["cb"] = None
+                    return redirect(request.referrer)
             
             if listing.url_zillow and "zillow.com" in listing.url_zillow:
                 url_zillow = listing.url_zillow
