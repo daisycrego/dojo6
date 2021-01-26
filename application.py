@@ -179,7 +179,7 @@ class WebScraper:
 
                     #driver = webdriver.Firefox()
                     driver.set_page_load_timeout(30)
-                    driver.implicitly_wait(30)
+                    #driver.implicitly_wait(30)
                     driver.get(url_cb) 
 
                     attempts = 0
