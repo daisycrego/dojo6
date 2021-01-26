@@ -174,6 +174,7 @@ class WebScraper:
                     return redirect(request.referrer)
             
             if listing.url_zillow and "zillow.com" in listing.url_zillow:
+                print("Processing url_zillow")
                 url_zillow = listing.url_zillow
                 r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
@@ -193,7 +194,7 @@ class WebScraper:
                 print(root)
                 try:
                     print("raw val before conversion to int:", end=" ")
-                    print(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
+                    print(root.xpath('/html/body/div[1]/div[8]/div[2]/div[17]/section/div/div/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
                     #print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
                     redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
                     #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
@@ -202,7 +203,7 @@ class WebScraper:
                     redfin_views = None
                 final_results["redfin"] = redfin_views
 
-            
+        print(f"final_results: {final_results}")
                     
         midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
         existing_views = ListingViews.query.filter_by(listing_id=id).filter(ListingViews.date >= midnight).first()
