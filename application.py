@@ -187,8 +187,10 @@ class WebScraper:
                             driver.get(url_cb)
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
+                            print(f"elem_parent: {elem_parent}")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
                             cb_views = int(views.replace(',',''))
+                            print(f"cb_views: {cb_views}")
                             final_results["cb"] = cb_views
                             break
                         except NoSuchElementException:
