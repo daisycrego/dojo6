@@ -144,40 +144,13 @@ class WebScraper:
                 url_cb = listing.url_cb
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
-                
-                #print("FIREFOX_BINARY_PATH")
-                #print(os.environ.get("FIREFOX_BINARY_PATH"))
-                #if False:
-                    #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    #driver = webdriver.Firefox(firefox_binary=binary)
-                #else:
-                    #options = Options()
-                    #options.headless = True
                 try:
-                    #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    #CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
-                    #chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
-                    #print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
-                    #options = webdriver.ChromeOptions()
-                    #options.binary_location = chrome_bin
-                    
-                    #options.add_argument("—-no-sandbox")
-                    #options.add_argument("--disable-dev-shm-usage") 
-                    # https://stackoverflow.com/questions/50642308/webdriverexception-unknown-error-devtoolsactiveport-file-doesnt-exist-while-t
-                    
-                    #options.add_argument("—-disable-gpu")
-                    #options.add_argument("—-headless")
-                    #driver = webdriver.Chrome(chrome_options=options, executable_path=CHROMEDRIVER_PATH)
 
                     options = Options()
                     options.headless = True
                     options.binary = "/app/vendor/firefox/firefox"
                     driver = webdriver.Firefox(options=options, executable_path="/app/vendor/geckodriver")
 
-                    #driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
-                    #driver = webdriver.Firefox(options=options)
-
-                    #driver = webdriver.Firefox()
                     driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
                      
@@ -187,10 +160,8 @@ class WebScraper:
                             driver.get(url_cb)
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                            print(f"elem_parent: {elem_parent}")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
                             cb_views = int(views.replace(',',''))
-                            print(f"cb_views: {cb_views}")
                             final_results["cb"] = cb_views
                             break
                         except NoSuchElementException:
@@ -220,6 +191,7 @@ class WebScraper:
                 root = lxml.html.fromstring(r.content)
                 try:
                     redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    print(f"redfin_views: {redfin_views}")
                 except (IndexError,ValueError) as e:
                     redfin_views = None
                 final_results["redfin"] = redfin_views
