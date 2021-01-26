@@ -5,7 +5,6 @@ libxcursor1
 libxdamage1 
 libxfixes3 
 libxi6 
-libxtst6 
 libnss3 
 libgconf-2-4 
 libxrandr2 
@@ -15,6 +14,4 @@ libgtk2.0-0
 libgtk-3-0 
 libxinerama1 
 libcairo-gobject2
-libxext.x86_64
-libxrender.x86_64
-libxtst.x86_64
+libxtst6:i386
