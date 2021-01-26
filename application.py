@@ -147,15 +147,15 @@ class WebScraper:
                 
                 print("FIREFOX_BINARY_PATH")
                 print(os.environ.get("FIREFOX_BINARY_PATH"))
-                if os.environ.get("FIREFOX_BINARY_PATH"):
-                    binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    driver = webdriver.Firefox(firefox_binary=binary)
+                if False:
+                    #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
+                    #driver = webdriver.Firefox(firefox_binary=binary)
                 else:
-                    options = Options()
-                    options.headless = True
+                    #options = Options()
+                    #options.headless = True
                     try:
-                        #driver = webdriver.Firefox(executable=os.environ.get("GECKODRIVER_PATH"))
-                        driver = webdriver.Firefox(options=options)
+                        driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
+                        #driver = webdriver.Firefox(options=options)
 
                         #driver = webdriver.Firefox()
                         #driver.set_page_load_timeout(30)
