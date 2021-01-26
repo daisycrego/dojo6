@@ -157,7 +157,7 @@ class WebScraper:
                     #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
                     CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
                     chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
-                    print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
+                    #print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
                     options = webdriver.ChromeOptions()
                     options.binary_location = chrome_bin
                     options.add_argument("--disable-dev-shm-usage") # overcome limited resource problems
