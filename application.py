@@ -151,7 +151,7 @@ class WebScraper:
                     options.binary = "/app/vendor/firefox/firefox"
                     driver = webdriver.Firefox(options=options, executable_path="/app/vendor/geckodriver")
 
-                    driver.set_page_load_timeout(30)
+                    #driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
                      
                     attempts = 0
