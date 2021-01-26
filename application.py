@@ -139,6 +139,22 @@ class WebScraper:
             final_results["cb"] = random.randint(0,10)
         else:
 
+            # redfin 
+            if listing.url_redfin and "redfin.com" in listing.url_redfin:
+                url_redfin = listing.url_redfin
+                print(f"url_redfin: {url_redfin}")
+                r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                root = lxml.html.fromstring(r.content)
+                print(root)
+                try:
+                    print("raw val before conversion to int:", end=" ")
+                    print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    print(f"redfin_views after conversion to int: {redfin_views}")
+                except (IndexError,ValueError) as e:
+                    redfin_views = None
+                final_results["redfin"] = redfin_views
+
             # cb 
             if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
                 url_cb = listing.url_cb
@@ -184,21 +200,7 @@ class WebScraper:
                     zillow_views = None
                 final_results["zillow"] = zillow_views
             
-            # redfin 
-            if listing.url_redfin and "redfin.com" in listing.url_redfin:
-                url_redfin = listing.url_redfin
-                print(f"url_redfin: {url_redfin}")
-                r = requests.get(url=url_redfin, headers=self.redfin_headers)
-                root = lxml.html.fromstring(r.content)
-                print(root)
-                try:
-                    print("raw val before conversion to int:", end=" ")
-                    print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    print(f"redfin_views after conversion to int: {redfin_views}")
-                except (IndexError,ValueError) as e:
-                    redfin_views = None
-                final_results["redfin"] = redfin_views
+            
 
             
                     
