@@ -154,8 +154,8 @@ class WebScraper:
                     options = Options()
                     options.headless = True
                     try:
-                        driver = webdriver.Firefox(executable=os.environ.get("GECKODRIVER_PATH"))
-                        #driver = webdriver.Firefox(options=options)
+                        #driver = webdriver.Firefox(executable=os.environ.get("GECKODRIVER_PATH"))
+                        driver = webdriver.Firefox(options=options)
 
                         #driver = webdriver.Firefox()
                         #driver.set_page_load_timeout(30)
@@ -182,7 +182,7 @@ class WebScraper:
                         
                         driver.quit()
                     except WebDriverException as e:
-                        flash(f"Error while scraping CB values: {e}. Aborting the scraping run.")
+                        flash(f"Error while scraping CB values: {e}\n Aborting the scraping run.")
                         final_results["cb"] = None
                         return redirect(request.referrer)
             
