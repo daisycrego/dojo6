@@ -178,8 +178,8 @@ class WebScraper:
                             #elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             #views = elem_parent.get_attribute('innerText').split(" ")[1]
                             #cb_views = int(views.replace(',',''))
-                            cb_views = driver.find_elements_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0]
-                            print(cb_views)
+                            print(driver.find_element_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
+                            cb_views = find_element_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')
                             cb_views = int(cb_views.replace(',', ''))
                             print(cb_views)
                             final_results["cb"] = cb_views
