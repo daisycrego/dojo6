@@ -155,24 +155,24 @@ class WebScraper:
                     #options.headless = True
                 try:
                     #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
-                    CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
-                    chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
-                    print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
-                    options = webdriver.ChromeOptions()
-                    options.binary_location = chrome_bin
+                    #CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
+                    #chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
+                    #print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
+                    #options = webdriver.ChromeOptions()
+                    #options.binary_location = chrome_bin
                     
-                    options.add_argument("—-no-sandbox")
-                    options.add_argument("--disable-dev-shm-usage") 
+                    #options.add_argument("—-no-sandbox")
+                    #options.add_argument("--disable-dev-shm-usage") 
                     # https://stackoverflow.com/questions/50642308/webdriverexception-unknown-error-devtoolsactiveport-file-doesnt-exist-while-t
                     
                     #options.add_argument("—-disable-gpu")
-                    options.add_argument("—-headless")
-                    driver = webdriver.Chrome(chrome_options=options, executable_path=CHROMEDRIVER_PATH)
+                    #options.add_argument("—-headless")
+                    #driver = webdriver.Chrome(chrome_options=options, executable_path=CHROMEDRIVER_PATH)
 
-                    #options = Options()
-                    #options.headless = True
-                    #options.binary = "/app/vendor/firefox/firefox"
-                    #driver = webdriver.Firefox(options=options, executable_path="/app/vendor/geckodriver")
+                    options = Options()
+                    options.headless = True
+                    options.binary = "/app/vendor/firefox/firefox"
+                    driver = webdriver.Firefox(options=options, executable_path="/app/vendor/geckodriver")
 
                     #driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
                     #driver = webdriver.Firefox(options=options)
