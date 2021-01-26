@@ -160,8 +160,9 @@ class WebScraper:
                     #print(f"GOOGLE_CHROME_BIN: {chrome_bin}")
                     options = webdriver.ChromeOptions()
                     options.binary_location = chrome_bin
-                    options.add_argument("--disable-dev-shm-usage") # overcome limited resource problems
+                    
                     options.add_argument("—-no-sandbox")
+                    options.add_argument("--disable-dev-shm-usage") # overcome limited resource problems
                     #options.add_argument("—-disable-gpu")
                     options.add_argument("—-headless")
                     driver = webdriver.Chrome(chrome_options=options, executable_path=CHROMEDRIVER_PATH)
