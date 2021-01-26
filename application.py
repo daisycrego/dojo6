@@ -156,7 +156,7 @@ class WebScraper:
                 try:
                     #binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
                     CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
-                    chrome_bin = os.environ.get(‘GOOGLE_CHROME_BIN’, “chromedriver”)
+                    chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
                     options = webdriver.ChromeOptions()
                     options.binary_location = chrome_bin
                     options.add_argument(" — disable-gpu")
