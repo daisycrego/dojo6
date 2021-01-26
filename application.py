@@ -180,11 +180,11 @@ class WebScraper:
                     #driver = webdriver.Firefox()
                     driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
-                    driver.get(url_cb) 
-
+                     
                     attempts = 0
                     while attempts < 100: 
                         try: 
+                            driver.get(url_cb)
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
@@ -193,12 +193,6 @@ class WebScraper:
                             break
                         except NoSuchElementException:
                             attempts += 1
-                            if attempts > 100: 
-                                error_filename = f"{i}_url_err.log"
-                                error_file = open(error_filename, 'w+')
-                                error_file.write(driver.page_source)
-                            else:
-                                continue
                     
                     driver.quit()
                 except (WebDriverException, FileNotFoundError) as e:
