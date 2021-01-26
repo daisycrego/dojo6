@@ -139,22 +139,6 @@ class WebScraper:
             final_results["cb"] = random.randint(0,10)
         else:
 
-            # redfin 
-            if listing.url_redfin and "redfin.com" in listing.url_redfin:
-                url_redfin = listing.url_redfin
-                print(f"url_redfin: {url_redfin}")
-                r = requests.get(url=url_redfin, headers=self.redfin_headers)
-                root = lxml.html.fromstring(r.content)
-                print(root)
-                try:
-                    print("raw val before conversion to int:", end=" ")
-                    print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    print(f"redfin_views after conversion to int: {redfin_views}")
-                except (IndexError,ValueError) as e:
-                    redfin_views = None
-                final_results["redfin"] = redfin_views
-
             # cb 
             if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
                 url_cb = listing.url_cb
@@ -175,13 +159,9 @@ class WebScraper:
                         try: 
                             driver.get(url_cb)
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
-                            #elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                            #views = elem_parent.get_attribute('innerText').split(" ")[1]
-                            #cb_views = int(views.replace(',',''))
-                            print(driver.find_element_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
-                            cb_views = find_element_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')
-                            cb_views = int(cb_views.replace(',', ''))
-                            print(cb_views)
+                            elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
+                            views = elem_parent.get_attribute('innerText').split(" ")[1]
+                            cb_views = int(views.replace(',',''))
                             final_results["cb"] = cb_views
                             break
                         except NoSuchElementException:
@@ -204,7 +184,23 @@ class WebScraper:
                     zillow_views = None
                 final_results["zillow"] = zillow_views
             
-            
+            # redfin 
+            if listing.url_redfin and "redfin.com" in listing.url_redfin:
+                url_redfin = listing.url_redfin
+                print(f"url_redfin: {url_redfin}")
+                r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                root = lxml.html.fromstring(r.content)
+                print(root)
+                try:
+                    print("raw val before conversion to int:", end=" ")
+                    print(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
+                    #print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
+                    #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    print(f"redfin_views after conversion to: {redfin_views}")
+                except (IndexError,ValueError) as e:
+                    redfin_views = None
+                final_results["redfin"] = redfin_views
 
             
                     
