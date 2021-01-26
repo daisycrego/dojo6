@@ -15,3 +15,6 @@ libgtk2.0-0
 libgtk-3-0 
 libxinerama1 
 libcairo-gobject2
+libXext.x86_64
+libXrender.x86_64
+libXtst.x86_64
