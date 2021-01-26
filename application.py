@@ -183,7 +183,7 @@ class WebScraper:
                     driver.get(url_cb) 
 
                     attempts = 0
-                    while attempts < 100: 
+                    while attempts < 1000: 
                         try: 
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
