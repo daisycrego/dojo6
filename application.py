@@ -154,7 +154,10 @@ class WebScraper:
                     #options = Options()
                     #options.headless = True
                 try:
-                    driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
+                    binary = FirefoxBinary(os.environ.get("FIREFOX_BINARY_PATH"))
+                    browser = webdriver.Firefox(firefox_binary=binary)
+
+                    #driver = webdriver.Firefox(executable_path=os.environ.get("GECKODRIVER_PATH"))
                     #driver = webdriver.Firefox(options=options)
 
                     #driver = webdriver.Firefox()
