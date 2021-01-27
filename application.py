@@ -40,6 +40,10 @@ application.url_map.strict_slashes = False
 #TESTING = False
 TESTING = False if os.environ.get("TESTING") and os.environ.get("TESTING") == "False" else True
 
+# Determines whether scraper is active or not
+LOCAL = False if os.environ.get("LOCAL") and os.environ.get("LOCAL") == "False" else True
+
+
 # Set up database based on environment's postgres URL
 application.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
@@ -479,7 +483,7 @@ def index():
             statuses.update({category.value: category.name})
         agents = Agent.query.all()
 
-        return render_template('list.html', listings=listings, agents=agents, filter_state=filter_state, latest_listing_views=dict_views, statuses=statuses)
+        return render_template('list.html', scraper_active=LOCAL, listings=listings, agents=agents, filter_state=filter_state, latest_listing_views=dict_views, statuses=statuses)
 
 @application.route('/toggle_filter_state/<filter_type>/', methods=["POST"])
 @login_required
@@ -559,7 +563,7 @@ def detail_listing(id=None, errors=None):
     if errors:
         flash(f"{errors[0]} For more details, please see the Logs.", 'error')
     listing_views = ListingViews.query.filter_by(listing_id=id).order_by(desc(ListingViews.date)).all()
-    return render_template('detail_listing.html', id=id, listing=listing, price=price, plot=True, statuses=statuses, listing_views=listing_views)
+    return render_template('detail_listing.html', id=id, scraper_active=LOCAL, listing=listing, price=price, plot=True, statuses=statuses, listing_views=listing_views)
 
 ## Listing - Create  
 @application.route('/listing/create/', methods=["GET", "POST"])
@@ -1462,7 +1466,9 @@ def reset_password():
 # Prevent the scheduler from running in the master 
 # process. 
 #https://stackoverflow.com/questions/9449101/how-to-stop-flask-from-initialising-twice-in-debug-mode
-if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+# Only schedule the background process if this is a local deployment
+# because the scraper should only be run on the local version.
+if LOCAL and (application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')
@@ -1472,6 +1478,10 @@ if not (application.debug or os.environ.get("FLASK_ENV") == "development") or os
     # Every Friday at 5:30 pm 
     scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
     
+    # TESTING 
+
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=14, minute=7)
+
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
     
@@ -1492,5 +1502,6 @@ if __name__ == "__main__":
     application.run(use_reloader=False)
 
     print(f"TESTING = {TESTING}")
+    print(f"LOCAL = {LOCAL}")
 
     
