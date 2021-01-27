@@ -160,7 +160,7 @@ class WebScraper:
                     options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
                     driver = webdriver.Firefox(options=options, executable_path=executable_path)
 
-                    #driver.set_page_load_timeout(30)
+                    driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
                      
                     attempts = 0
@@ -1104,6 +1104,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 def scrape_listings_weekly():
+    print("Running scrape_listings_weekly")
     # Retrieve all of the current listings
     listings = Listing.query.all()
 
@@ -1469,7 +1470,7 @@ def reset_password():
 # Only schedule the background process if this is a local deployment
 # because the scraper should only be run on the local version.
 if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
-    
+    print("Scheduling background jobs here")
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')
 
@@ -1480,7 +1481,7 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=14, minute=20)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=14, minute=27)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
