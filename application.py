@@ -1468,7 +1468,7 @@ def reset_password():
 #https://stackoverflow.com/questions/9449101/how-to-stop-flask-from-initialising-twice-in-debug-mode
 # Only schedule the background process if this is a local deployment
 # because the scraper should only be run on the local version.
-if LOCAL and (application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development") or os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
     
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.configure(timezone='est')
@@ -1480,7 +1480,7 @@ if LOCAL and (application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=14, minute=15)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=14, minute=20)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
