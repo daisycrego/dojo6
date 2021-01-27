@@ -1034,12 +1034,12 @@ def scrape_listings(listings=None):
     listings_to_scrape = []
     for listing in listings:
         
-        fifteen_min_ago = datetime.datetime.now() - timedelta(minutes=15)
-        existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date > fifteen_min_ago).first()
-        if not existing_views:
-            listings_to_scrape.append(listing)
-        else:
-            errors.append(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
+        #fifteen_min_ago = datetime.datetime.now() - timedelta(minutes=15)
+        #existing_views = ListingViews.query.filter_by(listing_id=listing.id).filter(ListingViews.date > fifteen_min_ago).first()
+        #if not existing_views:
+        listings_to_scrape.append(listing)
+        #else:
+        #    errors.append(f"{listing.address} scraped less than 15 minutes ago. Please try again later or talk to your system adminstrator.")
     if errors:
         return errors
 
