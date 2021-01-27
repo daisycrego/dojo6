@@ -143,14 +143,41 @@ class WebScraper:
             final_results["redfin"] = random.randint(0,10)
             final_results["cb"] = random.randint(0,10)
         else:
+            # redfin 
+            if listing.url_redfin and "redfin.com" in listing.url_redfin:
+                print(f"url_redfin: {url_redfin}")
+                url_redfin = listing.url_redfin
+                r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                root = lxml.html.fromstring(r.content)
+                #print(r.content)
 
+                with open(f'redfin_output_{listing.id}.html', 'w') as f:
+                     f.write(str(r.content))
+                try:
+                    #print("raw val before conversion to int:", end=" ")
+                    #print(root.xpath('/html/body/div[1]/div[8]/div[2]/div[17]/section/div/div/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
+                    #print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
+                    #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
+                    #print(f"redfin_views after conversion to: {redfin_views}")
+                except (IndexError,ValueError) as e:
+                    print("Initial xpath select for redfin failed, trying backup css selector")
+                    print(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count'))
+                    try: 
+                        redfin_views = int(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count')[0].text.replace(',',''))
+                        #activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count
+                    except (IndexError,ValueError) as e:
+                        redfin_views = None
+                
+                final_results["redfin"] = redfin_views
             # cb 
             if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-                url_cb = listing.url_cb
+                url_cb = listing.url_cb 
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
+                with open(f'cb_output_{listing.id}.html', 'w') as f:
+                     f.write(str(cb_request.content))
                 try:
-
                     options = Options()
                     options.headless = True
                     executable_path = os.environ.get("GECKODRIVER_PATH")
@@ -167,6 +194,7 @@ class WebScraper:
                     while attempts < 100: 
                         try: 
                             driver.get(url_cb)
+                            
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
@@ -176,43 +204,33 @@ class WebScraper:
                         except NoSuchElementException:
                             attempts += 1
                     
+                    if not final_results["cb"]:
+                        print(f"url_cb: {url_cb}")
+                        print(driver.page_source)
+
                     driver.quit()
                 except (WebDriverException, FileNotFoundError) as e:
                     flash(f"Error while scraping CB values: {e}\n Aborting the scraping run.")
                     final_results["cb"] = None
+                    
                     return redirect(request.referrer)
             
             if listing.url_zillow and "zillow.com" in listing.url_zillow:
-                print("Processing url_zillow")
                 url_zillow = listing.url_zillow
                 r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
+                with open(f'zillow_output_{listing.id}.html', 'w') as f:
+                     f.write(str(cb_request.content))
                 results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
                 try: 
                     zillow_views = int(results[1].text.replace(',',''))
                 except (IndexError,ValueError) as e:
                     zillow_views = None
+                if not zillow_views: 
+                    print(f"url_zillow: {url_zillow}")
+                    print(r.content)
                 final_results["zillow"] = zillow_views
-            
-            # redfin 
-            if listing.url_redfin and "redfin.com" in listing.url_redfin:
-                url_redfin = listing.url_redfin
-                print(f"url_redfin: {url_redfin}")
-                r = requests.get(url=url_redfin, headers=self.redfin_headers)
-                print(r.content)
-                root = lxml.html.fromstring(r.content)
-                print(root)
-                try:
-                    print("raw val before conversion to int:", end=" ")
-                    print(root.xpath('/html/body/div[1]/div[8]/div[2]/div[17]/section/div/div/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
-                    #print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
-                    #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    print(f"redfin_views after conversion to: {redfin_views}")
-                except (IndexError,ValueError) as e:
-                    redfin_views = None
-                final_results["redfin"] = redfin_views
-
+                    
         print(f"final_results: {final_results}")
                     
         midnight = datetime.datetime.combine(datetime.datetime.today(), time.min)
@@ -225,13 +243,13 @@ class WebScraper:
         else:
             print("ListingViews already scraped today for this listing... updating the ListingViews object if the new value is larger")
             changed = False
-            if final_results["zillow"] > existing_views.views_zillow:
+            if not existing_views.views_zillow or (not existing_views.views_zillow is None and not final_results["zillow"] is None and final_results["zillow"] > existing_views.views_zillow):
                 existing_views.views_zillow = final_results["zillow"]
                 changed = True 
-            if final_results["redfin"] > existing_views.views_redfin:
+            if not existing_views.views_redfin or (not existing_views.views_redfin is None and not final_results["redfin"] is None and final_results["redfin"] > existing_views.views_redfin):
                 existing_views.views_redfin = final_results["redfin"]
                 changed = True 
-            if final_results["cb"] > existing_views.views_cb:
+            if not existing_views.views_cb or (not existing_views.views_cb is None and not final_results["cb"] is None and final_results["cb"] > existing_views.views_cb):
                 existing_views.views_cb = final_results["cb"]
                 changed = True 
             if changed:
@@ -1026,6 +1044,7 @@ def plot_png(id=None):
 
 ## Helper - Scrapes all the listings passed in the input array using the WebScraper class
 def scrape_listings(listings=None):
+    print(f"scrape_listings(): listings: {listings}")
     errors = []
     if not listings:
         errors.append("No listings to scrape.")
