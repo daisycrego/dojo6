@@ -153,8 +153,8 @@ class WebScraper:
                     if os.environ.get("FIREFOX_BINARY_PATH"):
                         options.binary = os.environ.get("FIREFOX_BINARY_PATH")
                     #options.binary = "/app/vendor/firefox/firefox"
-                    options.user-agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
-		    driver = webdriver.Firefox(options=options, executable_path=executable_path)
+                    options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+                    driver = webdriver.Firefox(options=options, executable_path=executable_path)
 
                     #driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
