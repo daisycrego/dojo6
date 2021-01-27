@@ -41,7 +41,7 @@ application.url_map.strict_slashes = False
 TESTING = False if os.environ.get("TESTING") and os.environ.get("TESTING") == "False" else True
 
 # Determines whether scraper is active or not
-LOCAL = False if os.environ.get("LOCAL") and os.environ.get("LOCAL") == "False" else True
+LOCAL = True if os.environ.get("LOCAL") and os.environ.get("LOCAL") == "True" else False
 
 
 # Set up database based on environment's postgres URL
@@ -1480,7 +1480,7 @@ if LOCAL and (application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=14, minute=7)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=14, minute=15)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
