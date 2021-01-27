@@ -190,6 +190,7 @@ class WebScraper:
                 url_redfin = listing.url_redfin
                 print(f"url_redfin: {url_redfin}")
                 r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                print(r.content)
                 root = lxml.html.fromstring(r.content)
                 print(root)
                 try:
