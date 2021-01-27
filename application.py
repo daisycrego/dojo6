@@ -148,8 +148,11 @@ class WebScraper:
 
                     options = Options()
                     options.headless = True
-                    options.binary = "/app/vendor/firefox/firefox"
-                    driver = webdriver.Firefox(options=options, executable_path="/app/vendor/geckodriver")
+                    executable_path = os.environ.get("GECKODRIVER_PATH")
+                    if os.environ.get("FIREFOX_BINARY_PATH"):
+                        options.binary = os.environ.get("FIREFOX_BINARY_PATH")
+                    #options.binary = "/app/vendor/firefox/firefox"
+                    driver = webdriver.Firefox(options=options, executable_path=executable_path)
 
                     #driver.set_page_load_timeout(30)
                     #driver.implicitly_wait(30)
