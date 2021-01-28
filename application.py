@@ -149,7 +149,7 @@ class WebScraper:
                 url_redfin = listing.url_redfin
                 with application.test_request_context():
                     from flask import request 
-                    request = req
+                    #request = req
                     r = requests.get(url=url_redfin, headers=self.redfin_headers)
                 root = lxml.html.fromstring(r.content)
                 #print(r.content)
@@ -178,7 +178,7 @@ class WebScraper:
                 url_cb = listing.url_cb  
                 with application.test_request_context():
                     from flask import request 
-                    request = req
+                    #request = req
                     cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
                 #with open(f'cb_output_{listing.id}.html', 'w') as f:
@@ -230,7 +230,7 @@ class WebScraper:
                 url_zillow = listing.url_zillow
                 with application.test_request_context():
                     from flask import request 
-                    request = req
+                    #request = req
                     r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
                 #with open(f'zillow_output_{listing.id}.html', 'w') as f:
