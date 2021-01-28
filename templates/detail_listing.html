@@ -76,7 +76,7 @@
     {% else %}
     <div class="alongside-buttons">
         <span class="shift-button-down"><a class="edit-listing-button" href="{{ listing.id }}/edit">Edit Listing</a></span>
-        {% if SCRAPER_ACTIVE %}
+        {% if scraper_active %}
         <form method="get" action="/scrape/{{ listing.id }}/">
             <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
         </form>
