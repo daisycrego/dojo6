@@ -147,7 +147,10 @@ class WebScraper:
             if listing.url_redfin and "redfin.com" in listing.url_redfin:
                 print(f"url_redfin: {url_redfin}")
                 url_redfin = listing.url_redfin
-                r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                with application.test_request_context():
+                    from flask import request 
+                    #request = req
+                    r = requests.get(url=url_redfin, headers=self.redfin_headers)
                 root = lxml.html.fromstring(r.content)
                 #print(r.content)
 
@@ -172,8 +175,11 @@ class WebScraper:
                 final_results["redfin"] = redfin_views
             # cb 
             if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-                url_cb = listing.url_cb 
-                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
+                url_cb = listing.url_cb  
+                with application.test_request_context():
+                    from flask import request 
+                    #request = req
+                    cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
                 #with open(f'cb_output_{listing.id}.html', 'w') as f:
                 #     f.write(str(cb_request.content))
@@ -222,7 +228,10 @@ class WebScraper:
             
             if listing.url_zillow and "zillow.com" in listing.url_zillow:
                 url_zillow = listing.url_zillow
-                r = requests.get(url=url_zillow, headers=self.zillow_headers)
+                with application.test_request_context():
+                    from flask import request 
+                    #request = req
+                    r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
                 #with open(f'zillow_output_{listing.id}.html', 'w') as f:
                 #     f.write(str(cb_request.content))
@@ -1505,7 +1514,7 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=21, minute=34)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="thu", hour=10, minute=10)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
