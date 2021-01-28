@@ -22,7 +22,7 @@ from flask_mail import Mail, Message
 from smtplib import SMTPDataError
 from dotenv import load_dotenv # for working locally, to access the .env file
 import lxml.etree
-import lxml.html
+import lxml.html, lxml.cssselect
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.firefox.options import Options
@@ -1500,7 +1500,7 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=21, minute=3)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="wed", hour=21, minute=6)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
