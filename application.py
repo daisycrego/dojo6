@@ -151,8 +151,8 @@ class WebScraper:
                 root = lxml.html.fromstring(r.content)
                 #print(r.content)
 
-                with open(f'redfin_output_{listing.id}.html', 'w') as f:
-                     f.write(str(r.content))
+                #with open(f'redfin_output_{listing.id}.html', 'w') as f:
+                #     f.write(str(r.content))
                 try:
                     #print("raw val before conversion to int:", end=" ")
                     #print(root.xpath('/html/body/div[1]/div[8]/div[2]/div[17]/section/div/div/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
@@ -175,8 +175,8 @@ class WebScraper:
                 url_cb = listing.url_cb 
                 cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
-                with open(f'cb_output_{listing.id}.html', 'w') as f:
-                     f.write(str(cb_request.content))
+                #with open(f'cb_output_{listing.id}.html', 'w') as f:
+                #     f.write(str(cb_request.content))
                 try:
                     options = Options()
                     options.headless = True
@@ -219,8 +219,8 @@ class WebScraper:
                 url_zillow = listing.url_zillow
                 r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
-                with open(f'zillow_output_{listing.id}.html', 'w') as f:
-                     f.write(str(cb_request.content))
+                #with open(f'zillow_output_{listing.id}.html', 'w') as f:
+                #     f.write(str(cb_request.content))
                 results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
                 try: 
                     zillow_views = int(results[1].text.replace(',',''))
