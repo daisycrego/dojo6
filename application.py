@@ -22,7 +22,7 @@ from flask_mail import Mail, Message
 from smtplib import SMTPDataError
 from dotenv import load_dotenv # for working locally, to access the .env file
 import lxml.etree
-import lxml.html, lxml.cssselect
+import lxml.html
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.firefox.options import Options
