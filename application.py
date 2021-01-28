@@ -161,13 +161,13 @@ class WebScraper:
                     #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
                     #print(f"redfin_views after conversion to: {redfin_views}")
                 except (IndexError,ValueError) as e:
-                    print("Initial xpath select for redfin failed, trying backup css selector")
-                    print(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count'))
-                    try: 
-                        redfin_views = int(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count')[0].text.replace(',',''))
+                    #print("Initial xpath select for redfin failed, trying backup css selector")
+                    #print(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count'))
+                    #try: 
+                    #    redfin_views = int(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count')[0].text.replace(',',''))
                         #activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count
-                    except (IndexError,ValueError) as e:
-                        redfin_views = None
+                    #except (IndexError,ValueError) as e:
+                    redfin_views = None
                 
                 final_results["redfin"] = redfin_views
             # cb 
