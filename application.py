@@ -1514,7 +1514,7 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="thu", hour=9, minute=40)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="thu", hour=9, minute=59)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
