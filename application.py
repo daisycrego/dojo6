@@ -145,44 +145,24 @@ class WebScraper:
         else:
             # redfin 
             if listing.url_redfin and "redfin.com" in listing.url_redfin:
-                print(f"url_redfin: {url_redfin}")
                 url_redfin = listing.url_redfin
-                with application.test_request_context():
-                    from flask import request 
-                    #request = req
-                    r = requests.get(url=url_redfin, headers=self.redfin_headers)
+                r = requests.get(url=url_redfin, headers=self.redfin_headers)
                 root = lxml.html.fromstring(r.content)
-                #print(r.content)
-
-                #with open(f'redfin_output_{listing.id}.html', 'w') as f:
-                #     f.write(str(r.content))
+                with open(f'redfin_output_{listing.id}.html', 'w') as f:
+                     f.write(str(r.content))
                 try:
-                    #print("raw val before conversion to int:", end=" ")
-                    #print(root.xpath('/html/body/div[1]/div[8]/div[2]/div[17]/section/div/div/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]'))
-                    #print(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
                     redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
-                    #redfin_views = int(root.xpath('//span[@data-rf-test-name="activity-count-label"]')[0].text.replace(',',''))
-                    #print(f"redfin_views after conversion to: {redfin_views}")
                 except (IndexError,ValueError) as e:
-                    #print("Initial xpath select for redfin failed, trying backup css selector")
-                    #print(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count'))
-                    #try: 
-                    #    redfin_views = int(root.cssselect('#activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count')[0].text.replace(',',''))
-                        #activity-collapsible > div.sectionContentContainer.expanded > div > div > table > tbody > tr > td:nth-child(1) > div > div.labels > div > span.count
-                    #except (IndexError,ValueError) as e:
                     redfin_views = None
                 
                 final_results["redfin"] = redfin_views
             # cb 
             if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
                 url_cb = listing.url_cb  
-                with application.test_request_context():
-                    from flask import request 
-                    #request = req
-                    cb_request = requests.get(url=url_cb, headers=self.cb_headers)
+                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
                 root = lxml.html.fromstring(cb_request.content)
-                #with open(f'cb_output_{listing.id}.html', 'w') as f:
-                #     f.write(str(cb_request.content))
+                with open(f'cb_output_{listing.id}.html', 'w') as f:
+                     f.write(str(cb_request.content))
                 try:
                     options = Options()
                     local_options = Options()
@@ -191,7 +171,6 @@ class WebScraper:
                     executable_path = os.environ.get("GECKODRIVER_PATH")
                     if os.environ.get("FIREFOX_BINARY_PATH"):
                         options.binary = os.environ.get("FIREFOX_BINARY_PATH")
-                    #options.binary = "/app/vendor/firefox/firefox"
                     options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
                     if executable_path:
                         driver = webdriver.Firefox(options=options, executable_path=executable_path)
@@ -205,7 +184,6 @@ class WebScraper:
                     while attempts < 100: 
                         try: 
                             driver.get(url_cb)
-                            
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
@@ -228,13 +206,10 @@ class WebScraper:
             
             if listing.url_zillow and "zillow.com" in listing.url_zillow:
                 url_zillow = listing.url_zillow
-                with application.test_request_context():
-                    from flask import request 
-                    #request = req
-                    r = requests.get(url=url_zillow, headers=self.zillow_headers)
+                r = requests.get(url=url_zillow, headers=self.zillow_headers)
                 root = lxml.html.fromstring(r.content)
-                #with open(f'zillow_output_{listing.id}.html', 'w') as f:
-                #     f.write(str(cb_request.content))
+                with open(f'zillow_output_{listing.id}.html', 'w') as f:
+                     f.write(str(cb_request.content))
                 results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
                 try: 
                     zillow_views = int(results[1].text.replace(',',''))

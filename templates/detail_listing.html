@@ -76,9 +76,11 @@
     {% else %}
     <div class="alongside-buttons">
         <span class="shift-button-down"><a class="edit-listing-button" href="{{ listing.id }}/edit">Edit Listing</a></span>
+        {% if SCRAPER_ACTIVE %}
         <form method="get" action="/scrape/{{ listing.id }}/">
             <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
         </form>
+        {% endif %}
         {% if listing.status.name == "deleted" %}
         <form method="get" action="/listing/{{ listing.id }}/recover">
             <button type="submit" value="Recover Deleted Listing" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Listing </button>
