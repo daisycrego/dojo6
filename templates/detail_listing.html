@@ -124,7 +124,7 @@
 
             {% for views in listing_views %} 
             <tr>
-                <td class="padding"><p>{{ views.date.strftime('%m-%d-%Y') }}</p></td>
+                <td class="padding"><p>{{ views.date | datetimefilter('%m-%d-%Y')  }}</p></td>
                 <td class="padding"><p>{{ views.views_zillow }}</p></td>
                 <td class="padding"><p>{{ views.views_redfin }}</p></td>
                 <td class="padding"><p>{{ views.views_cb }}</p></td>

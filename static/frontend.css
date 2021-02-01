@@ -432,12 +432,10 @@ span.search-container > form {
 
 .table-container {
     display: grid;
-    justify-content: space-between;
     padding-left: 0px;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
     overflow-x: auto;
-    margin-right: 60px;
+    margin-right: 0px;
     margin-left: 0px;
 }
 

@@ -27,7 +27,14 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+import pytz
+from pytz import timezone
 
+
+def datetimefilter(value, format="%I:%M %p"):
+    eastern = timezone('US/Eastern')
+    value = value.astimezone(eastern)
+    return value.strftime(format)
 
 load_dotenv() # load the env vars from local .env
 
@@ -59,6 +66,8 @@ application.config["MAIL_PASSWORD"] = os.environ.get("PRIMARY_EMAIL_PASSWORD")
 application.config['MAIL_USE_TLS'] = False
 application.config['MAIL_USE_SSL'] = True
 mail = Mail(application)
+
+application.jinja_env.filters['datetimefilter'] = datetimefilter
 
 db = SQLAlchemy(application)
 
@@ -143,26 +152,14 @@ class WebScraper:
             final_results["redfin"] = random.randint(0,10)
             final_results["cb"] = random.randint(0,10)
         else:
-            # redfin 
+            
+            # redfin - selenium
             if listing.url_redfin and "redfin.com" in listing.url_redfin:
                 url_redfin = listing.url_redfin
                 r = requests.get(url=url_redfin, headers=self.redfin_headers)
                 root = lxml.html.fromstring(r.content)
                 with open(f'redfin_output_{listing.id}.html', 'w') as f:
                      f.write(str(r.content))
-                try:
-                    redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
-                except (IndexError,ValueError) as e:
-                    redfin_views = None
-                
-                final_results["redfin"] = redfin_views
-            # cb 
-            if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
-                url_cb = listing.url_cb  
-                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
-                root = lxml.html.fromstring(cb_request.content)
-                with open(f'cb_output_{listing.id}.html', 'w') as f:
-                     f.write(str(cb_request.content))
                 try:
                     options = Options()
                     local_options = Options()
@@ -183,20 +180,110 @@ class WebScraper:
                     attempts = 0
                     while attempts < 100: 
                         try: 
+                            driver.get(url_redfin)
+                            redfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
+                            elem_parent = driver.find_element_by_xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')
+                            views = elem_parent.get_attribute('innerText').replace(',','')
+                            try:
+                                redfin_views = int(views)
+                            except ValueError as e:
+                                redfin_views = None
+                            final_results["redfin"] = redfin_views
+                            break
+                        except NoSuchElementException:
+                            attempts += 1
+                    
+                    driver.quit()
+                except (WebDriverException, FileNotFoundError) as e:
+                    flash(f"Error while scraping Redfin values: {e}\n Aborting the scraping run.")
+                    final_results["redfin"] = None
+                    pass
+
+            # zillow - selenium
+            if listing.url_zillow and "zillow.com" in listing.url_zillow:
+                url_zillow = listing.url_zillow
+                r = requests.get(url=url_zillow, headers=self.zillow_headers)
+                root = lxml.html.fromstring(r.content)
+                with open(f'zillow_output_{listing.id}.html', 'w') as f:
+                     f.write(str(r.content))
+                try:
+                    options = Options()
+                    options.headless = True
+                    executable_path = os.environ.get("GECKODRIVER_PATH")
+                    if os.environ.get("FIREFOX_BINARY_PATH"):
+                        options.binary = os.environ.get("FIREFOX_BINARY_PATH")
+                    options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+                    if executable_path:
+                        driver = webdriver.Firefox(options=options, executable_path=executable_path)
+                    else:
+                        driver = webdriver.Firefox(options=local_options)
+
+                    driver.set_page_load_timeout(30)
+                    #driver.implicitly_wait(30)
+                     
+                    attempts = 0
+                    while attempts < 100: 
+                        try: 
+                            driver.get(url_zillow)
+                            zillow_views = int()
+                            #edfin_views = int(root.xpath('//*[@id="activity-collapsible"]/div[2]/div/div/table/tbody/tr/td[1]/div/div[2]/div/span[1]')[0].text.replace(',',''))
+                            results = driver.find_elements_by_xpath('//button[text()="Views"]/parent::div/parent::div/div')
+                            views = results[1].text.replace(',','') if len(results) > 1 else ""
+                            try:
+                                zillow_views = int(views)
+                            except ValueError as e:
+                                zillow_views = None
+                            final_results["zillow"] = zillow_views
+                            break
+                        except NoSuchElementException:
+                            attempts += 1
+                    
+                    driver.quit()
+                except (WebDriverException, FileNotFoundError) as e:
+                    flash(f"Error while scraping Zillow values: {e}\n Aborting the scraping run.")
+                    final_results["redfin"] = None
+                    pass
+
+            # cb 
+            if listing.url_cb and "coldwellbankerhomes.com" in listing.url_cb:
+                url_cb = listing.url_cb  
+                cb_request = requests.get(url=url_cb, headers=self.cb_headers)
+                root = lxml.html.fromstring(cb_request.content)
+                with open(f'cb_output_{listing.id}.html', 'w') as f:
+                     f.write(str(cb_request.content))
+                try:
+                    options = Options()
+                    options.headless = True
+                    executable_path = os.environ.get("GECKODRIVER_PATH")
+                    if os.environ.get("FIREFOX_BINARY_PATH"):
+                        options.binary = os.environ.get("FIREFOX_BINARY_PATH")
+                    options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+                    if executable_path:
+                        driver = webdriver.Firefox(options=options, executable_path=executable_path)
+                    else:
+                        driver = webdriver.Firefox(options=local_options)
+
+                    driver.set_page_load_timeout(30)
+                    #driver.implicitly_wait(30)
+                     
+                    attempts = 0
+                    while attempts < 100: 
+                        try: 
                             driver.get(url_cb)
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
+                            #results = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             views = elem_parent.get_attribute('innerText').split(" ")[1]
-                            cb_views = int(views.replace(',',''))
+                            #views = results.text.split(" ")[1]
+                            try:
+                                cb_views = int(views.replace(',',''))
+                            except ValueError as e:
+                                cb_views = None
                             final_results["cb"] = cb_views
                             break
                         except NoSuchElementException:
                             attempts += 1
                     
-                    if not final_results["cb"]:
-                        print(f"url_cb: {url_cb}")
-                        print(driver.page_source)
-
                     driver.quit()
                 except (WebDriverException, FileNotFoundError) as e:
                     flash(f"Error while scraping CB values: {e}\n Aborting the scraping run.")
@@ -204,21 +291,7 @@ class WebScraper:
                     
                     return redirect(request.referrer)
             
-            if listing.url_zillow and "zillow.com" in listing.url_zillow:
-                url_zillow = listing.url_zillow
-                r = requests.get(url=url_zillow, headers=self.zillow_headers)
-                root = lxml.html.fromstring(r.content)
-                with open(f'zillow_output_{listing.id}.html', 'w') as f:
-                     f.write(str(cb_request.content))
-                results = root.xpath('//button[text()="Views"]/parent::div/parent::div/div')
-                try: 
-                    zillow_views = int(results[1].text.replace(',',''))
-                except (IndexError,ValueError) as e:
-                    zillow_views = None
-                if not zillow_views: 
-                    print(f"url_zillow: {url_zillow}")
-                    print(r.content)
-                final_results["zillow"] = zillow_views
+            
                     
         print(f"final_results: {final_results}")
                     
@@ -242,7 +315,7 @@ class WebScraper:
                 existing_views.views_cb = final_results["cb"]
                 changed = True 
             if changed:
-                existing_views.date = datetime.datetime.now()
+                existing_views.date = datetime.datetime.now('EST')
             db.session.add(existing_views)
             db.session.commit()
 
@@ -952,7 +1025,7 @@ def recover_listing(id=None):
 @login_required
 def list_logs():
     logs = DataCollection.query.order_by(desc(DataCollection.date)).all()
-    return render_template("list_logs.html", logs=logs)
+    return render_template("list_logs.html", logs=logs, scraper_active=LOCAL)
 
 ## Logs - Detail View
 @application.route('/log/')
@@ -975,11 +1048,44 @@ def plot_png(id=None):
     y_zillow = []
     y_redfin = []
     y_cb = []
+
+    est = pytz.timezone('US/Eastern')
+    utc = pytz.utc
+    fmt = '%b-wk#%W-%y'
+    day_format = '%d-%m-%Y'
+    graph_format = "%b-%d '%y"
+    weeks = dict()
+
     for view in views: 
-        x.append(view.date.strftime("%m/%d/%Y"))
-        y_zillow.append(view.views_zillow)
-        y_redfin.append(view.views_redfin)
-        y_cb.append(view.views_cb)
+        # convert date to the Friday of this week and then format it like a week
+        date_as_week = view.date.astimezone(est).strftime(fmt)
+        date_as_day = view.date.astimezone(est).strftime(day_format)
+        
+        if date_as_week in weeks.keys():
+            if weeks[date_as_week]:
+                if view.views_zillow and not weeks[date_as_week].views_zillow:
+                    weeks[date_as_week].views_zillow = view.views_zillow
+                elif view.views_zillow and view.views_zillow > weeks[date_as_week].views_zillow:
+                    weeks[date_as_week].views_zillow = view.views_zillow
+                if view.views_redfin and not weeks[date_as_week].views_redfin:
+                    weeks[date_as_week].views_redfin = view.views_redfin
+                elif view.views_redfin and view.views_redfin > weeks[date_as_week].views_redfin:
+                    weeks[date_as_week].views_redfin = view.views_redfin
+                if view.views_cb and not weeks[date_as_week].views_cb:
+                    weeks[date_as_week].views_cb = view.views_cb
+                elif view.views_cb and view.views_cb > weeks[date_as_week].views_cb:
+                    weeks[date_as_week].views_cb = view.views_cb
+                if view.date > weeks[date_as_week].date:
+                    weeks[date_as_week].date = view.date
+        else:
+            weeks[date_as_week] = view
+        
+    
+    for week in sorted(weeks.keys()):
+        y_zillow.append(weeks[week].views_zillow)
+        y_redfin.append(weeks[week].views_redfin)
+        y_cb.append(weeks[week].views_cb)
+        x.append(weeks[week].date.astimezone(est).strftime(graph_format))
 
     dataObject = {
         "x": x,
@@ -1485,11 +1591,11 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
     #scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
     
     # Every Friday at 5:30 pm 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=30)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=35)
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="thu", hour=10, minute=10)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=22, minute=24)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
