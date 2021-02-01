@@ -273,7 +273,7 @@ class WebScraper:
                             #elem = driver.find_element_by_css_selector('body > section.content.single-photo-carousel > div:nth-child(2) > div.layout-main.property-details > div:nth-child(5) > div.toggle-body > div.details-block.details-block-full-property-details > div.col-1 > ul > li[-1]')
                             #results = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
                             elem_parent = driver.find_element_by_xpath("//*[contains(text(),'Viewed:')]/parent::*")
-                            views = elem_parent.get_attribute('innerText').split(" ")[1]
+                            views = elem_parent.text.split(" ")[1]
                             #views = results.text.split(" ")[1]
                             try:
                                 cb_views = int(views.replace(',',''))
@@ -315,7 +315,7 @@ class WebScraper:
                 existing_views.views_cb = final_results["cb"]
                 changed = True 
             if changed:
-                existing_views.date = datetime.datetime.now('EST')
+                existing_views.date = datetime.datetime.now()
             db.session.add(existing_views)
             db.session.commit()
 
@@ -1051,14 +1051,14 @@ def plot_png(id=None):
 
     est = pytz.timezone('US/Eastern')
     utc = pytz.utc
-    fmt = '%b-wk#%W-%y'
+    week_format = '%W-%y'
     day_format = '%d-%m-%Y'
     graph_format = "%b-%d '%y"
     weeks = dict()
 
     for view in views: 
         # convert date to the Friday of this week and then format it like a week
-        date_as_week = view.date.astimezone(est).strftime(fmt)
+        date_as_week = view.date.astimezone(est).strftime(week_format)
         date_as_day = view.date.astimezone(est).strftime(day_format)
         
         if date_as_week in weeks.keys():
@@ -1079,7 +1079,6 @@ def plot_png(id=None):
                     weeks[date_as_week].date = view.date
         else:
             weeks[date_as_week] = view
-        
     
     for week in sorted(weeks.keys()):
         y_zillow.append(weeks[week].views_zillow)

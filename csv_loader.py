@@ -15,7 +15,7 @@ class CSVLoader:
             # detect agents
             agents = set()
             for row in csv_reader:
-                agent_name = row["Agent"]
+                agent_name = row["Agent"].strip()
                 agent = None
                 if not agent_name in agents:
                     agents.add(agent_name)
