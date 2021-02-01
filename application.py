@@ -1590,12 +1590,14 @@ if LOCAL or ((application.debug or os.environ.get("FLASK_ENV") == "development")
 
     #scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="mon-fri", hour=17, minute=30)
     
-    # Every Friday at 5:30 pm 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=35)
+    # Every Friday at 5:30 pm, 7:30pm, and 9:30pm 
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=17, minute=37)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=19, minute=37)
+    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="fri", hour=21, minute=37)
     
     # TESTING 
 
-    scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=22, minute=24)
+    #scheduler.add_job(scrape_listings_weekly, 'cron', day_of_week="sat", hour=22, minute=24)
 
     # Every minute - TEST
     #scheduler.add_job(scrape_listings_weekly,'cron',second="*")
