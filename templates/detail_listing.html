@@ -17,16 +17,63 @@
     
     <h2>{% block title %} {{ listing.address }} {% endblock %}</h2>
     <br>
-    
-    {% if plot %}
+
+    <div class="detail-listing-container">
+        {% if plot %}
         <img src="/matplot-as-image-{{listing.id}}.png"
             alt="Property views"
             height="500"
             width="700"
         >
-    {% endif %}
+        {% endif %}
+
+        {% if listing_views %}
+            <table class="views-table">
+                <tr>
+                    <th>Date</th>
+                    <th>Zillow Views</th>
+                    <th>Redfin Views</th>
+                    <th>CB Views</th>
+                    <th>Edit</th>
+                </tr>
+
+
+                
+
+                {% for views in listing_views %} 
+                <tr>
+                    <form id="update-views_{{views.id}}" method="POST" action="/views/{{ views.id }}/edit">     
+                        <input type="hidden" name="z" id="z_{{views.id}}" value="{{ views.views_zillow }}"/>
+                        <input type="hidden" name="r" id="r_{{views.id}}" value="{{ views.views_redfin }}"/>
+                        <input type="hidden" name="c" id="c_{{views.id}}" value="{{ views.views_cb }}"/>
+                        <td class="padding"><p>{{ views.date | datetimefilter('%m-%d-%Y')  }}</p></td>
+                        <td class="padding">
+                            <p class="{{views.id}}" name="listing-views" id="z_input_{{views.id}}" contenteditable="false">{{ views.views_zillow }}</p>
+                        </td>
+                        <td class="padding">
+                            <p class="{{views.id}}" name="listing-views" id="r_input_{{views.id}}" contenteditable="false">{{ views.views_redfin }}</p>
+                        </td>
+                        <td class="padding">
+                            <p class="{{views.id}}" name="listing-views" id="c_input_{{views.id}}" contenteditable="false">{{ views.views_cb }}</p>
+                        </td>
+                        <td class="padding">
+                            <a name="expose-edits-button" id="{{ views.id }}" class="glyphicon glyphicon-pencil" href="javascript:{}" onclick="makeContentEditable(this);"></a> 
+                            <a href="/listing/{{listing.id}}" name="hide-edits-button" id="hide_{{ views.id }}" class="glyphicon glyphicon-pencil hidden icon-selected"></a> 
+                            <a id="edit_{{ views.id }}" href="javascript:{}" onclick="submitForm('{{views.id}}');" class="glyphicon glyphicon-ok hidden value-edit-button"></a>
+                            <button name="value-edit-button" id="submit_{{ views.id }}" class="hidden" form="update-views_{{views.id}}" type="submit"></button>
+                        </td>
+                    </form>
+                </tr>
+                {% endfor %}
+            <table>
+        {% endif %}
+    </div>
     
+    <div>
+
+    </div>
     
+    <br>
     
     <div class="padded-container">
         {% if editing %}
@@ -75,7 +122,6 @@
     
     {% else %}
     <div class="alongside-buttons">
-        <span class="shift-button-down"><a class="edit-listing-button" href="{{ listing.id }}/edit">Edit Listing</a></span>
         {% if scraper_active %}
         <form method="get" action="/scrape/{{ listing.id }}/">
             <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
@@ -96,6 +142,7 @@
             <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
         </form>
         {% endif %}
+        <span class="shift-button-down"><a class="edit-listing-button" href="{{ listing.id }}/edit">Edit Listing</a></span>
     </div>
     
     
@@ -112,27 +159,7 @@
     
     
     <br>
-    {% if listing_views %}
-    <div>
-        <table class="views-table">
-            <tr>
-                <th>Date</th>
-                <th>Zillow Views</th>
-                <th>Redfin Views</th>
-                <th>CB Views</th>
-            </tr>
-
-            {% for views in listing_views %} 
-            <tr>
-                <td class="padding"><p>{{ views.date | datetimefilter('%m-%d-%Y')  }}</p></td>
-                <td class="padding"><p>{{ views.views_zillow }}</p></td>
-                <td class="padding"><p>{{ views.views_redfin }}</p></td>
-                <td class="padding"><p>{{ views.views_cb }}</p></td>
-            </tr>
-            {% endfor %}
-        <table>
-    </div>
-    {% endif %}
+    
 
     <br>
 

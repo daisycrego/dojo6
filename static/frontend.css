@@ -601,7 +601,7 @@ button.listing-icon, a.listing-icon {
     cursor: pointer;
     font-size: 1.2em;
     text-align: center;
-
+    white-space: nowrap;
 }
 
 
@@ -690,3 +690,37 @@ html {
     padding-right: 0em;
 }
 
+.detail-listing-container {
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.input {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+    background-color: #3b5260;
+    background-color: -moz-field;
+    border: 1px solid #2F323D;
+    box-shadow: 1px 1px 1px 0 #2F323D inset;  
+    font: -moz-field;
+    font: -webkit-small-control;
+    margin-top: 5px;
+    padding: 2px 3px;
+    color: #dabd85;
+    font-size: medium;
+}
+
+.glyphicon-pencil {
+    padding: 0.5em;
+}
+
+.glyphicon-pencil.icon-selected {
+    color:#3b5260;
+}
+
+.value-edit-button {
+    color:#d6b0b1;
+    background-color: #393d4a;
+    border: none;
+    padding: 0.5em;
+}
