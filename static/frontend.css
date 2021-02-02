@@ -87,6 +87,14 @@ input:focus {
 
 }
 
+.input-big {
+    background-color: #393D4A;
+    color: #d6b0b1;
+    font-size: 1.5em;
+    width:2em;
+
+}
+
 /* Shift right in the nav bar */
 .shift-right {
     float: right;

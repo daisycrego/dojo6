@@ -221,7 +221,11 @@
                     </th>
                 </tr>
                 {% for listing in listings %}
-                    
+                    <form id="update-views_{{listing.id}}" method="POST" action="/views/{{ listing.id }}/edit-latest"> 
+                        <input type="hidden" name="z" id="z_{{listing.id}}" value="{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_zillow }}{% else %} - {% endif %}{% endif %}"/>
+                        <input type="hidden" name="r" id="r_{{listing.id}}" value="{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% else %} - {% endif %}{% endif %}"/>
+                        <input type="hidden" name="c" id="c_{{listing.id}}" value="{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_cb }}{% else %} - {% endif %}{% endif %}"/>
+                    </form>
                     
                     <tr>
                         <td class="nowrap address-col"> <a title="Go to Listing Details and Property View Graphs" href="/listing/{{listing.id}}">{{listing.address}}</a> </td>
@@ -231,20 +235,26 @@
                         <td>
                             {% if listing %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_zillow }}{% else %} - {% endif %}{% endif %} </p>
+                                    <p class="big-font recent-listing-views" name="recent-listing-views" id="latest_z_{{ listing.id }}">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ format_views(latest_listing_views[listing.id].views_zillow) }}{% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_z_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        <a id="cancel_z_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_z_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span> 
                             {% else %} 
                                 <span class="above-below">
-                                    <p class="big-font">-</p>
+                                    <p class="big-font recent-listing-views" name="recent-listing-views" id="latest_z_{{ listing.id }}">-</p>
                                     <p class="shift-end">
                                         <a title="View this listing on Zillow" target="_blank" href={{listing.url_zillow}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_z_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        <a id="cancel_z_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_z_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span>
                             {% endif %}
@@ -252,20 +262,28 @@
                         <td>
                             {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% else %} - {% endif %}{% endif %} </p>
+                                    <p class="big-font recent-listing-views" name="recent-listing-views" id="latest_r_{{ listing.id }}">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_redfin }}{% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_r_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        
+                                        <a id="cancel_r_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_r_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span> 
                             {% else %} 
                                 <span class="above-below">
-                                    <p class="big-font">-</p>
+                                    <p class="big-font recent-listing-views" name="recent-listing-views" id="latest_r_{{ listing.id }}">-</p>
                                     <p class="shift-end">
                                         <a title="View this listing on Redfin" target="_blank" href={{listing.url_redfin}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_r_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        
+                                        <a id="cancel_r_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_r_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span>
                             {% endif %}
@@ -273,20 +291,32 @@
                         <td>
                             {% if latest_listing_views is defined and latest_listing_views[listing.id] %} 
                                 <span class="above-below">
-                                    <p class="big-font">{% if latest_listing_views is defined and latest_listing_views %}{% if listing.id in latest_listing_views %}{{ latest_listing_views[listing.id].views_cb }}{% else %} - {% endif %}{% endif %} </p>
+                                    <p class="big-font recent-listing-views" name="recent-listing-views" id="latest_c_{{ listing.id }}">
+                                        {% if latest_listing_views is defined and latest_listing_views %}
+                                        {% if listing.id in latest_listing_views %}
+                                        {{ latest_listing_views[listing.id].views_cb }}
+                                        {% else %} - {% endif %}{% endif %} </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_c_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        
+                                        <a id="cancel_c_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_c_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span> 
                             {% else %} 
                                 <span class="above-below">
-                                    <p class="big-font">-</p>
+                                    <p class="big-font recent-listing-views" id="latest_c_{{ listing.id }}" name="recent-listing-views"> - </p>
                                     <p class="shift-end">
                                         <a title="View this listing on Coldwell Banker" target="_blank" href={{listing.url_cb}}>
                                             <span class="glyphicon glyphicon-share"></span>
                                         </a>
+                                        <a id="edit_c_{{ listing.id }}" name="edit-recent-value" title="Edit value" class="glyphicon glyphicon-edit"></a>
+                                        
+                                        <a id="cancel_c_{{ listing.id }}" href="." name="cancel-recent-value" title="Edit value" class="glyphicon glyphicon-remove hidden"></a>
+                                        <a id="save_c_{{ listing.id }}" name="save-recent-value" title="Edit value" class="glyphicon glyphicon-ok hidden"></a>
                                     </p>
                                 </span>
                             {% endif %}

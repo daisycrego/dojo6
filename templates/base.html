@@ -12,6 +12,9 @@
 {% macro sentence_case(text) %}
     {{ text[0]|upper}}{{text[1:] }}
 {% endmacro %}
+{% macro format_views(text) %}
+    {% if not text or text == "None" %} - {% else %} {{ text }} {% endif %}
+{% endmacro %}
 
 <!doctype html>
 <html>

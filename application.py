@@ -869,6 +869,60 @@ def edit_views(id=None, prev_data=None):
     db.session.commit()
     flash("Property views updated successfully.", "success")
     return redirect(request.referrer)
+
+@application.route('/views/<id>/edit-latest', methods=["POST"])
+@login_required
+def edit_latest_views(id=None, prev_data=None):
+    if request.args.get("prev_data"):
+        prev_data = ast.literal_eval(request.args.get("prev_data").rstrip('/'))    
+    zillow_views = request.form.get("z")
+    redfin_views = request.form.get("r")
+    cb_views = request.form.get("c")
+
+    views = ListingViews.query.filter_by(listing_id=id).order_by(desc(ListingViews.date)).first()
+    if not views:
+        flash("Listing views not found.", "error")
+        return redirect(request.referrer)
+    try:
+        zillow_views = int(zillow_views) if zillow_views else None
+    except ValueError: 
+        flash("Zillow value is not a number.", "error")
+        return redirect(request.referrer)
+    
+    try: 
+        redfin_views = int(redfin_views) if redfin_views else None
+    except ValueError: 
+        flash("Redfin value is not a number.", "error")
+        return redirect(request.referrer)
+
+    try: 
+        cb_views = int(cb_views) if cb_views else None
+    except ValueError: 
+        flash("Coldwell Banker value is not a number.", "error")
+        return redirect(request.referrer)
+
+    if zillow_views and (zillow_views < 0):
+        flash("Zillow value is negative.", "error")
+        return redirect(request.referrer)
+    
+    if redfin_views and (redfin_views < 0):
+        flash("Redfin value is negative.", "error")
+        return redirect(request.referrer)
+
+    if cb_views and (cb_views < 0):
+        flash("Coldwell Banker value is negative.", "error")
+        return redirect(request.referrer)
+    
+    if zillow_views == views.views_zillow and redfin_views == views.views_redfin and cb_views == views.views_cb:
+        flash("No changes detected.", "error")
+        return redirect(request.referrer)
+    views.views_zillow = zillow_views
+    views.views_redfin = redfin_views
+    views.views_cb = cb_views
+    db.session.add(views)
+    db.session.commit()
+    flash("Property views updated successfully.", "success")
+    return redirect(request.referrer)
    
 ## AGENT ROUTES
 ## Agents - List  
