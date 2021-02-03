@@ -136,7 +136,7 @@ li.nav a.nav:hover {
 .listing-form {
     display: flex;
     flex-direction: column;
-    width:30%;
+    /*width:30%;*/
 }
 
 .listing-form > input {
