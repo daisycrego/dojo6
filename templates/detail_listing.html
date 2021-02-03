@@ -121,28 +121,42 @@
     </div>
     
     {% else %}
+    {% if scraper_active %}
+    <form id="scrape-form" method="get" action="/scrape/{{ listing.id }}/">
+    </form>
+    {% endif %}
+    {% if listing.status.name == "deleted" %}
+    <form id="recover-form" method="get" action="/listing/{{ listing.id }}/recover">
+    </form>
+    {% endif %}
+    {% if listing.status.name == "active" %}
+    <form id="archive-form" method="get" action="/listing/{{ listing.id }}/archive">
+    </form>
+    {% endif %}
+    {% if listing.status.name == "active" or listing.status.name == "archived" %}
+    <form id="delete-form" method="get" action="/listing/{{ listing.id }}/delete">
+    </form>
+    {% endif %}
+
+    
     <div class="alongside-buttons">
         {% if scraper_active %}
-        <form method="get" action="/scrape/{{ listing.id }}/">
-            <button type="submit" value="Collect Listing Views" onclick="return confirm('Are you sure you want to do that?');"> Collect Listing Views </button>
-        </form>
+        
+        <a class="button" href="javascript:{}" onclick="confirm('Are you sure you want to do that?'); document.getElementById('scrape-form').submit();"><i class="glyphicon glyphicon-play"></i>&nbspCollect Views</a>
         {% endif %}
         {% if listing.status.name == "deleted" %}
-        <form method="get" action="/listing/{{ listing.id }}/recover">
-            <button type="submit" value="Recover Deleted Listing" onclick="return confirm('Are you sure you want to do that?');"> Recover Deleted Listing </button>
-        </form>
+        
+        <a class="button" href="javascript:{}" onclick="confirm('Are you sure you want to do that?'); document.getElementById('recover-form').submit();"><i class="glyphicon glyphicon-refresh"></i>&nbspRecover Listing</a>
         {% endif %}
         {% if listing.status.name == "active" %}
-        <form method="get" action="/listing/{{ listing.id }}/archive">
-            <button type="submit" value="Archive Listing" onclick="return confirm('Are you sure you want to do that?');"> Archive Listing </button>
-        </form>
+        
+        <a class="button" href="javascript:{}" onclick="confirm('Are you sure you want to do that?'); document.getElementById('archive-form').submit();"><i class="glyphicon glyphicon-folder-open"></i>&nbspArchive Listing</a>
         {% endif %}
         {% if listing.status.name == "active" or listing.status.name == "archived" %}
-        <form method="get" action="/listing/{{ listing.id }}/delete">
-            <button type="submit" value="Delete Listing" onclick="return confirm('Are you sure you want to do that?');"> Delete Listing </button>
-        </form>
+        
+        <a class="button" href="javascript:{}" onclick="confirm('Are you sure you want to do that?'); document.getElementById('delete-form').submit();"><i class="glyphicon glyphicon-trash"></i>&nbspDelete Listing</a>
         {% endif %}
-        <a class="button" href="{{ listing.id }}/edit">Edit Listing</a>
+        <a class="button" href="{{ listing.id }}/edit"><i class="glyphicon glyphicon-edit"></i>&nbspEdit Listing</a>
     </div>
     
     
