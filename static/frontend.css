@@ -259,7 +259,7 @@ with class alongside one another (left to right)*/
 .alongside-buttons {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: baseline;
     justify-content: stretch;
 }
 
@@ -603,7 +603,8 @@ button.listing-icon, a.listing-icon {
 .edit-listing-button {
     background-color: /*#6dda89*/#00222d;
     color: /*#BEA386*/#d6b0b1;
-    padding: 1em 1.5em;
+    /*padding: 1em 1.5em;*/
+    padding: 0.5em 1em;
     text-decoration: none;
     border: 2px solid #4e4f5f;
     cursor: pointer;
