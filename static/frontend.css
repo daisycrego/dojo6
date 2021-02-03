@@ -355,7 +355,7 @@ button {
 a.button {
     background-color: /*#345d66*/#00222d;
     color: #d6b0b1;
-    /*padding: 1em 1.5em;*/
+    padding: 1em 1.5em;
     text-decoration: none;
     border: 2px solid#4e4f5f;
     cursor: pointer;
